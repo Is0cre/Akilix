@@ -16,25 +16,40 @@ import (
 const Schema = "pensuse.invocation.v1"
 
 type Record struct {
-	Schema        string    `json:"schema"`
-	ID            string    `json:"invocation_id"`
-	WorkbookID    string    `json:"workbook_id"`
-	Started       time.Time `json:"started"`
-	Ended         time.Time `json:"ended"`
-	Executor      string    `json:"executor"`
-	Executable    string    `json:"executable"`
-	Arguments     []string  `json:"arguments"`
-	ExitCode      int       `json:"exit_code"`
-	Status        string    `json:"status"`
-	Stdout        string    `json:"stdout_artifact"`
-	Stderr        string    `json:"stderr_artifact"`
-	ScopeResult   string    `json:"scope_result,omitempty"`
-	ScopeOverride bool      `json:"scope_override,omitempty"`
+	Schema          string    `json:"schema"`
+	ID              string    `json:"invocation_id"`
+	WorkbookID      string    `json:"workbook_id"`
+	Started         time.Time `json:"started"`
+	Ended           time.Time `json:"ended"`
+	Executor        string    `json:"executor"`
+	Executable      string    `json:"executable"`
+	Arguments       []string  `json:"arguments"`
+	ExitCode        int       `json:"exit_code"`
+	Status          string    `json:"status"`
+	Stdout          string    `json:"stdout_artifact"`
+	Stderr          string    `json:"stderr_artifact"`
+	ScopeResult     string    `json:"scope_result,omitempty"`
+	ScopeOverride   bool      `json:"scope_override,omitempty"`
+	ContainerImage  string    `json:"container_image,omitempty"`
+	ContainerDigest string    `json:"container_digest,omitempty"`
 }
 
 type Options struct {
 	ScopeResult   string
 	ScopeOverride bool
+}
+
+func (r Record) Validate() error {
+	if r.Schema != Schema || r.ID == "" || r.WorkbookID == "" || len(r.Arguments) == 0 {
+		return fmt.Errorf("invalid invocation record")
+	}
+	if r.Ended.Before(r.Started) {
+		return fmt.Errorf("invocation ended before it started")
+	}
+	if r.Executor == "container" && (r.ContainerImage == "" || !strings.HasPrefix(r.ContainerDigest, "sha256:") || len(r.ContainerDigest) != len("sha256:")+64) {
+		return fmt.Errorf("container invocation requires immutable image digest")
+	}
+	return nil
 }
 
 func List(workbookRoot string) ([]Record, error) {
@@ -108,6 +123,9 @@ func RunWithOptions(ctx context.Context, workbookRoot, workbookID string, args [
 		}
 	}
 	r := Record{Schema: Schema, ID: id, WorkbookID: workbookID, Started: start, Ended: end, Executor: "native", Executable: executable, Arguments: append([]string(nil), args...), ExitCode: exitCode, Status: status, Stdout: filepath.ToSlash(filepath.Join("tool-output", id+".stdout")), Stderr: filepath.ToSlash(filepath.Join("tool-output", id+".stderr")), ScopeResult: options.ScopeResult, ScopeOverride: options.ScopeOverride}
+	if err := r.Validate(); err != nil {
+		return Record{}, err
+	}
 	b, err := json.Marshal(r)
 	if err != nil {
 		return Record{}, err
