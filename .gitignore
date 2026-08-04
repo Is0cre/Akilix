@@ -1,0 +1,12 @@
+# Local build outputs
+/pensuse
+/build/
+/pensuse.zip
+
+# Go caches and local workspace state
+/.cache/
+/tmp/
+
+# Editor and OS files
+.DS_Store
+*.swp
