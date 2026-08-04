@@ -28,6 +28,13 @@ type Record struct {
 	Verification   string    `json:"verification,omitempty"`
 }
 
+func (r Record) Validate() error {
+	if r.Schema != Schema || r.ID == "" || r.Filename == "" || r.Size < 0 || len(r.SHA256) != 64 || r.Status == "" {
+		return fmt.Errorf("invalid evidence record")
+	}
+	return nil
+}
+
 func Import(workbookRoot, source string, now time.Time) (Record, error) {
 	info, err := os.Lstat(source)
 	if err != nil {
@@ -121,6 +128,9 @@ func Verify(workbookRoot, id string) (bool, Record, error) {
 	if err := json.Unmarshal(b, &r); err != nil {
 		return false, Record{}, err
 	}
+	if err := r.Validate(); err != nil {
+		return false, Record{}, err
+	}
 	f, err := os.Open(filepath.Join(workbookRoot, "evidence", "original", r.Filename))
 	if err != nil {
 		return false, r, err
@@ -167,6 +177,9 @@ func List(workbookRoot string) ([]Record, error) {
 		}
 		var r Record
 		if err := json.Unmarshal(b, &r); err != nil {
+			return nil, err
+		}
+		if err := r.Validate(); err != nil {
 			return nil, err
 		}
 		out = append(out, r)
