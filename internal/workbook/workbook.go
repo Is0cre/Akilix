@@ -22,6 +22,13 @@ type Metadata struct {
 	Status  string
 }
 
+func (m Metadata) Validate() error {
+	if m.Schema != Schema || m.ID == "" || m.Name == "" || m.Created.IsZero() || (m.Status != "open" && m.Status != "closed") {
+		return fmt.Errorf("invalid workbook metadata")
+	}
+	return nil
+}
+
 func Create(root, name string, now time.Time) (Metadata, error) {
 	if err := validName(name); err != nil {
 		return Metadata{}, err
@@ -188,8 +195,8 @@ func parse(s string) (Metadata, error) {
 			m.Status = p[1]
 		}
 	}
-	if m.Schema != Schema || m.ID == "" || m.Name == "" || m.Created.IsZero() {
-		return Metadata{}, fmt.Errorf("invalid workbook metadata")
+	if err := m.Validate(); err != nil {
+		return Metadata{}, err
 	}
 	return m, nil
 }
