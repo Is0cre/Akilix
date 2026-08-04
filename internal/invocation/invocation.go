@@ -69,6 +69,9 @@ func List(workbookRoot string) ([]Record, error) {
 		if err := json.Unmarshal([]byte(line), &r); err != nil {
 			return nil, err
 		}
+		if err := r.Validate(); err != nil {
+			return nil, err
+		}
 		out = append(out, r)
 	}
 	return out, nil
