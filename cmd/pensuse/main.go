@@ -468,8 +468,34 @@ func runEvidence(args []string, stdout, stderr io.Writer) int {
 		}
 		return 0
 	case "verify":
+		if len(args) == 3 && args[2] == "--all" || len(args) == 4 && args[2] == "--all" && args[3] == "--json" {
+			records, allMatch, err := evidence.VerifyAll(workbookRoot)
+			if err != nil {
+				fmt.Fprintln(stderr, err)
+				return 1
+			}
+			if len(args) == 4 {
+				data, marshalErr := json.MarshalIndent(records, "", "  ")
+				if marshalErr != nil {
+					fmt.Fprintln(stderr, marshalErr)
+					return 1
+				}
+				fmt.Fprintln(stdout, string(data))
+				if !allMatch {
+					return 1
+				}
+				return 0
+			}
+			for _, record := range records {
+				fmt.Fprintf(stdout, "%s\t%s\n", record.ID, strings.ToUpper(record.Verification))
+			}
+			if !allMatch {
+				return 1
+			}
+			return 0
+		}
 		if len(args) != 3 && !(len(args) == 4 && args[3] == "--json") {
-			fmt.Fprintln(stderr, "usage: pensuse evidence verify WORKBOOK EVIDENCE_ID")
+			fmt.Fprintln(stderr, "usage: pensuse evidence verify WORKBOOK EVIDENCE_ID [--json] | --all [--json]")
 			return 2
 		}
 		ok, record, err := evidence.Verify(workbookRoot, args[2])

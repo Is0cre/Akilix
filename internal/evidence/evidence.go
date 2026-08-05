@@ -169,6 +169,27 @@ func Verify(workbookRoot, id string) (bool, Record, error) {
 	return ok, r, nil
 }
 
+// VerifyAll verifies every canonical evidence manifest in deterministic order.
+func VerifyAll(workbookRoot string) ([]Record, bool, error) {
+	records, err := List(workbookRoot)
+	if err != nil {
+		return nil, false, err
+	}
+	allMatch := true
+	verified := make([]Record, 0, len(records))
+	for _, record := range records {
+		ok, updated, err := Verify(workbookRoot, record.ID)
+		if err != nil {
+			return nil, false, err
+		}
+		if !ok {
+			allMatch = false
+		}
+		verified = append(verified, updated)
+	}
+	return verified, allMatch, nil
+}
+
 func List(workbookRoot string) ([]Record, error) {
 	entries, err := os.ReadDir(filepath.Join(workbookRoot, "evidence", "manifests"))
 	if os.IsNotExist(err) {

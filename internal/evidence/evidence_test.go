@@ -118,3 +118,26 @@ func TestListRejectsManifestIDMismatch(t *testing.T) {
 		t.Fatal("accepted manifest filename mismatch")
 	}
 }
+
+func TestVerifyAllReportsMismatch(t *testing.T) {
+	root := t.TempDir()
+	workbook := filepath.Join(root, "workbook")
+	source := filepath.Join(root, "source.bin")
+	if err := os.WriteFile(source, []byte("evidence"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Import(workbook, source, time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+	records, err := List(workbook)
+	if err != nil || len(records) != 1 {
+		t.Fatalf("list: %+v %v", records, err)
+	}
+	if err := os.WriteFile(filepath.Join(workbook, "evidence", "original", records[0].Filename), []byte("tampered"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	verified, allMatch, err := VerifyAll(workbook)
+	if err != nil || allMatch || len(verified) != 1 || verified[0].Verification != "mismatch" {
+		t.Fatalf("verify all: %+v %v %v", verified, allMatch, err)
+	}
+}
