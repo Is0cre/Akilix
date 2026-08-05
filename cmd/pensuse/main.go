@@ -319,6 +319,11 @@ func runScope(args []string, stdout, stderr io.Writer) int {
 		root = filepath.Join(state, "workbooks")
 	}
 	workbookRoot := filepath.Join(root, args[1])
+	m, err := workbook.Open(root, args[1])
+	if err != nil {
+		fmt.Fprintln(stderr, err)
+		return 1
+	}
 	c, err := scope.Load(workbookRoot)
 	if err != nil {
 		fmt.Fprintln(stderr, err)
@@ -326,6 +331,10 @@ func runScope(args []string, stdout, stderr io.Writer) int {
 	}
 	switch args[0] {
 	case "add", "exclude":
+		if m.Status != "open" {
+			fmt.Fprintln(stderr, "workbook is closed")
+			return 1
+		}
 		if len(args) != 3 {
 			fmt.Fprintln(stderr, "target is required")
 			return 2
@@ -336,6 +345,10 @@ func runScope(args []string, stdout, stderr io.Writer) int {
 		}
 		return 0
 	case "remove":
+		if m.Status != "open" {
+			fmt.Fprintln(stderr, "workbook is closed")
+			return 1
+		}
 		if len(args) != 3 {
 			fmt.Fprintln(stderr, "target is required")
 			return 2
@@ -350,6 +363,15 @@ func runScope(args []string, stdout, stderr io.Writer) int {
 	case "list":
 		if len(args) != 2 && !(len(args) == 3 && args[2] == "--json") {
 			return 2
+		}
+		if len(args) == 3 {
+			data, err := json.MarshalIndent(map[string][]string{"include": c.Includes, "exclude": c.Excludes}, "", "  ")
+			if err != nil {
+				fmt.Fprintln(stderr, err)
+				return 1
+			}
+			fmt.Fprintln(stdout, string(data))
+			return 0
 		}
 		for _, v := range c.Includes {
 			fmt.Fprintf(stdout, "ALLOW\t%s\n", v)
