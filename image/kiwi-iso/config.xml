@@ -6,7 +6,7 @@
     <specification>PenSUSE M0 bootable ISO for USB/Ventoy testing</specification>
   </description>
   <preferences>
-    <type image="iso" filesystem="squashfs"/>
+    <type image="iso" filesystem="squashfs" firmware="uefi" eficsm="true"/>
     <version>0.0.1</version>
     <packagemanager>zypper</packagemanager>
     <locale>en_US</locale>
