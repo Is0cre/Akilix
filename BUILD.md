@@ -64,5 +64,20 @@ The read-only listener check is:
 ./scripts/check-network-baseline.sh
 ```
 
+After booting the Leap 16 image, run the consolidated M0 platform check as a
+regular operator account:
+
+```sh
+make vm-check
+```
+
+The same check is installed in the live ISO as `pensuse-m0-check`, so it can
+be run directly from the console without a checkout.
+
+The check is observational: it does not create snapshots, pull container
+images, change SELinux policy, or start services. A root login is useful for
+inspection, but rootless Podman must be checked from the intended unprivileged
+operator account.
+
 Snapper, Btrfs, SELinux, and rootless Podman checks require execution inside a
 Leap 16 development image and are not silently simulated by the build.

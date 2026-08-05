@@ -1,7 +1,7 @@
 PREFIX ?= /usr
 VERSION ?= 0.0.1-m0
 
-.PHONY: build test check completion-check install install-completion rpm kiwi kiwi-iso schema-check
+.PHONY: build test check completion-check install install-completion rpm kiwi kiwi-iso schema-check vm-check
 
 build:
 	go build -trimpath -buildvcs=false -o pensuse ./cmd/pensuse
@@ -22,6 +22,9 @@ completion-check: build
 schema-check:
 	@for schema in schemas/*.json; do python3 -m json.tool "$$schema" >/dev/null || exit 1; done
 
+vm-check:
+	sh scripts/check-m0-platform.sh
+
 install: build
 	install -Dm0755 pensuse $(DESTDIR)$(PREFIX)/bin/pensuse
 
@@ -39,6 +42,7 @@ kiwi:
 
 kiwi-iso: build
 	install -Dm0755 pensuse image/kiwi-iso/root/usr/bin/pensuse
+	install -Dm0755 scripts/check-m0-platform.sh image/kiwi-iso/root/usr/bin/pensuse-m0-check
 	mkdir -p image/kiwi-iso/root/usr/share/zsh/site-functions image/kiwi-iso/root/usr/share/bash-completion/completions
 	./pensuse completion zsh > image/kiwi-iso/root/usr/share/zsh/site-functions/_pensuse
 	./pensuse completion bash > image/kiwi-iso/root/usr/share/bash-completion/completions/pensuse
