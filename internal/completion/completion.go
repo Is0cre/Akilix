@@ -23,6 +23,7 @@ _pensuse() {
     esac
   fi
   if (( CURRENT >= 5 )) && [[ "$words[1]" == "pensuse" && "$words[2]" == "evidence" && "$words[3]" == "verify" ]]; then _pensuse_evidence_ids; return; fi
+  if (( CURRENT >= 4 )) && [[ "$words[1]" == "pensuse" && "$words[2]" == "container" && "$words[3]" == "run" ]]; then _pensuse_workbooks; return; fi
   if (( CURRENT >= 4 )) && [[ "$words[1]" == "pensuse" && "$words[2]" == (evidence|scope|run) ]]; then
     case "$words[3]" in
       import|list|verify|add|remove|exclude|check) _pensuse_workbooks; return ;;
@@ -46,7 +47,7 @@ _pensuse() {
         scope) _values 'scope command' add remove exclude list check ;;
         evidence) _values 'evidence command' import list verify ;;
         run) _message 'use: pensuse run WORKBOOK -- COMMAND [ARGS...]' ;;
-        container) _values 'container command' inspect ;;
+        container) _values 'container command' inspect run ;;
         completion) _values 'shell' zsh bash ;;
       esac ;;
   esac
@@ -61,6 +62,7 @@ const Bash = `_pensuse_complete() {
   if [[ ${COMP_WORDS[1]} == workbook && ${COMP_CWORD} -eq 2 ]]; then COMPREPLY=($(compgen -W 'create list open status close reopen rename' -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == workbook && ${COMP_CWORD} -ge 3 ]]; then local workbooks; workbooks="$(pensuse workbook list 2>/dev/null | awk '{print $1}')"; COMPREPLY=($(compgen -W "$workbooks" -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == evidence && ${COMP_WORDS[2]} == verify && ${COMP_CWORD} -ge 4 ]]; then local ids; ids="$(pensuse evidence list "${COMP_WORDS[3]}" 2>/dev/null | awk '{print $1}')"; COMPREPLY=($(compgen -W "$ids" -- "$cur")); return; fi
+  if [[ ${COMP_WORDS[1]} == container && ${COMP_WORDS[2]} == run && ${COMP_CWORD} -ge 3 ]]; then local workbooks; workbooks="$(pensuse workbook list 2>/dev/null | awk '{print $1}')"; COMPREPLY=($(compgen -W "$workbooks" -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == evidence || ${COMP_WORDS[1]} == scope || ${COMP_WORDS[1]} == run ]] && [[ ${COMP_CWORD} -ge 3 ]]; then local workbooks; workbooks="$(pensuse workbook list 2>/dev/null | awk '{print $1}')"; COMPREPLY=($(compgen -W "$workbooks" -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == scope ]]; then COMPREPLY=($(compgen -W 'add remove exclude list check' -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == evidence ]]; then COMPREPLY=($(compgen -W 'import list verify' -- "$cur")); return; fi
