@@ -45,6 +45,14 @@ With KIWI NG and an openSUSE Leap 16 repository available:
 make kiwi
 ```
 
+For a Ventoy/USB bootable ISO:
+
+```sh
+make kiwi-iso
+```
+
+KIWI image builds require root privileges and a writable build host.
+
 The image definition is under `image/kiwi/`. The image intentionally contains
 only platform prerequisites; it does not install security-tool collections.
 

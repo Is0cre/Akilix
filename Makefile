@@ -1,7 +1,7 @@
 PREFIX ?= /usr
 VERSION ?= 0.0.1-m0
 
-.PHONY: build test check completion-check install install-completion rpm kiwi schema-check
+.PHONY: build test check completion-check install install-completion rpm kiwi kiwi-iso schema-check
 
 build:
 	go build -trimpath -buildvcs=false -o pensuse ./cmd/pensuse
@@ -35,3 +35,6 @@ rpm:
 
 kiwi:
 	kiwi-ng system build --description image/kiwi --target-dir build/kiwi
+
+kiwi-iso:
+	kiwi-ng system build --description image/kiwi-iso --target-dir build/kiwi-iso
