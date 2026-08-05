@@ -40,19 +40,41 @@ type Options struct {
 }
 
 func (r Record) Validate() error {
-	if r.Schema != Schema || r.ID == "" || r.WorkbookID == "" || len(r.Arguments) == 0 {
+	if r.Schema != Schema || !validID(r.ID) || !validID(r.WorkbookID) || len(r.Arguments) == 0 || strings.TrimSpace(r.Arguments[0]) == "" || r.Executable == "" || r.Started.IsZero() || r.Ended.IsZero() {
 		return fmt.Errorf("invalid invocation record")
 	}
-	if r.Ended.Before(r.Started) || r.ExitCode < 0 {
+	if r.Ended.Before(r.Started) || r.ExitCode < -1 {
 		return fmt.Errorf("invalid invocation timing or exit code")
 	}
-	if r.Status != "complete" && r.Status != "failed" {
+	if r.Status != "complete" && r.Status != "failed" || r.Executor != "native" && r.Executor != "container" {
 		return fmt.Errorf("invalid invocation status")
 	}
-	if r.Executor == "container" && (r.ContainerImage == "" || !strings.HasPrefix(r.ContainerDigest, "sha256:") || len(r.ContainerDigest) != len("sha256:")+64) {
+	if !validArtifactPath(r.Stdout) || !validArtifactPath(r.Stderr) {
+		return fmt.Errorf("invalid invocation artifact path")
+	}
+	if r.ScopeResult != "" && r.ScopeResult != "ALLOW" && r.ScopeResult != "DENY" && r.ScopeResult != "UNKNOWN" {
+		return fmt.Errorf("invalid invocation scope result")
+	}
+	if r.Executor == "container" && (r.ContainerImage == "" || !validDigest(r.ContainerDigest)) {
 		return fmt.Errorf("container invocation requires immutable image digest")
 	}
 	return nil
+}
+
+func validDigest(value string) bool {
+	return strings.HasPrefix(value, "sha256:") && validHex(value[len("sha256:"):], 64)
+}
+
+func validHex(value string, length int) bool {
+	if len(value) != length {
+		return false
+	}
+	for _, c := range value {
+		if !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
+			return false
+		}
+	}
+	return true
 }
 
 func List(workbookRoot string) ([]Record, error) {
@@ -184,4 +206,28 @@ func uuid(t time.Time) (string, error) {
 	b[6] = (b[6] & 15) | 112
 	b[8] = (b[8] & 63) | 128
 	return fmt.Sprintf("%s-%s-%s-%s-%s", hex.EncodeToString(b[:4]), hex.EncodeToString(b[4:6]), hex.EncodeToString(b[6:8]), hex.EncodeToString(b[8:10]), hex.EncodeToString(b[10:])), nil
+}
+
+func validID(value string) bool {
+	if len(value) != 36 || value[8] != '-' || value[13] != '-' || value[18] != '-' || value[23] != '-' || value[14] != '7' {
+		return false
+	}
+	variant := value[19]
+	if !((variant >= '8' && variant <= '9') || (variant >= 'a' && variant <= 'b') || (variant >= 'A' && variant <= 'B')) {
+		return false
+	}
+	for i, c := range value {
+		if i == 8 || i == 13 || i == 18 || i == 23 {
+			continue
+		}
+		if !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
+			return false
+		}
+	}
+	return true
+}
+
+func validArtifactPath(value string) bool {
+	slash := filepath.ToSlash(value)
+	return value != "" && !filepath.IsAbs(value) && strings.HasPrefix(slash, "tool-output/") && !strings.Contains(slash, "../")
 }

@@ -11,7 +11,7 @@ import (
 func TestRunRecordsSuccessAndFailure(t *testing.T) {
 	root := t.TempDir()
 	now := func() time.Time { return time.Unix(10, 0) }
-	r, err := RunWithOptions(context.Background(), root, "wb-1", []string{"sh", "-c", "printf out; printf err >&2"}, now, Options{ScopeResult: "ALLOW", ScopeOverride: true})
+	r, err := RunWithOptions(context.Background(), root, "88888888-8888-7888-8888-888888888888", []string{"sh", "-c", "printf out; printf err >&2"}, now, Options{ScopeResult: "ALLOW", ScopeOverride: true})
 	if err != nil || r.Status != "complete" || r.ExitCode != 0 {
 		t.Fatalf("success: %+v %v", r, err)
 	}
@@ -22,7 +22,7 @@ func TestRunRecordsSuccessAndFailure(t *testing.T) {
 	if string(out) != "out" {
 		t.Fatalf("stdout %q", out)
 	}
-	r, err = Run(context.Background(), root, "wb-1", []string{"sh", "-c", "exit 7"}, now)
+	r, err = Run(context.Background(), root, "88888888-8888-7888-8888-888888888888", []string{"sh", "-c", "exit 7"}, now)
 	if err == nil || r.Status != "failed" || r.ExitCode != 7 {
 		t.Fatalf("failure: %+v %v", r, err)
 	}
