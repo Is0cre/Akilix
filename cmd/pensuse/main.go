@@ -114,8 +114,18 @@ func runContainerCommand(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stderr, "usage: pensuse container run WORKBOOK IMAGE -- COMMAND [ARGS...]")
 		return 2
 	}
+	target, override := "", false
 	separator := -1
 	for i := 2; i < len(args); i++ {
+		if args[i] == "--target" && i+1 < len(args) {
+			target = args[i+1]
+			i++
+			continue
+		}
+		if args[i] == "--override" {
+			override = true
+			continue
+		}
 		if args[i] == "--" {
 			separator = i
 			break
@@ -139,13 +149,26 @@ func runContainerCommand(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stderr, "workbook is closed")
 		return 1
 	}
+	scopeResult := ""
+	if target != "" {
+		c, scopeErr := scope.Load(filepath.Join(root, args[0]))
+		if scopeErr != nil {
+			fmt.Fprintln(stderr, scopeErr)
+			return 1
+		}
+		scopeResult = string(scope.Evaluate(c, target))
+		if scopeResult == string(scope.Deny) && !override {
+			fmt.Fprintf(stderr, "scope denied target %s; use --override to record an explicit override\n", target)
+			return 1
+		}
+	}
 	identity, err := containerpkg.Resolve(context.Background(), containerpkg.PodmanRunner{}, args[1])
 	if err != nil {
 		fmt.Fprintln(stderr, err)
 		return 1
 	}
 	spec := containerpkg.Spec{Identity: identity, Arguments: append([]string(nil), args[separator+1:]...)}
-	r, err := invocation.RunContainer(context.Background(), filepath.Join(root, args[0]), m.ID, spec, time.Now, invocation.Options{})
+	r, err := invocation.RunContainer(context.Background(), filepath.Join(root, args[0]), m.ID, spec, time.Now, invocation.Options{ScopeResult: scopeResult, ScopeOverride: override})
 	if err != nil {
 		fmt.Fprintf(stderr, "invocation %s failed: %v\n", r.ID, err)
 		return r.ExitCode
