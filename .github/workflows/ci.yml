@@ -12,11 +12,5 @@ jobs:
       - uses: actions/setup-go@v5
         with:
           go-version-file: go.mod
-      - name: Test
-        run: go test ./...
-      - name: Vet
-        run: go vet ./...
-      - name: Validate schemas
-        run: make schema-check
-      - name: Build
-        run: make build
+      - name: Complete validation
+        run: make check
