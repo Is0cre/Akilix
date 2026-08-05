@@ -1,5 +1,7 @@
 # PenSUSE
 
+[![CI](https://github.com/Is0cre/PenSUSE/actions/workflows/ci.yml/badge.svg)](https://github.com/Is0cre/PenSUSE/actions/workflows/ci.yml)
+
 **Security work with provenance.**
 
 PenSUSE is an openSUSE-based security engineering and digital forensics workstation designed around reproducible execution, scoped operations, forensic provenance, isolated tooling, and evidence-backed analysis.
