@@ -88,8 +88,11 @@ func runCompletion(args []string, stdout, stderr io.Writer) int {
 }
 
 func runContainer(args []string, stdout, stderr io.Writer) int {
+	if len(args) >= 1 && args[0] == "run" {
+		return runContainerCommand(args[1:], stdout, stderr)
+	}
 	if len(args) != 2 || args[0] != "inspect" {
-		fmt.Fprintln(stderr, "usage: pensuse container inspect IMAGE")
+		fmt.Fprintln(stderr, "usage: pensuse container inspect IMAGE | container run WORKBOOK IMAGE -- COMMAND [ARGS...]")
 		return 2
 	}
 	id, err := containerpkg.Resolve(context.Background(), containerpkg.PodmanRunner{}, args[1])
@@ -103,6 +106,51 @@ func runContainer(args []string, stdout, stderr io.Writer) int {
 		return 1
 	}
 	fmt.Fprintln(stdout, string(data))
+	return 0
+}
+
+func runContainerCommand(args []string, stdout, stderr io.Writer) int {
+	if len(args) < 4 {
+		fmt.Fprintln(stderr, "usage: pensuse container run WORKBOOK IMAGE -- COMMAND [ARGS...]")
+		return 2
+	}
+	separator := -1
+	for i := 2; i < len(args); i++ {
+		if args[i] == "--" {
+			separator = i
+			break
+		}
+	}
+	if separator < 0 || separator+1 >= len(args) {
+		fmt.Fprintln(stderr, "command is required after --")
+		return 2
+	}
+	root := os.Getenv("PENSUSE_WORKBOOK_ROOT")
+	if root == "" {
+		_, state := config.UserPaths()
+		root = filepath.Join(state, "workbooks")
+	}
+	m, err := workbook.Open(root, args[0])
+	if err != nil {
+		fmt.Fprintln(stderr, err)
+		return 1
+	}
+	if m.Status != "open" {
+		fmt.Fprintln(stderr, "workbook is closed")
+		return 1
+	}
+	identity, err := containerpkg.Resolve(context.Background(), containerpkg.PodmanRunner{}, args[1])
+	if err != nil {
+		fmt.Fprintln(stderr, err)
+		return 1
+	}
+	spec := containerpkg.Spec{Identity: identity, Arguments: append([]string(nil), args[separator+1:]...)}
+	r, err := invocation.RunContainer(context.Background(), filepath.Join(root, args[0]), m.ID, spec, time.Now, invocation.Options{})
+	if err != nil {
+		fmt.Fprintf(stderr, "invocation %s failed: %v\n", r.ID, err)
+		return r.ExitCode
+	}
+	fmt.Fprintf(stdout, "invocation %s complete\n", r.ID)
 	return 0
 }
 
