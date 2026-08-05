@@ -4,11 +4,18 @@ const Zsh = `#compdef pensuse
 
 _pensuse_workbooks() {
   local -a workbooks
-  workbooks=(${(f)"$(pensuse workbook list 2>/dev/null | awk '{print $1}')"})
-  _describe 'workbooks' workbooks
+  workbooks=("${(@f)$(pensuse workbook list 2>/dev/null | awk '{print $1}')}")
+  if (( ${#workbooks} )); then
+    _describe 'workbooks' workbooks
+  fi
 }
 
 _pensuse() {
+  if (( CURRENT >= 4 )) && [[ "$words[1]" == "pensuse" && "$words[2]" == "workbook" ]]; then
+    case "$words[3]" in
+      open|status|close|reopen|rename) _pensuse_workbooks; return ;;
+    esac
+  fi
   _arguments -C \
     '1:command:->command' \
     '*::argument:->argument'
