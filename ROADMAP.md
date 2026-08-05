@@ -80,6 +80,10 @@ Tooling breadth is not an M1 goal.
 
 # M2 — Reproducible Tool Execution
 
+Initial digest-pinned container execution, hardened Podman argument generation,
+and container provenance recording are implemented. Runtime image and VM
+validation remain pending on the hardware test host.
+
 Build mature execution infrastructure.
 
 Primary subjects:
