@@ -43,8 +43,11 @@ func (r Record) Validate() error {
 	if r.Schema != Schema || r.ID == "" || r.WorkbookID == "" || len(r.Arguments) == 0 {
 		return fmt.Errorf("invalid invocation record")
 	}
-	if r.Ended.Before(r.Started) {
-		return fmt.Errorf("invocation ended before it started")
+	if r.Ended.Before(r.Started) || r.ExitCode < 0 {
+		return fmt.Errorf("invalid invocation timing or exit code")
+	}
+	if r.Status != "complete" && r.Status != "failed" {
+		return fmt.Errorf("invalid invocation status")
 	}
 	if r.Executor == "container" && (r.ContainerImage == "" || !strings.HasPrefix(r.ContainerDigest, "sha256:") || len(r.ContainerDigest) != len("sha256:")+64) {
 		return fmt.Errorf("container invocation requires immutable image digest")
