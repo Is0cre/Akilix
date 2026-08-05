@@ -1,7 +1,7 @@
 PREFIX ?= /usr
 VERSION ?= 0.0.1-m0
 
-.PHONY: build test check completion-check install install-completion rpm kiwi kiwi-iso kiwi-iso-prompt schema-check vm-check
+.PHONY: build test check completion-check install install-completion rpm rpm-check kiwi kiwi-iso kiwi-iso-prompt schema-check vm-check
 
 build:
 	go build -trimpath -buildvcs=false -o pensuse ./cmd/pensuse
@@ -35,6 +35,9 @@ rpm:
 	mkdir -p build/rpm/SOURCES
 	tar --exclude=build --exclude=pensuse.tar.gz --exclude=.git --transform='s,^\./,pensuse/,' -czf build/rpm/SOURCES/pensuse.tar.gz .
 	rpmbuild -bb --define '_topdir $(CURDIR)/build/rpm' --define '_tmppath /tmp' packaging/rpm/pensuse.spec
+
+rpm-check: rpm
+	sh scripts/check-rpm.sh
 
 kiwi:
 	kiwi-ng system build --description image/kiwi --target-dir build/kiwi

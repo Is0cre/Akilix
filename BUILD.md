@@ -35,6 +35,15 @@ make rpm
 The RPM target creates a source archive, builds with `rpmbuild`, and installs
 the CLI at `/usr/bin/pensuse`.
 
+Verify the package payload with:
+
+```sh
+make rpm-check
+```
+
+Local RPMs are intentionally unsigned during M0 development. A deployment
+repository must add signing and key-distribution policy before publication.
+
 The spec installs the CLI at `/usr/bin/pensuse`.
 
 ## Development image
