@@ -115,11 +115,16 @@ func runContainerCommand(args []string, stdout, stderr io.Writer) int {
 		return 2
 	}
 	target, override := "", false
+	jsonOutput := false
 	separator := -1
 	for i := 2; i < len(args); i++ {
 		if args[i] == "--target" && i+1 < len(args) {
 			target = args[i+1]
 			i++
+			continue
+		}
+		if args[i] == "--json" {
+			jsonOutput = true
 			continue
 		}
 		if args[i] == "--override" {
@@ -172,6 +177,15 @@ func runContainerCommand(args []string, stdout, stderr io.Writer) int {
 	if err != nil {
 		fmt.Fprintf(stderr, "invocation %s failed: %v\n", r.ID, err)
 		return r.ExitCode
+	}
+	if jsonOutput {
+		data, marshalErr := json.MarshalIndent(r, "", "  ")
+		if marshalErr != nil {
+			fmt.Fprintln(stderr, marshalErr)
+			return 1
+		}
+		fmt.Fprintln(stdout, string(data))
+		return 0
 	}
 	fmt.Fprintf(stdout, "invocation %s complete\n", r.ID)
 	return 0
