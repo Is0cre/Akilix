@@ -322,14 +322,26 @@ func runEvidence(args []string, stdout, stderr io.Writer) int {
 		}
 		return 0
 	case "verify":
-		if len(args) != 3 {
+		if len(args) != 3 && !(len(args) == 4 && args[3] == "--json") {
 			fmt.Fprintln(stderr, "usage: pensuse evidence verify WORKBOOK EVIDENCE_ID")
 			return 2
 		}
-		ok, _, err := evidence.Verify(workbookRoot, args[2])
+		ok, record, err := evidence.Verify(workbookRoot, args[2])
 		if err != nil {
 			fmt.Fprintln(stderr, err)
 			return 1
+		}
+		if len(args) == 4 {
+			data, marshalErr := json.Marshal(map[string]string{"evidence_id": record.ID, "verification": record.Verification})
+			if marshalErr != nil {
+				fmt.Fprintln(stderr, marshalErr)
+				return 1
+			}
+			fmt.Fprintln(stdout, string(data))
+			if !ok {
+				return 1
+			}
+			return 0
 		}
 		if !ok {
 			fmt.Fprintln(stdout, "MISMATCH")
