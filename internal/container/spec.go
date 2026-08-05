@@ -3,8 +3,10 @@ package container
 import (
 	"context"
 	"fmt"
+	"path/filepath"
 	"sort"
 	"strings"
+	"unicode"
 )
 
 type Mount struct {
@@ -75,8 +77,11 @@ func (s Spec) Validate() error {
 	if s.Network == "host" {
 		return fmt.Errorf("host networking requires an explicit privileged policy")
 	}
-	for key := range s.Environment {
-		if key == "" || strings.Contains(key, "=") {
+	for key, value := range s.Environment {
+		if key == "" || strings.ContainsAny(key, "=\x00") || strings.ContainsRune(value, '\x00') {
+			return fmt.Errorf("invalid container environment key %q", key)
+		}
+		if strings.IndexFunc(key, unicode.IsSpace) >= 0 {
 			return fmt.Errorf("invalid container environment key %q", key)
 		}
 	}
@@ -89,6 +94,9 @@ func (s Spec) Validate() error {
 	for _, m := range s.Mounts {
 		if strings.TrimSpace(m.Source) == "" || strings.TrimSpace(m.Destination) == "" {
 			return fmt.Errorf("container mount paths are required")
+		}
+		if !filepath.IsAbs(m.Source) || !filepath.IsAbs(m.Destination) || filepath.Clean(m.Source) != m.Source || filepath.Clean(m.Destination) != m.Destination || strings.ContainsAny(m.Source+m.Destination, ":\x00") || strings.Contains(m.Source, ".."+string(filepath.Separator)) || strings.Contains(m.Destination, ".."+string(filepath.Separator)) {
+			return fmt.Errorf("container mount paths must be absolute, clean, and delimiter-safe")
 		}
 		if m.OriginalEvidence && !m.ReadOnly {
 			return fmt.Errorf("original evidence mounts must be read-only")

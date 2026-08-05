@@ -20,6 +20,9 @@ func TestResolveRequiresDigest(t *testing.T) {
 	if _, err := Resolve(context.Background(), fakeRunner{output: "latest"}, "tool:latest"); err == nil {
 		t.Fatal("mutable tag accepted")
 	}
+	if _, err := Resolve(context.Background(), fakeRunner{output: "sha256:" + "g" + string(make([]byte, 63))}, "tool:bad"); err == nil {
+		t.Fatal("non-hex digest accepted")
+	}
 }
 
 func TestPodmanRunnerUsesArgumentVector(t *testing.T) {

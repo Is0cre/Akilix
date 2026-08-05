@@ -31,3 +31,16 @@ func TestSpecEnvironmentAndWorkdirValidation(t *testing.T) {
 		t.Fatal("relative workdir accepted")
 	}
 }
+
+func TestSpecRejectsUnsafeMountAndEnvironmentValues(t *testing.T) {
+	base := Spec{Identity: Identity{Image: "tool", Digest: "sha256:" + "a" + string(make([]byte, 63))}, Arguments: []string{"tool"}}
+	base.Mounts = []Mount{{Source: "/tmp/../evidence", Destination: "/input"}}
+	if _, err := base.Args(); err == nil {
+		t.Fatal("unclean mount path accepted")
+	}
+	base.Mounts = nil
+	base.Environment = map[string]string{"SAFE": "bad\x00value"}
+	if _, err := base.Args(); err == nil {
+		t.Fatal("NUL environment value accepted")
+	}
+}
