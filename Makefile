@@ -53,7 +53,7 @@ kiwi-iso: build
 	hash=$$(openssl passwd -6 "$$PENSUSE_LIVE_PASSWORD"); \
 	python3 scripts/render-live-config.py image/kiwi-iso/config.xml image/kiwi-iso/config.generated.xml "$$hash"; \
 	trap 'rm -f image/kiwi-iso/config.generated.xml' EXIT; \
-	kiwi-ng system build --description image/kiwi-iso --kiwi-file=config.generated.xml --target-dir build/kiwi-iso
+	kiwi-ng --kiwi-file=config.generated.xml system build --description image/kiwi-iso --target-dir build/kiwi-iso
 
 kiwi-iso-prompt:
 	sh scripts/build-live-iso.sh

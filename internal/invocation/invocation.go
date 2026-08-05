@@ -9,6 +9,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 )
@@ -26,6 +27,7 @@ type Record struct {
 	Arguments        []string          `json:"arguments"`
 	WorkingDirectory string            `json:"working_directory,omitempty"`
 	Environment      map[string]string `json:"environment,omitempty"`
+	GeneratedFiles   []string          `json:"generated_files,omitempty"`
 	ExitCode         int               `json:"exit_code"`
 	Status           string            `json:"status"`
 	Stdout           string            `json:"stdout_artifact"`
@@ -60,6 +62,11 @@ func (r Record) Validate() error {
 	for key, value := range r.Environment {
 		if key == "" || strings.ContainsAny(key, "=\x00") || strings.ContainsRune(value, '\x00') {
 			return fmt.Errorf("invalid invocation environment")
+		}
+	}
+	for _, file := range r.GeneratedFiles {
+		if !validArtifactPath(file) {
+			return fmt.Errorf("invalid generated artifact path")
 		}
 	}
 	if r.ScopeResult != "" && r.ScopeResult != "ALLOW" && r.ScopeResult != "DENY" && r.ScopeResult != "UNKNOWN" {
@@ -146,6 +153,10 @@ func RunWithOptions(ctx context.Context, workbookRoot, workbookID string, args [
 		return Record{}, err
 	}
 	defer errFile.Close()
+	before, err := snapshotToolOutput(outputDir)
+	if err != nil {
+		return Record{}, err
+	}
 	cmd := exec.CommandContext(ctx, args[0], args[1:]...)
 	cmd.Stdout = out
 	cmd.Stderr = errFile
@@ -157,6 +168,10 @@ func RunWithOptions(ctx context.Context, workbookRoot, workbookID string, args [
 		runErr = syncErr
 	}
 	end := now().UTC()
+	generated, generatedErr := generatedToolOutput(outputDir, before)
+	if generatedErr != nil && runErr == nil {
+		runErr = generatedErr
+	}
 	exitCode := 0
 	status := "complete"
 	if runErr != nil {
@@ -167,7 +182,7 @@ func RunWithOptions(ctx context.Context, workbookRoot, workbookID string, args [
 		}
 	}
 	workingDirectory, _ := os.Getwd()
-	r := Record{Schema: Schema, ID: id, WorkbookID: workbookID, Started: start, Ended: end, Executor: "native", Executable: executable, Arguments: append([]string(nil), args...), WorkingDirectory: workingDirectory, Environment: safeEnvironment(), ExitCode: exitCode, Status: status, Stdout: filepath.ToSlash(filepath.Join("tool-output", id+".stdout")), Stderr: filepath.ToSlash(filepath.Join("tool-output", id+".stderr")), ScopeResult: options.ScopeResult, ScopeOverride: options.ScopeOverride}
+	r := Record{Schema: Schema, ID: id, WorkbookID: workbookID, Started: start, Ended: end, Executor: "native", Executable: executable, Arguments: append([]string(nil), args...), WorkingDirectory: workingDirectory, Environment: safeEnvironment(), GeneratedFiles: generated, ExitCode: exitCode, Status: status, Stdout: filepath.ToSlash(filepath.Join("tool-output", id+".stdout")), Stderr: filepath.ToSlash(filepath.Join("tool-output", id+".stderr")), ScopeResult: options.ScopeResult, ScopeOverride: options.ScopeOverride}
 	if err := r.Validate(); err != nil {
 		return Record{}, err
 	}
@@ -253,4 +268,32 @@ func safeEnvironment() map[string]string {
 		}
 	}
 	return out
+}
+
+func snapshotToolOutput(dir string) (map[string]struct{}, error) {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return nil, err
+	}
+	seen := make(map[string]struct{}, len(entries))
+	for _, entry := range entries {
+		seen[entry.Name()] = struct{}{}
+	}
+	return seen, nil
+}
+
+func generatedToolOutput(dir string, before map[string]struct{}) ([]string, error) {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return nil, err
+	}
+	generated := make([]string, 0)
+	for _, entry := range entries {
+		if _, existed := before[entry.Name()]; existed || !entry.Type().IsRegular() {
+			continue
+		}
+		generated = append(generated, filepath.ToSlash(filepath.Join("tool-output", entry.Name())))
+	}
+	sort.Strings(generated)
+	return generated, nil
 }

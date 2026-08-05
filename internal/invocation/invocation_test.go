@@ -12,7 +12,7 @@ func TestRunRecordsSuccessAndFailure(t *testing.T) {
 	root := t.TempDir()
 	t.Setenv("PENSUSE_TEST_SECRET", "do-not-record")
 	now := func() time.Time { return time.Unix(10, 0) }
-	r, err := RunWithOptions(context.Background(), root, "88888888-8888-7888-8888-888888888888", []string{"sh", "-c", "printf out; printf err >&2"}, now, Options{ScopeResult: "ALLOW", ScopeOverride: true})
+	r, err := RunWithOptions(context.Background(), root, "88888888-8888-7888-8888-888888888888", []string{"sh", "-c", "printf out; printf err >&2; printf generated > '" + filepath.Join(root, "tool-output", "generated.txt") + "'"}, now, Options{ScopeResult: "ALLOW", ScopeOverride: true})
 	if err != nil || r.Status != "complete" || r.ExitCode != 0 {
 		t.Fatalf("success: %+v %v", r, err)
 	}
@@ -24,6 +24,9 @@ func TestRunRecordsSuccessAndFailure(t *testing.T) {
 	}
 	if _, found := r.Environment["PENSUSE_TEST_SECRET"]; found {
 		t.Fatal("unapproved environment variable recorded")
+	}
+	if len(r.GeneratedFiles) != 1 || r.GeneratedFiles[0] != "tool-output/generated.txt" {
+		t.Fatalf("generated artifact provenance missing: %+v", r.GeneratedFiles)
 	}
 	out, _ := os.ReadFile(filepath.Join(root, r.Stdout))
 	if string(out) != "out" {

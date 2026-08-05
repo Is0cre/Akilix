@@ -54,6 +54,10 @@ func RunContainer(ctx context.Context, workbookRoot, workbookID string, spec con
 		return Record{}, err
 	}
 	defer errFile.Close()
+	before, err := snapshotToolOutput(outDir)
+	if err != nil {
+		return Record{}, err
+	}
 	cmd := exec.CommandContext(ctx, executable, args...)
 	cmd.Stdout, cmd.Stderr = out, errFile
 	runErr := cmd.Run()
@@ -64,6 +68,10 @@ func RunContainer(ctx context.Context, workbookRoot, workbookID string, spec con
 		runErr = syncErr
 	}
 	end := now().UTC()
+	generated, generatedErr := generatedToolOutput(outDir, before)
+	if generatedErr != nil && runErr == nil {
+		runErr = generatedErr
+	}
 	exitCode, status := 0, "complete"
 	if runErr != nil {
 		status, exitCode = "failed", 1
@@ -71,7 +79,7 @@ func RunContainer(ctx context.Context, workbookRoot, workbookID string, spec con
 			exitCode = ee.ExitCode()
 		}
 	}
-	r := Record{Schema: Schema, ID: id, WorkbookID: workbookID, Started: start, Ended: end, Executor: "container", Executable: executable, Arguments: args, WorkingDirectory: spec.Workdir, Environment: spec.Environment, ExitCode: exitCode, Status: status, Stdout: filepath.ToSlash(filepath.Join("tool-output", id+".stdout")), Stderr: filepath.ToSlash(filepath.Join("tool-output", id+".stderr")), ScopeResult: options.ScopeResult, ScopeOverride: options.ScopeOverride, ContainerImage: spec.Identity.Image, ContainerDigest: spec.Identity.Digest}
+	r := Record{Schema: Schema, ID: id, WorkbookID: workbookID, Started: start, Ended: end, Executor: "container", Executable: executable, Arguments: args, WorkingDirectory: spec.Workdir, Environment: spec.Environment, GeneratedFiles: generated, ExitCode: exitCode, Status: status, Stdout: filepath.ToSlash(filepath.Join("tool-output", id+".stdout")), Stderr: filepath.ToSlash(filepath.Join("tool-output", id+".stderr")), ScopeResult: options.ScopeResult, ScopeOverride: options.ScopeOverride, ContainerImage: spec.Identity.Image, ContainerDigest: spec.Identity.Digest}
 	if err := r.Validate(); err != nil {
 		return Record{}, err
 	}
