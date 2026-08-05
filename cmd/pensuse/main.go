@@ -235,11 +235,21 @@ func runScope(args []string, stdout, stderr io.Writer) int {
 		}
 		return 0
 	case "check":
-		if len(args) != 3 {
+		if len(args) != 3 && !(len(args) == 4 && args[3] == "--json") {
 			fmt.Fprintln(stderr, "target is required")
 			return 2
 		}
-		fmt.Fprintln(stdout, scope.Evaluate(c, args[2]))
+		result := scope.Evaluate(c, args[2])
+		if len(args) == 4 {
+			data, err := json.Marshal(map[string]string{"target": args[2], "result": string(result)})
+			if err != nil {
+				fmt.Fprintln(stderr, err)
+				return 1
+			}
+			fmt.Fprintln(stdout, string(data))
+			return 0
+		}
+		fmt.Fprintln(stdout, result)
 		return 0
 	default:
 		fmt.Fprintln(stderr, "unknown scope command")
