@@ -14,9 +14,13 @@ Instead, it provides an operating environment for conducting professional securi
 
 PenSUSE is currently in early architectural development.
 
-Current milestone:
+Current status:
 
-**M2 — Reproducible Tool Execution (in progress)**
+**M0 platform image validated; M1/M2 implementation in progress**
+
+The Leap 16 live image boots in both BIOS and UEFI modes. Runtime hardware
+validation (Btrfs, Snapper, SELinux, and rootless Podman on the target laptop)
+is still pending.
 
 Do not consider the current system production-ready for forensic or security engagements.
 
