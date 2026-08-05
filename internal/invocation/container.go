@@ -44,6 +44,12 @@ func RunContainer(ctx context.Context, workbookRoot, workbookID string, spec con
 	cmd := exec.CommandContext(ctx, executable, args...)
 	cmd.Stdout, cmd.Stderr = out, errFile
 	runErr := cmd.Run()
+	if syncErr := out.Sync(); syncErr != nil && runErr == nil {
+		runErr = syncErr
+	}
+	if syncErr := errFile.Sync(); syncErr != nil && runErr == nil {
+		runErr = syncErr
+	}
 	end := now().UTC()
 	exitCode, status := 0, "complete"
 	if runErr != nil {

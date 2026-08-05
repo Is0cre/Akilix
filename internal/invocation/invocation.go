@@ -115,6 +115,12 @@ func RunWithOptions(ctx context.Context, workbookRoot, workbookID string, args [
 	cmd.Stdout = out
 	cmd.Stderr = errFile
 	runErr := cmd.Run()
+	if syncErr := out.Sync(); syncErr != nil && runErr == nil {
+		runErr = syncErr
+	}
+	if syncErr := errFile.Sync(); syncErr != nil && runErr == nil {
+		runErr = syncErr
+	}
 	end := now().UTC()
 	exitCode := 0
 	status := "complete"
