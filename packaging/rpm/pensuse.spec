@@ -18,9 +18,14 @@ go build -trimpath -buildvcs=false -o pensuse ./cmd/pensuse
 
 %install
 install -Dpm0755 pensuse %{buildroot}%{_bindir}/pensuse
+install -d %{buildroot}%{_datadir}/zsh/site-functions %{buildroot}%{_datadir}/bash-completion/completions
+./pensuse completion zsh > %{buildroot}%{_datadir}/zsh/site-functions/_pensuse
+./pensuse completion bash > %{buildroot}%{_datadir}/bash-completion/completions/pensuse
 
 %files
 %{_bindir}/pensuse
+%{_datadir}/zsh/site-functions/_pensuse
+%{_datadir}/bash-completion/completions/pensuse
 
 %changelog
 * Tue Aug 04 2026 PenSUSE Contributors - 0.0.1-0.m0
