@@ -48,10 +48,12 @@ make kiwi
 For a Ventoy/USB bootable ISO:
 
 ```sh
-make kiwi-iso
+sudo env PENSUSE_LIVE_PASSWORD='choose-a-local-test-password' make kiwi-iso
 ```
 
 KIWI image builds require root privileges and a writable build host.
+Choose a local test password when building the live image; it is hashed into
+the image and is not a repository default.
 
 The image definition is under `image/kiwi/`. The image intentionally contains
 only platform prerequisites; it does not install security-tool collections.

@@ -7,8 +7,12 @@ it is not a security-tool distribution.
 Build on a privileged Leap 16 build host:
 
 ```sh
-make kiwi-iso
+sudo env PENSUSE_LIVE_PASSWORD='choose-a-local-test-password' make kiwi-iso
 ```
+
+The password is required at build time, converted to a SHA-512 crypt hash, and
+never written to Git. The resulting image provides the regular `pensuse`
+operator account; root remains unavailable for ordinary console login.
 
 The target builds the current CLI and shell completions into the image overlay
 before KIWI runs. The result is written under `build/kiwi-iso/`. Verify the

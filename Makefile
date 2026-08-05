@@ -41,9 +41,13 @@ kiwi:
 
 
 kiwi-iso: build
+	: "$${PENSUSE_LIVE_PASSWORD:?Set PENSUSE_LIVE_PASSWORD for the live operator account}"
 	install -Dm0755 pensuse image/kiwi-iso/root/usr/bin/pensuse
 	install -Dm0755 scripts/check-m0-platform.sh image/kiwi-iso/root/usr/bin/pensuse-m0-check
 	mkdir -p image/kiwi-iso/root/usr/share/zsh/site-functions image/kiwi-iso/root/usr/share/bash-completion/completions
 	./pensuse completion zsh > image/kiwi-iso/root/usr/share/zsh/site-functions/_pensuse
 	./pensuse completion bash > image/kiwi-iso/root/usr/share/bash-completion/completions/pensuse
-	kiwi-ng system build --description image/kiwi-iso --target-dir build/kiwi-iso
+	hash=$$(openssl passwd -6 "$$PENSUSE_LIVE_PASSWORD"); \
+	python3 scripts/render-live-config.py image/kiwi-iso/config.xml image/kiwi-iso/config.generated.xml "$$hash"; \
+	trap 'rm -f image/kiwi-iso/config.generated.xml' EXIT; \
+	kiwi-ng system build --description image/kiwi-iso --kiwi-file=config.generated.xml --target-dir build/kiwi-iso

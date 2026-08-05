@@ -4,6 +4,7 @@
 /pensuse.zip
 /image/kiwi-iso/root/usr/bin/pensuse
 /image/kiwi-iso/root/usr/bin/pensuse-m0-check
+/image/kiwi-iso/config.generated.xml
 /image/kiwi-iso/root/usr/share/zsh/site-functions/_pensuse
 /image/kiwi-iso/root/usr/share/bash-completion/completions/pensuse
 
