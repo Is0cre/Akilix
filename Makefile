@@ -1,7 +1,7 @@
 PREFIX ?= /usr
 VERSION ?= 0.0.1-m0
 
-.PHONY: build test check install install-completion rpm kiwi schema-check
+.PHONY: build test check completion-check install install-completion rpm kiwi schema-check
 
 build:
 	go build -trimpath -buildvcs=false -o pensuse ./cmd/pensuse
@@ -13,6 +13,11 @@ check: test
 	go vet ./...
 	$(MAKE) schema-check
 	$(MAKE) build
+	$(MAKE) completion-check
+
+completion-check: build
+	./pensuse completion bash | bash -n
+	@if command -v zsh >/dev/null 2>&1; then ./pensuse completion zsh | zsh -n; fi
 
 schema-check:
 	@for schema in schemas/*.json; do python3 -m json.tool "$$schema" >/dev/null || exit 1; done
