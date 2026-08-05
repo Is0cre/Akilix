@@ -16,7 +16,7 @@ PenSUSE is currently in early architectural development.
 
 Current milestone:
 
-**M1 — Workbook Foundation (in progress)**
+**M2 — Reproducible Tool Execution (in progress)**
 
 Do not consider the current system production-ready for forensic or security engagements.
 
