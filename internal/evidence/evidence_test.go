@@ -1,6 +1,7 @@
 package evidence
 
 import (
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
@@ -64,5 +65,56 @@ func TestImportRejectsSymlink(t *testing.T) {
 	}
 	if _, err := Import(filepath.Join(root, "workbook"), link, time.Now()); err == nil {
 		t.Fatal("symlink accepted")
+	}
+}
+
+func TestVerifyRejectsManifestPathTraversal(t *testing.T) {
+	root := t.TempDir()
+	source := filepath.Join(root, "source.bin")
+	if err := os.WriteFile(source, []byte("evidence"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	workbook := filepath.Join(root, "workbook")
+	if _, err := Import(workbook, source, time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+	list, err := List(workbook)
+	if err != nil || len(list) != 1 {
+		t.Fatalf("list: %+v %v", list, err)
+	}
+	record := list[0]
+	record.Filename = "../../source.bin"
+	b, err := json.Marshal(record)
+	if err != nil {
+		t.Fatal(err)
+	}
+	manifest := filepath.Join(workbook, "evidence", "manifests", record.ID+".json")
+	if err := os.WriteFile(manifest, b, 0600); err != nil {
+		t.Fatal(err)
+	}
+	if _, _, err := Verify(workbook, record.ID); err == nil {
+		t.Fatal("accepted path traversal in evidence manifest")
+	}
+}
+
+func TestListRejectsManifestIDMismatch(t *testing.T) {
+	root := t.TempDir()
+	source := filepath.Join(root, "source.bin")
+	if err := os.WriteFile(source, []byte("evidence"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	workbook := filepath.Join(root, "workbook")
+	record, err := Import(workbook, source, time.Now().UTC())
+	if err != nil {
+		t.Fatal(err)
+	}
+	wrong := "77777777-7777-7777-8777-777777777777"
+	oldPath := filepath.Join(workbook, "evidence", "manifests", record.ID+".json")
+	newPath := filepath.Join(workbook, "evidence", "manifests", wrong+".json")
+	if err := os.Rename(oldPath, newPath); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := List(workbook); err == nil {
+		t.Fatal("accepted manifest filename mismatch")
 	}
 }

@@ -29,7 +29,7 @@ type Record struct {
 }
 
 func (r Record) Validate() error {
-	if r.Schema != Schema || r.ID == "" || r.Filename == "" || r.Size < 0 || len(r.SHA256) != 64 || r.Status == "" {
+	if r.Schema != Schema || !validID(r.ID) || r.Filename == "" || filepath.Base(r.Filename) != r.Filename || r.Filename == "." || r.Filename == ".." || r.Size < 0 || !validHex(r.SHA256, 64) || r.Source == "" || r.Classification != "original" || r.Status != "complete" || (r.Verification != "" && r.Verification != "match" && r.Verification != "mismatch") {
 		return fmt.Errorf("invalid evidence record")
 	}
 	return nil
@@ -91,7 +91,11 @@ func Import(workbookRoot, source string, now time.Time) (Record, error) {
 	if err != nil {
 		return Record{}, err
 	}
-	if err = os.Rename(tmpName, dest); err != nil {
+	if err = os.Link(tmpName, dest); err != nil {
+		return Record{}, err
+	}
+	if err = os.Remove(tmpName); err != nil {
+		_ = os.Remove(dest)
 		return Record{}, err
 	}
 	if latest, statErr := os.Stat(source); statErr != nil || latest.Size() != info.Size() {
@@ -100,6 +104,10 @@ func Import(workbookRoot, source string, now time.Time) (Record, error) {
 			return Record{}, fmt.Errorf("evidence source changed or became unavailable: %w", statErr)
 		}
 		return Record{}, fmt.Errorf("evidence source changed during import")
+	}
+	if err := syncDir(dir); err != nil {
+		_ = os.Remove(dest)
+		return Record{}, err
 	}
 	record := Record{Schema: Schema, ID: id, Classification: "original", Filename: name, Source: filepath.Clean(source), Size: n, SHA256: hex.EncodeToString(h.Sum(nil)), Imported: now.UTC(), Status: "complete"}
 	data, err := json.MarshalIndent(record, "", "  ")
@@ -130,6 +138,9 @@ func Verify(workbookRoot, id string) (bool, Record, error) {
 	}
 	if err := r.Validate(); err != nil {
 		return false, Record{}, err
+	}
+	if r.ID != id {
+		return false, r, fmt.Errorf("evidence manifest ID does not match requested ID")
 	}
 	f, err := os.Open(filepath.Join(workbookRoot, "evidence", "original", r.Filename))
 	if err != nil {
@@ -182,6 +193,9 @@ func List(workbookRoot string) ([]Record, error) {
 		if err := r.Validate(); err != nil {
 			return nil, err
 		}
+		if strings.TrimSuffix(e.Name(), filepath.Ext(e.Name())) != r.ID {
+			return nil, fmt.Errorf("evidence manifest filename does not match record ID")
+		}
 		out = append(out, r)
 	}
 	return out, nil
@@ -213,11 +227,55 @@ func atomicWrite(path string, data []byte) error {
 	if err = tmp.Chmod(0600); err == nil {
 		_, err = tmp.Write(data)
 	}
+	if err == nil {
+		err = tmp.Sync()
+	}
 	if closeErr := tmp.Close(); err == nil {
 		err = closeErr
 	}
 	if err == nil {
 		err = os.Rename(name, path)
 	}
+	if err == nil {
+		err = syncDir(filepath.Dir(path))
+	}
 	return err
+}
+
+func syncDir(path string) error {
+	d, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer d.Close()
+	return d.Sync()
+}
+
+func validHex(value string, length int) bool {
+	if len(value) != length {
+		return false
+	}
+	for _, c := range value {
+		if !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
+			return false
+		}
+	}
+	return true
+}
+
+func validID(value string) bool {
+	variant := value[19]
+	validVariant := (variant >= '8' && variant <= '9') || (variant >= 'a' && variant <= 'b') || (variant >= 'A' && variant <= 'B')
+	if len(value) != 36 || value[8] != '-' || value[13] != '-' || value[18] != '-' || value[23] != '-' || value[14] != '7' || !validVariant {
+		return false
+	}
+	for i, c := range value {
+		if i == 8 || i == 13 || i == 18 || i == 23 {
+			continue
+		}
+		if !((c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')) {
+			return false
+		}
+	}
+	return true
 }
