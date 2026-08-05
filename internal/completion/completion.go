@@ -10,12 +10,19 @@ _pensuse_workbooks() {
   fi
 }
 
+_pensuse_evidence_ids() {
+  local -a evidence
+  evidence=("${(@f)$(pensuse evidence list "$words[4]" 2>/dev/null | awk '{print $1}')}")
+  if (( ${#evidence} )); then _describe 'evidence' evidence; fi
+}
+
 _pensuse() {
   if (( CURRENT >= 4 )) && [[ "$words[1]" == "pensuse" && "$words[2]" == "workbook" ]]; then
     case "$words[3]" in
       open|status|close|reopen|rename) _pensuse_workbooks; return ;;
     esac
   fi
+  if (( CURRENT >= 5 )) && [[ "$words[1]" == "pensuse" && "$words[2]" == "evidence" && "$words[3]" == "verify" ]]; then _pensuse_evidence_ids; return; fi
   if (( CURRENT >= 4 )) && [[ "$words[1]" == "pensuse" && "$words[2]" == (evidence|scope|run) ]]; then
     case "$words[3]" in
       import|list|verify|add|remove|exclude|check) _pensuse_workbooks; return ;;
@@ -53,6 +60,7 @@ const Bash = `_pensuse_complete() {
   if [[ ${COMP_CWORD} -eq 1 ]]; then COMPREPLY=($(compgen -W 'version workbook scope evidence run container completion' -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == workbook && ${COMP_CWORD} -eq 2 ]]; then COMPREPLY=($(compgen -W 'create list open status close reopen rename' -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == workbook && ${COMP_CWORD} -ge 3 ]]; then local workbooks; workbooks="$(pensuse workbook list 2>/dev/null | awk '{print $1}')"; COMPREPLY=($(compgen -W "$workbooks" -- "$cur")); return; fi
+  if [[ ${COMP_WORDS[1]} == evidence && ${COMP_WORDS[2]} == verify && ${COMP_CWORD} -ge 4 ]]; then local ids; ids="$(pensuse evidence list "${COMP_WORDS[3]}" 2>/dev/null | awk '{print $1}')"; COMPREPLY=($(compgen -W "$ids" -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == evidence || ${COMP_WORDS[1]} == scope || ${COMP_WORDS[1]} == run ]] && [[ ${COMP_CWORD} -ge 3 ]]; then local workbooks; workbooks="$(pensuse workbook list 2>/dev/null | awk '{print $1}')"; COMPREPLY=($(compgen -W "$workbooks" -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == scope ]]; then COMPREPLY=($(compgen -W 'add remove exclude list check' -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == evidence ]]; then COMPREPLY=($(compgen -W 'import list verify' -- "$cur")); return; fi
