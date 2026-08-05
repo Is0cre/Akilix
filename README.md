@@ -362,6 +362,10 @@ pensuse evidence list client-2026
 pensuse run list client-2026
 ```
 
+Shell completion is available for Zsh and Bash. Install it with
+`sudo make install-completion`, then restart the shell or reload completion
+initialization.
+
 The project is currently establishing its architecture before adding substantial security tooling.
 
 See:
