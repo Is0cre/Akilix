@@ -40,29 +40,44 @@ func Create(root, name string, now time.Time) (Metadata, error) {
 	if err != nil {
 		return Metadata{}, err
 	}
-	dir := filepath.Join(root, name)
 	if err := os.MkdirAll(root, 0700); err != nil {
 		return Metadata{}, err
 	}
-	if err := os.Mkdir(dir, 0700); err != nil {
+	if _, err := os.Lstat(filepath.Join(root, name)); err == nil {
+		return Metadata{}, fmt.Errorf("workbook %q already exists", name)
+	} else if !os.IsNotExist(err) {
+		return Metadata{}, err
+	}
+	stage, err := os.MkdirTemp(root, ".creating-")
+	if err != nil {
+		return Metadata{}, err
+	}
+	defer os.RemoveAll(stage)
+	m := Metadata{Schema: Schema, ID: id, Name: name, Created: now.UTC(), Status: "open"}
+	for _, sub := range []string{"evidence/original", "evidence/acquired", "evidence/manifests", "artifacts/imported", "artifacts/derived", "artifacts/extracted", "captures", "tool-output", "notes", "findings", "timeline", "reports/drafts", "reports/exports", "logs/command", "logs/containers", "logs/audit", ".pensuse/locks"} {
+		if err := os.MkdirAll(filepath.Join(stage, sub), 0700); err != nil {
+			return Metadata{}, err
+		}
+	}
+	if err := atomicWrite(filepath.Join(stage, "workbook.yaml"), render(m), 0600); err != nil {
+		return Metadata{}, err
+	}
+	if err := atomicWrite(filepath.Join(stage, "scope.yaml"), "version: 1\nnetworks:\n  include: []\n  exclude: []\ndomains:\n  include: []\n  exclude: []\n", 0600); err != nil {
+		return Metadata{}, err
+	}
+	if err := atomicWrite(filepath.Join(stage, "README.md"), "# "+name+"\n\nPenSUSE workbook.\n", 0600); err != nil {
+		return Metadata{}, err
+	}
+	if err := syncDir(stage); err != nil {
+		return Metadata{}, err
+	}
+	if err := os.Rename(stage, filepath.Join(root, name)); err != nil {
 		if errors.Is(err, os.ErrExist) {
 			return Metadata{}, fmt.Errorf("workbook %q already exists", name)
 		}
 		return Metadata{}, err
 	}
-	m := Metadata{Schema: Schema, ID: id, Name: name, Created: now.UTC(), Status: "open"}
-	for _, sub := range []string{"evidence/original", "evidence/acquired", "evidence/manifests", "artifacts/imported", "artifacts/derived", "artifacts/extracted", "captures", "tool-output", "notes", "findings", "timeline", "reports/drafts", "reports/exports", "logs/command", "logs/containers", "logs/audit", ".pensuse/locks"} {
-		if err := os.MkdirAll(filepath.Join(dir, sub), 0700); err != nil {
-			return Metadata{}, err
-		}
-	}
-	if err := atomicWrite(filepath.Join(dir, "workbook.yaml"), render(m), 0600); err != nil {
-		return Metadata{}, err
-	}
-	if err := atomicWrite(filepath.Join(dir, "scope.yaml"), "version: 1\nnetworks:\n  include: []\n  exclude: []\ndomains:\n  include: []\n  exclude: []\n", 0600); err != nil {
-		return Metadata{}, err
-	}
-	if err := atomicWrite(filepath.Join(dir, "README.md"), "# "+name+"\n\nPenSUSE workbook.\n", 0600); err != nil {
+	if err := syncDir(root); err != nil {
 		return Metadata{}, err
 	}
 	return m, nil
@@ -76,7 +91,14 @@ func Open(root, name string) (Metadata, error) {
 	if err != nil {
 		return Metadata{}, err
 	}
-	return parse(string(b))
+	m, err := parse(string(b))
+	if err != nil {
+		return Metadata{}, err
+	}
+	if m.Name != name {
+		return Metadata{}, fmt.Errorf("workbook metadata name does not match directory")
+	}
+	return m, nil
 }
 
 func SetStatus(root, name, status string) (Metadata, error) {
@@ -132,7 +154,7 @@ func List(root string) ([]Metadata, error) {
 	}
 	var out []Metadata
 	for _, e := range entries {
-		if e.IsDir() {
+		if e.IsDir() && !strings.HasPrefix(e.Name(), ".creating-") {
 			m, err := Open(root, e.Name())
 			if err != nil {
 				return nil, fmt.Errorf("invalid workbook %q: %w", e.Name(), err)
@@ -210,11 +232,26 @@ func atomicWrite(path, data string, mode os.FileMode) error {
 	if err = tmp.Chmod(mode); err == nil {
 		_, err = tmp.WriteString(data)
 	}
+	if err == nil {
+		err = tmp.Sync()
+	}
 	if closeErr := tmp.Close(); err == nil {
 		err = closeErr
 	}
 	if err == nil {
 		err = os.Rename(name, path)
 	}
+	if err == nil {
+		err = syncDir(filepath.Dir(path))
+	}
 	return err
+}
+
+func syncDir(path string) error {
+	d, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer d.Close()
+	return d.Sync()
 }
