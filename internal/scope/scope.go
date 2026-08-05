@@ -7,6 +7,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"unicode"
 )
 
 type Config struct {
@@ -15,11 +16,11 @@ type Config struct {
 }
 
 func (c Config) Validate() error {
-	seen := map[string]bool{}
 	for _, list := range [][]string{c.Includes, c.Excludes} {
+		seen := map[string]bool{}
 		for _, v := range list {
-			if strings.TrimSpace(v) == "" {
-				return fmt.Errorf("scope target cannot be empty")
+			if _, err := normalize(v); err != nil {
+				return err
 			}
 			if seen[v] {
 				return fmt.Errorf("duplicate scope target %q", v)
@@ -45,8 +46,13 @@ func Load(workbookRoot string) (Config, error) {
 	}
 	var c Config
 	section := ""
+	version := ""
 	for _, line := range strings.Split(string(b), "\n") {
 		s := strings.TrimSpace(line)
+		if strings.HasPrefix(s, "version:") {
+			version = strings.TrimSpace(strings.TrimPrefix(s, "version:"))
+			continue
+		}
 		if s == "include:" {
 			section = "include"
 			continue
@@ -56,7 +62,7 @@ func Load(workbookRoot string) (Config, error) {
 			continue
 		}
 		if strings.HasPrefix(s, "- ") {
-			v := strings.TrimSpace(strings.TrimPrefix(s, "- "))
+			v := parseValue(strings.TrimSpace(strings.TrimPrefix(s, "- ")))
 			if v == "[]" || v == "" {
 				continue
 			}
@@ -68,26 +74,31 @@ func Load(workbookRoot string) (Config, error) {
 			}
 		}
 	}
+	if version != "1" {
+		return Config{}, fmt.Errorf("unsupported scope schema version %q", version)
+	}
 	if err := c.Validate(); err != nil {
 		return Config{}, err
 	}
-	return c, nil
+	return normalizeConfig(c)
 }
 func Save(workbookRoot string, c Config) error {
-	if err := c.Validate(); err != nil {
+	normalized, err := normalizeConfig(c)
+	if err != nil {
 		return err
 	}
+	c = normalized
 	var b strings.Builder
 	b.WriteString("version: 1\ninclude:\n")
 	for _, v := range c.Includes {
-		fmt.Fprintf(&b, "  - %s\n", v)
+		fmt.Fprintf(&b, "  - %s\n", quote(v))
 	}
 	if len(c.Includes) == 0 {
 		b.WriteString("  []\n")
 	}
 	b.WriteString("exclude:\n")
 	for _, v := range c.Excludes {
-		fmt.Fprintf(&b, "  - %s\n", v)
+		fmt.Fprintf(&b, "  - %s\n", quote(v))
 	}
 	if len(c.Excludes) == 0 {
 		b.WriteString("  []\n")
@@ -108,9 +119,16 @@ func Save(workbookRoot string, c Config) error {
 	if err == nil {
 		err = os.Rename(name, path)
 	}
+	if err == nil {
+		err = syncDir(workbookRoot)
+	}
 	return err
 }
 func Add(workbookRoot, target string, exclude bool) error {
+	normalized, err := normalize(target)
+	if err != nil {
+		return err
+	}
 	c, err := Load(workbookRoot)
 	if err != nil {
 		return err
@@ -120,15 +138,19 @@ func Add(workbookRoot, target string, exclude bool) error {
 		list = &c.Excludes
 	}
 	for _, v := range *list {
-		if v == target {
+		if v == normalized {
 			return nil
 		}
 	}
-	*list = append(*list, target)
+	*list = append(*list, normalized)
 	return Save(workbookRoot, c)
 }
 
 func Remove(workbookRoot, target string, exclude bool) error {
+	normalized, err := normalize(target)
+	if err != nil {
+		return err
+	}
 	c, err := Load(workbookRoot)
 	if err != nil {
 		return err
@@ -140,14 +162,14 @@ func Remove(workbookRoot, target string, exclude bool) error {
 	found := false
 	out := list[:0]
 	for _, v := range list {
-		if v == target {
+		if v == normalized {
 			found = true
 			continue
 		}
 		out = append(out, v)
 	}
 	if !found {
-		return fmt.Errorf("scope target %q not found", target)
+		return fmt.Errorf("scope target %q not found", normalized)
 	}
 	if exclude {
 		c.Excludes = out
@@ -157,6 +179,10 @@ func Remove(workbookRoot, target string, exclude bool) error {
 	return Save(workbookRoot, c)
 }
 func Evaluate(c Config, target string) Result {
+	target = strings.TrimSpace(target)
+	if target == "" {
+		return Unknown
+	}
 	for _, x := range c.Excludes {
 		if matches(x, target) {
 			return Deny
@@ -187,8 +213,70 @@ func matches(rule, target string) bool {
 	}
 	host = strings.TrimSuffix(strings.ToLower(host), ".")
 	rule = strings.TrimSuffix(strings.ToLower(rule), ".")
+	if u, err := url.Parse(rule); err == nil && u.Hostname() != "" {
+		rule = strings.TrimSuffix(strings.ToLower(u.Hostname()), ".")
+	}
 	if strings.HasPrefix(rule, "*.") {
 		return strings.HasSuffix(host, rule[1:]) && host != rule[2:]
 	}
 	return host == rule
+}
+
+func normalizeConfig(c Config) (Config, error) {
+	out := Config{Includes: make([]string, 0, len(c.Includes)), Excludes: make([]string, 0, len(c.Excludes))}
+	for _, v := range c.Includes {
+		n, err := normalize(v)
+		if err != nil {
+			return Config{}, err
+		}
+		out.Includes = append(out.Includes, n)
+	}
+	for _, v := range c.Excludes {
+		n, err := normalize(v)
+		if err != nil {
+			return Config{}, err
+		}
+		out.Excludes = append(out.Excludes, n)
+	}
+	if err := out.Validate(); err != nil {
+		return Config{}, err
+	}
+	return out, nil
+}
+
+func normalize(value string) (string, error) {
+	value = strings.TrimSpace(value)
+	if value == "" || strings.IndexFunc(value, unicode.IsSpace) >= 0 || strings.IndexFunc(value, unicode.IsControl) >= 0 {
+		return "", fmt.Errorf("scope target must be non-empty and contain no whitespace")
+	}
+	if ip := net.ParseIP(value); ip != nil {
+		return ip.String(), nil
+	}
+	if _, network, err := net.ParseCIDR(value); err == nil {
+		return network.String(), nil
+	}
+	if strings.HasPrefix(value, "*.") {
+		return "*." + strings.ToLower(strings.TrimSuffix(value[2:], ".")), nil
+	}
+	return strings.ToLower(strings.TrimSuffix(value, ".")), nil
+}
+
+func parseValue(value string) string {
+	if len(value) >= 2 && value[0] == '\'' && value[len(value)-1] == '\'' {
+		return strings.ReplaceAll(value[1:len(value)-1], "''", "'")
+	}
+	return value
+}
+
+func quote(value string) string {
+	return "'" + strings.ReplaceAll(value, "'", "''") + "'"
+}
+
+func syncDir(path string) error {
+	d, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer d.Close()
+	return d.Sync()
 }
