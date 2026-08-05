@@ -22,7 +22,28 @@ type containerManifest struct {
 	WritableRoot bool              `json:"writable_root"`
 	Environment  map[string]string `json:"environment,omitempty"`
 	Workdir      string            `json:"workdir,omitempty"`
+	Policy       containerPolicy   `json:"policy"`
+	Mounts       []containerMount  `json:"mounts,omitempty"`
+	Generated    []string          `json:"generated_files,omitempty"`
 	Status       string            `json:"status"`
+}
+
+type containerPolicy struct {
+	Pull         string `json:"pull"`
+	UserNS       string `json:"user_namespace"`
+	PIDNS        string `json:"pid_namespace"`
+	IPCNS        string `json:"ipc_namespace"`
+	UTSNS        string `json:"uts_namespace"`
+	NoNewPrivs   bool   `json:"no_new_privileges"`
+	Capabilities string `json:"capabilities"`
+	RootReadOnly bool   `json:"root_read_only"`
+}
+
+type containerMount struct {
+	Source           string `json:"source"`
+	Destination      string `json:"destination"`
+	ReadOnly         bool   `json:"read_only"`
+	OriginalEvidence bool   `json:"original_evidence"`
 }
 
 func RunContainer(ctx context.Context, workbookRoot, workbookID string, spec containerpkg.Spec, now func() time.Time, options Options) (Record, error) {
@@ -83,7 +104,7 @@ func RunContainer(ctx context.Context, workbookRoot, workbookID string, spec con
 	if err := r.Validate(); err != nil {
 		return Record{}, err
 	}
-	containerData, err := json.MarshalIndent(containerManifest{Schema: "pensuse.container.v1", InvocationID: id, Image: spec.Identity.Image, Digest: spec.Identity.Digest, Arguments: spec.Arguments, Network: spec.Network, WritableRoot: spec.WritableRoot, Environment: spec.Environment, Workdir: spec.Workdir, Status: status}, "", "  ")
+	containerData, err := json.MarshalIndent(buildContainerManifest(id, spec, generated, status), "", "  ")
 	if err != nil {
 		return Record{}, err
 	}
@@ -135,11 +156,46 @@ func atomicWriteFile(path string, data []byte) error {
 	if err = tmp.Chmod(0600); err == nil {
 		_, err = tmp.Write(data)
 	}
+	if err == nil {
+		err = tmp.Sync()
+	}
 	if closeErr := tmp.Close(); err == nil {
 		err = closeErr
 	}
 	if err == nil {
 		err = os.Rename(name, path)
 	}
+	if err == nil {
+		err = syncDirectory(filepath.Dir(path))
+	}
 	return err
+}
+
+func buildContainerManifest(id string, spec containerpkg.Spec, generated []string, status string) containerManifest {
+	mounts := make([]containerMount, 0, len(spec.Mounts))
+	for _, mount := range spec.Mounts {
+		mounts = append(mounts, containerMount{Source: mount.Source, Destination: mount.Destination, ReadOnly: mount.ReadOnly, OriginalEvidence: mount.OriginalEvidence})
+	}
+	return containerManifest{
+		Schema: "pensuse.container.v1", InvocationID: id, Image: spec.Identity.Image, Digest: spec.Identity.Digest,
+		Arguments: spec.Arguments, Network: effectiveNetwork(spec.Network), WritableRoot: spec.WritableRoot,
+		Environment: spec.Environment, Workdir: spec.Workdir, Mounts: mounts, Generated: generated, Status: status,
+		Policy: containerPolicy{Pull: "never", UserNS: "keep-id", PIDNS: "private", IPCNS: "private", UTSNS: "private", NoNewPrivs: true, Capabilities: "drop-all", RootReadOnly: !spec.WritableRoot},
+	}
+}
+
+func effectiveNetwork(network string) string {
+	if network == "" {
+		return "none"
+	}
+	return network
+}
+
+func syncDirectory(path string) error {
+	d, err := os.Open(path)
+	if err != nil {
+		return err
+	}
+	defer d.Close()
+	return d.Sync()
 }
