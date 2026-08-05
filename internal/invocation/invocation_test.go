@@ -10,6 +10,7 @@ import (
 
 func TestRunRecordsSuccessAndFailure(t *testing.T) {
 	root := t.TempDir()
+	t.Setenv("PENSUSE_TEST_SECRET", "do-not-record")
 	now := func() time.Time { return time.Unix(10, 0) }
 	r, err := RunWithOptions(context.Background(), root, "88888888-8888-7888-8888-888888888888", []string{"sh", "-c", "printf out; printf err >&2"}, now, Options{ScopeResult: "ALLOW", ScopeOverride: true})
 	if err != nil || r.Status != "complete" || r.ExitCode != 0 {
@@ -17,6 +18,12 @@ func TestRunRecordsSuccessAndFailure(t *testing.T) {
 	}
 	if r.ScopeResult != "ALLOW" || !r.ScopeOverride {
 		t.Fatalf("scope provenance missing: %+v", r)
+	}
+	if r.WorkingDirectory == "" || r.Environment == nil {
+		t.Fatalf("execution environment provenance missing: %+v", r)
+	}
+	if _, found := r.Environment["PENSUSE_TEST_SECRET"]; found {
+		t.Fatal("unapproved environment variable recorded")
 	}
 	out, _ := os.ReadFile(filepath.Join(root, r.Stdout))
 	if string(out) != "out" {

@@ -71,7 +71,7 @@ func RunContainer(ctx context.Context, workbookRoot, workbookID string, spec con
 			exitCode = ee.ExitCode()
 		}
 	}
-	r := Record{Schema: Schema, ID: id, WorkbookID: workbookID, Started: start, Ended: end, Executor: "container", Executable: executable, Arguments: args, ExitCode: exitCode, Status: status, Stdout: filepath.ToSlash(filepath.Join("tool-output", id+".stdout")), Stderr: filepath.ToSlash(filepath.Join("tool-output", id+".stderr")), ScopeResult: options.ScopeResult, ScopeOverride: options.ScopeOverride, ContainerImage: spec.Identity.Image, ContainerDigest: spec.Identity.Digest}
+	r := Record{Schema: Schema, ID: id, WorkbookID: workbookID, Started: start, Ended: end, Executor: "container", Executable: executable, Arguments: args, WorkingDirectory: spec.Workdir, Environment: spec.Environment, ExitCode: exitCode, Status: status, Stdout: filepath.ToSlash(filepath.Join("tool-output", id+".stdout")), Stderr: filepath.ToSlash(filepath.Join("tool-output", id+".stderr")), ScopeResult: options.ScopeResult, ScopeOverride: options.ScopeOverride, ContainerImage: spec.Identity.Image, ContainerDigest: spec.Identity.Digest}
 	if err := r.Validate(); err != nil {
 		return Record{}, err
 	}

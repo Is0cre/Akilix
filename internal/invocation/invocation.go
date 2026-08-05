@@ -16,22 +16,24 @@ import (
 const Schema = "pensuse.invocation.v1"
 
 type Record struct {
-	Schema          string    `json:"schema"`
-	ID              string    `json:"invocation_id"`
-	WorkbookID      string    `json:"workbook_id"`
-	Started         time.Time `json:"started"`
-	Ended           time.Time `json:"ended"`
-	Executor        string    `json:"executor"`
-	Executable      string    `json:"executable"`
-	Arguments       []string  `json:"arguments"`
-	ExitCode        int       `json:"exit_code"`
-	Status          string    `json:"status"`
-	Stdout          string    `json:"stdout_artifact"`
-	Stderr          string    `json:"stderr_artifact"`
-	ScopeResult     string    `json:"scope_result,omitempty"`
-	ScopeOverride   bool      `json:"scope_override,omitempty"`
-	ContainerImage  string    `json:"container_image,omitempty"`
-	ContainerDigest string    `json:"container_digest,omitempty"`
+	Schema           string            `json:"schema"`
+	ID               string            `json:"invocation_id"`
+	WorkbookID       string            `json:"workbook_id"`
+	Started          time.Time         `json:"started"`
+	Ended            time.Time         `json:"ended"`
+	Executor         string            `json:"executor"`
+	Executable       string            `json:"executable"`
+	Arguments        []string          `json:"arguments"`
+	WorkingDirectory string            `json:"working_directory,omitempty"`
+	Environment      map[string]string `json:"environment,omitempty"`
+	ExitCode         int               `json:"exit_code"`
+	Status           string            `json:"status"`
+	Stdout           string            `json:"stdout_artifact"`
+	Stderr           string            `json:"stderr_artifact"`
+	ScopeResult      string            `json:"scope_result,omitempty"`
+	ScopeOverride    bool              `json:"scope_override,omitempty"`
+	ContainerImage   string            `json:"container_image,omitempty"`
+	ContainerDigest  string            `json:"container_digest,omitempty"`
 }
 
 type Options struct {
@@ -51,6 +53,14 @@ func (r Record) Validate() error {
 	}
 	if !validArtifactPath(r.Stdout) || !validArtifactPath(r.Stderr) {
 		return fmt.Errorf("invalid invocation artifact path")
+	}
+	if r.WorkingDirectory != "" && !filepath.IsAbs(r.WorkingDirectory) {
+		return fmt.Errorf("working directory must be absolute")
+	}
+	for key, value := range r.Environment {
+		if key == "" || strings.ContainsAny(key, "=\x00") || strings.ContainsRune(value, '\x00') {
+			return fmt.Errorf("invalid invocation environment")
+		}
 	}
 	if r.ScopeResult != "" && r.ScopeResult != "ALLOW" && r.ScopeResult != "DENY" && r.ScopeResult != "UNKNOWN" {
 		return fmt.Errorf("invalid invocation scope result")
@@ -156,7 +166,8 @@ func RunWithOptions(ctx context.Context, workbookRoot, workbookID string, args [
 			exitCode = ee.ExitCode()
 		}
 	}
-	r := Record{Schema: Schema, ID: id, WorkbookID: workbookID, Started: start, Ended: end, Executor: "native", Executable: executable, Arguments: append([]string(nil), args...), ExitCode: exitCode, Status: status, Stdout: filepath.ToSlash(filepath.Join("tool-output", id+".stdout")), Stderr: filepath.ToSlash(filepath.Join("tool-output", id+".stderr")), ScopeResult: options.ScopeResult, ScopeOverride: options.ScopeOverride}
+	workingDirectory, _ := os.Getwd()
+	r := Record{Schema: Schema, ID: id, WorkbookID: workbookID, Started: start, Ended: end, Executor: "native", Executable: executable, Arguments: append([]string(nil), args...), WorkingDirectory: workingDirectory, Environment: safeEnvironment(), ExitCode: exitCode, Status: status, Stdout: filepath.ToSlash(filepath.Join("tool-output", id+".stdout")), Stderr: filepath.ToSlash(filepath.Join("tool-output", id+".stderr")), ScopeResult: options.ScopeResult, ScopeOverride: options.ScopeOverride}
 	if err := r.Validate(); err != nil {
 		return Record{}, err
 	}
@@ -230,4 +241,16 @@ func validID(value string) bool {
 func validArtifactPath(value string) bool {
 	slash := filepath.ToSlash(value)
 	return value != "" && !filepath.IsAbs(value) && strings.HasPrefix(slash, "tool-output/") && !strings.Contains(slash, "../")
+}
+
+func safeEnvironment() map[string]string {
+	allowed := map[string]bool{"HOME": true, "LANG": true, "LC_ALL": true, "PATH": true, "PWD": true, "SHELL": true, "TERM": true, "USER": true}
+	out := make(map[string]string)
+	for _, entry := range os.Environ() {
+		key, value, ok := strings.Cut(entry, "=")
+		if ok && allowed[key] {
+			out[key] = value
+		}
+	}
+	return out
 }
