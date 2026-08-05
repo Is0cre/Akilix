@@ -74,8 +74,8 @@ func run(args []string, stdout, stderr io.Writer) int {
 }
 
 func runProfile(args []string, stdout, stderr io.Writer) int {
-	if len(args) < 1 || (args[0] != "list" && args[0] != "show") {
-		fmt.Fprintln(stderr, "usage: pensuse profile list [--json] | profile show ID [--json]")
+	if len(args) < 1 || (args[0] != "list" && args[0] != "show" && args[0] != "plan") {
+		fmt.Fprintln(stderr, "usage: pensuse profile list [--json] | profile show ID [--json] | profile plan ID [--json]")
 		return 2
 	}
 	dir := os.Getenv("PENSUSE_PROFILE_DIR")
@@ -118,6 +118,22 @@ func runProfile(args []string, stdout, stderr io.Writer) int {
 	if err != nil {
 		fmt.Fprintln(stderr, err)
 		return 1
+	}
+	if args[0] == "plan" {
+		plan := profilepkg.BuildPlan(item)
+		if len(args) == 3 {
+			data, err := json.MarshalIndent(plan, "", "  ")
+			if err != nil {
+				fmt.Fprintln(stderr, err)
+				return 1
+			}
+			fmt.Fprintln(stdout, string(data))
+			return 0
+		}
+		for _, step := range plan.Steps {
+			fmt.Fprintf(stdout, "%s\t%s\n", step.Phase, step.Action)
+		}
+		return 0
 	}
 	if len(args) == 3 {
 		data, err := json.MarshalIndent(item, "", "  ")

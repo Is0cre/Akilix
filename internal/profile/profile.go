@@ -20,6 +20,29 @@ type Manifest struct {
 	Containers  []string `json:"containers"`
 }
 
+type Plan struct {
+	ProfileID string `json:"profile_id"`
+	Steps     []Step `json:"steps"`
+}
+
+type Step struct {
+	Phase      string   `json:"phase"`
+	Action     string   `json:"action"`
+	Components []string `json:"components,omitempty"`
+}
+
+func BuildPlan(m Manifest) Plan {
+	steps := []Step{{Phase: "SNAPSHOT", Action: "capture pre-change host state"}}
+	if len(m.RPM) > 0 {
+		steps = append(steps, Step{Phase: "APPLY", Action: "install curated RPM components", Components: append([]string(nil), m.RPM...)})
+	}
+	if len(m.Containers) > 0 {
+		steps = append(steps, Step{Phase: "APPLY", Action: "prepare OCI component definitions", Components: append([]string(nil), m.Containers...)})
+	}
+	steps = append(steps, Step{Phase: "VERIFY", Action: "verify profile state"}, Step{Phase: "ROLLBACK", Action: "retain pre-change snapshot for recovery"})
+	return Plan{ProfileID: m.ID, Steps: steps}
+}
+
 func (m Manifest) Validate() error {
 	if m.Schema != Schema || !validID(m.ID) || strings.TrimSpace(m.Name) == "" || strings.TrimSpace(m.Description) == "" {
 		return fmt.Errorf("invalid profile manifest")
@@ -119,8 +142,12 @@ func load(path string) (Manifest, error) {
 	if err := m.Validate(); err != nil {
 		return Manifest{}, err
 	}
-	if m.RPM == nil { m.RPM = []string{} }
-	if m.Containers == nil { m.Containers = []string{} }
+	if m.RPM == nil {
+		m.RPM = []string{}
+	}
+	if m.Containers == nil {
+		m.Containers = []string{}
+	}
 	return m, nil
 }
 

@@ -28,3 +28,10 @@ func TestManifestRejectsDuplicateComponents(t *testing.T) {
 		t.Fatal("duplicate components accepted")
 	}
 }
+
+func TestBuildPlanHasTransactionalPhases(t *testing.T) {
+	plan := BuildPlan(Manifest{ID: "CORE", RPM: []string{"zypper"}, Containers: []string{"recon"}})
+	if len(plan.Steps) != 5 || plan.Steps[0].Phase != "SNAPSHOT" || plan.Steps[len(plan.Steps)-1].Phase != "ROLLBACK" {
+		t.Fatalf("unexpected plan: %+v", plan)
+	}
+}
