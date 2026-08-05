@@ -11,6 +11,12 @@ go build -o pensuse ./cmd/pensuse
 go test ./...
 ```
 
+The complete local validation sequence is also available as:
+
+```sh
+make check
+```
+
 In restricted build environments where the default home directory is
 read-only, use writable temporary Go caches:
 
