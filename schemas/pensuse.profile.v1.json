@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pensuse.dev/schemas/pensuse.profile.v1.json",
+  "title": "PenSUSE profile",
+  "type": "object",
+  "required": ["schema", "id", "name", "description", "status", "rpm", "containers"],
+  "properties": {
+    "schema": {"const": "pensuse.profile.v1"},
+    "id": {"type": "string", "pattern": "^[A-Z0-9-]+$"},
+    "name": {"type": "string", "minLength": 1},
+    "description": {"type": "string", "minLength": 1},
+    "status": {"enum": ["foundation", "planned"]},
+    "rpm": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
+    "containers": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
+  },
+  "additionalProperties": false
+}

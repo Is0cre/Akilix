@@ -17,6 +17,18 @@ The complete local validation sequence is also available as:
 make check
 ```
 
+Inspect effective configuration without changing it:
+
+```sh
+pensuse config show
+pensuse config show --json
+pensuse config path
+```
+
+Configuration is read from the XDG config path when present. Environment
+overrides such as `PENSUSE_WORKBOOK_ROOT` and `PENSUSE_PROFILE_DIR` take
+precedence; no config file is created automatically.
+
 In restricted build environments where the default home directory is
 read-only, use writable temporary Go caches:
 

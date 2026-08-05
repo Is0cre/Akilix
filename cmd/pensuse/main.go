@@ -48,6 +48,9 @@ func run(args []string, stdout, stderr io.Writer) int {
 	if args[0] == "profile" {
 		return runProfile(args[1:], stdout, stderr)
 	}
+	if args[0] == "config" {
+		return runConfig(args[1:], stdout, stderr)
+	}
 	if args[0] == "completion" {
 		return runCompletion(args[1:], stdout, stderr)
 	}
@@ -73,6 +76,33 @@ func run(args []string, stdout, stderr io.Writer) int {
 	return 0
 }
 
+func runConfig(args []string, stdout, stderr io.Writer) int {
+	if len(args) != 1 && !(len(args) == 2 && args[1] == "--json") || args[0] != "show" && args[0] != "path" {
+		fmt.Fprintln(stderr, "usage: pensuse config show [--json] | config path")
+		return 2
+	}
+	settings, err := config.Effective(os.Getenv, func(path string) error { _, err := os.Stat(path); return err })
+	if err != nil {
+		fmt.Fprintln(stderr, err)
+		return 1
+	}
+	if args[0] == "path" {
+		fmt.Fprintln(stdout, settings.ConfigFile)
+		return 0
+	}
+	if len(args) == 2 {
+		data, err := json.MarshalIndent(settings, "", "  ")
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		fmt.Fprintln(stdout, string(data))
+		return 0
+	}
+	fmt.Fprintf(stdout, "Config: %s\nState: %s\nWorkbooks: %s\nProfiles: %s\n", settings.ConfigFile, settings.StateDir, settings.WorkbookRoot, settings.ProfileDir)
+	return 0
+}
+
 func runProfile(args []string, stdout, stderr io.Writer) int {
 	if len(args) < 1 || (args[0] != "list" && args[0] != "show" && args[0] != "plan") {
 		fmt.Fprintln(stderr, "usage: pensuse profile list [--json] | profile show ID [--json] | profile plan ID [--json]")
@@ -83,7 +113,12 @@ func runProfile(args []string, stdout, stderr io.Writer) int {
 		if _, err := os.Stat("profiles"); err == nil {
 			dir = "profiles"
 		} else {
-			dir = "/usr/share/pensuse/profiles"
+			settings, err := config.Effective(os.Getenv, func(path string) error { _, err := os.Stat(path); return err })
+			if err != nil {
+				fmt.Fprintln(stderr, err)
+				return 1
+			}
+			dir = settings.ProfileDir
 		}
 	}
 	if args[0] == "list" {
@@ -240,11 +275,7 @@ func runContainerCommand(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stderr, "--override requires --target")
 		return 2
 	}
-	root := os.Getenv("PENSUSE_WORKBOOK_ROOT")
-	if root == "" {
-		_, state := config.UserPaths()
-		root = filepath.Join(state, "workbooks")
-	}
+	root := effectiveWorkbookRoot()
 	m, err := workbook.Open(root, args[0])
 	if err != nil {
 		fmt.Fprintln(stderr, err)
@@ -301,11 +332,7 @@ func runCommand(args []string, stdout, stderr io.Writer) int {
 			fmt.Fprintln(stderr, "usage: pensuse run list WORKBOOK")
 			return 2
 		}
-		root := os.Getenv("PENSUSE_WORKBOOK_ROOT")
-		if root == "" {
-			_, state := config.UserPaths()
-			root = filepath.Join(state, "workbooks")
-		}
+		root := effectiveWorkbookRoot()
 		if _, err := workbook.Open(root, args[1]); err != nil {
 			fmt.Fprintln(stderr, err)
 			return 1
@@ -362,11 +389,7 @@ func runCommand(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stderr, "--override requires --target")
 		return 2
 	}
-	root := os.Getenv("PENSUSE_WORKBOOK_ROOT")
-	if root == "" {
-		_, state := config.UserPaths()
-		root = filepath.Join(state, "workbooks")
-	}
+	root := effectiveWorkbookRoot()
 	wbRoot := filepath.Join(root, workbookName)
 	m, err := workbook.Open(root, workbookName)
 	if err != nil {
@@ -408,11 +431,7 @@ func runScope(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stderr, "usage: pensuse scope <add|remove|exclude|list|check> WORKBOOK [TARGET]")
 		return 2
 	}
-	root := os.Getenv("PENSUSE_WORKBOOK_ROOT")
-	if root == "" {
-		_, state := config.UserPaths()
-		root = filepath.Join(state, "workbooks")
-	}
+	root := effectiveWorkbookRoot()
 	workbookRoot := filepath.Join(root, args[1])
 	m, err := workbook.Open(root, args[1])
 	if err != nil {
@@ -507,11 +526,7 @@ func runEvidence(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stderr, "workbook name is required")
 		return 2
 	}
-	root := os.Getenv("PENSUSE_WORKBOOK_ROOT")
-	if root == "" {
-		_, state := config.UserPaths()
-		root = filepath.Join(state, "workbooks")
-	}
+	root := effectiveWorkbookRoot()
 	workbookRoot := filepath.Join(root, args[1])
 	m, err := workbook.Open(root, args[1])
 	if err != nil {
@@ -627,11 +642,7 @@ func runWorkbook(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stderr, "usage: pensuse workbook <create|list|open|status|close|reopen|rename|validate>")
 		return 2
 	}
-	root := os.Getenv("PENSUSE_WORKBOOK_ROOT")
-	if root == "" {
-		_, state := config.UserPaths()
-		root = filepath.Join(state, "workbooks")
-	}
+	root := effectiveWorkbookRoot()
 	switch args[0] {
 	case "validate":
 		if len(args) != 2 && !(len(args) == 3 && args[2] == "--json") {
@@ -756,6 +767,15 @@ func runWorkbook(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stderr, "unknown workbook command")
 		return 2
 	}
+}
+
+func effectiveWorkbookRoot() string {
+	settings, err := config.Effective(os.Getenv, func(path string) error { _, err := os.Stat(path); return err })
+	if err == nil {
+		return settings.WorkbookRoot
+	}
+	_, state := config.UserPaths()
+	return filepath.Join(state, "workbooks")
 }
 
 var timeNow = func() time.Time { return time.Now().UTC() }

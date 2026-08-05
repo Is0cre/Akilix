@@ -49,6 +49,7 @@ _pensuse() {
       'run[Execute and inspect invocations]' \
       'container[Inspect container images]' \
       'profile[Inspect capability profiles]' \
+      'config[Inspect effective configuration]' \
       'completion[Generate shell completion]' ;;
     argument)
       case $words[2] in
@@ -58,6 +59,7 @@ _pensuse() {
         run) _message 'use: pensuse run WORKBOOK -- COMMAND [ARGS...]' ;;
         container) _values 'container command' inspect run ;;
         profile) _values 'profile command' list show plan ;;
+        config) _values 'config command' show path ;;
         completion) _values 'shell' zsh bash ;;
       esac ;;
   esac
@@ -80,6 +82,7 @@ const Bash = `_pensuse_complete() {
   if [[ ${COMP_WORDS[1]} == evidence ]]; then COMPREPLY=($(compgen -W 'import list verify' -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == container ]]; then COMPREPLY=($(compgen -W 'inspect' -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == profile ]]; then COMPREPLY=($(compgen -W 'list show plan' -- "$cur")); return; fi
+  if [[ ${COMP_WORDS[1]} == config ]]; then COMPREPLY=($(compgen -W 'show path' -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == completion ]]; then COMPREPLY=($(compgen -W 'zsh bash' -- "$cur")); return; fi
 }
 complete -F _pensuse_complete pensuse
