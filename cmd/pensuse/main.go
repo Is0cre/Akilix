@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pensuse/pensuse/internal/completion"
 	"github.com/pensuse/pensuse/internal/config"
 	containerpkg "github.com/pensuse/pensuse/internal/container"
 	"github.com/pensuse/pensuse/internal/evidence"
@@ -43,6 +44,9 @@ func run(args []string, stdout, stderr io.Writer) int {
 	if args[0] == "container" {
 		return runContainer(args[1:], stdout, stderr)
 	}
+	if args[0] == "completion" {
+		return runCompletion(args[1:], stdout, stderr)
+	}
 	if args[0] != "version" {
 		fmt.Fprintln(stderr, "usage: pensuse version [--json] | workbook ... | scope ... | evidence ... | run ... | container ...")
 		return 2
@@ -63,6 +67,24 @@ func run(args []string, stdout, stderr io.Writer) int {
 	}
 	fmt.Fprintf(stdout, "%s %s\nBase: %s\nArchitecture: %s\n", info.Name, info.Version, info.Base, info.Architecture)
 	return 0
+}
+
+func runCompletion(args []string, stdout, stderr io.Writer) int {
+	if len(args) != 1 {
+		fmt.Fprintln(stderr, "usage: pensuse completion <zsh|bash>")
+		return 2
+	}
+	switch args[0] {
+	case "zsh":
+		fmt.Fprint(stdout, completion.Zsh)
+		return 0
+	case "bash":
+		fmt.Fprint(stdout, completion.Bash)
+		return 0
+	default:
+		fmt.Fprintln(stderr, "unsupported shell")
+		return 2
+	}
 }
 
 func runContainer(args []string, stdout, stderr io.Writer) int {
