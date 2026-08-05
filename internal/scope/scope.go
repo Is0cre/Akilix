@@ -13,6 +13,23 @@ type Config struct {
 	Includes []string
 	Excludes []string
 }
+
+func (c Config) Validate() error {
+	seen := map[string]bool{}
+	for _, list := range [][]string{c.Includes, c.Excludes} {
+		for _, v := range list {
+			if strings.TrimSpace(v) == "" {
+				return fmt.Errorf("scope target cannot be empty")
+			}
+			if seen[v] {
+				return fmt.Errorf("duplicate scope target %q", v)
+			}
+			seen[v] = true
+		}
+	}
+	return nil
+}
+
 type Result string
 
 const (
@@ -51,9 +68,15 @@ func Load(workbookRoot string) (Config, error) {
 			}
 		}
 	}
+	if err := c.Validate(); err != nil {
+		return Config{}, err
+	}
 	return c, nil
 }
 func Save(workbookRoot string, c Config) error {
+	if err := c.Validate(); err != nil {
+		return err
+	}
 	var b strings.Builder
 	b.WriteString("version: 1\ninclude:\n")
 	for _, v := range c.Includes {
