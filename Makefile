@@ -7,10 +7,10 @@ build:
 	go build -trimpath -buildvcs=false -o pensuse ./cmd/pensuse
 
 test:
-	go test ./...
+	go test ./cmd/... ./internal/...
 
 check: test
-	go vet ./...
+	go vet ./cmd/... ./internal/...
 	$(MAKE) schema-check
 	$(MAKE) build
 	$(MAKE) completion-check
@@ -36,5 +36,10 @@ rpm:
 kiwi:
 	kiwi-ng system build --description image/kiwi --target-dir build/kiwi
 
-kiwi-iso:
+
+kiwi-iso: build
+	install -Dm0755 pensuse image/kiwi-iso/root/usr/bin/pensuse
+	mkdir -p image/kiwi-iso/root/usr/share/zsh/site-functions image/kiwi-iso/root/usr/share/bash-completion/completions
+	./pensuse completion zsh > image/kiwi-iso/root/usr/share/zsh/site-functions/_pensuse
+	./pensuse completion bash > image/kiwi-iso/root/usr/share/bash-completion/completions/pensuse
 	kiwi-ng system build --description image/kiwi-iso --target-dir build/kiwi-iso

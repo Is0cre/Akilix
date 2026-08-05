@@ -2,6 +2,9 @@
 /pensuse
 /build/
 /pensuse.zip
+/image/kiwi-iso/root/usr/bin/pensuse
+/image/kiwi-iso/root/usr/share/zsh/site-functions/_pensuse
+/image/kiwi-iso/root/usr/share/bash-completion/completions/pensuse
 
 # Go caches and local workspace state
 /.cache/

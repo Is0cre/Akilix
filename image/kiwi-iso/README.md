@@ -10,7 +10,8 @@ Build on a privileged Leap 16 build host:
 make kiwi-iso
 ```
 
-The result is written under `build/kiwi-iso/`. Verify the generated checksum
-before copying the ISO to Ventoy media. A Ventoy boot test must verify that the
-system reaches the expected target, does not start PenSUSE listeners, and
-preserves the documented passive-opening behavior.
+The target builds the current CLI and shell completions into the image overlay
+before KIWI runs. The result is written under `build/kiwi-iso/`. Verify the
+generated checksum before copying the ISO to Ventoy media. A Ventoy boot test
+must verify that the system reaches the expected target, does not start PenSUSE
+listeners, and preserves the documented passive-opening behavior.

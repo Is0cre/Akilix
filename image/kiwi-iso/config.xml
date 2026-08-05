@@ -24,5 +24,24 @@
     <package name="zsh"/>
     <package name="git"/>
     <package name="iproute2"/>
+    <package name="wicked"/>
+    <package name="curl"/>
+    <package name="tar"/>
+    <package name="squashfs"/>
+    <package name="util-linux"/>
+    <package name="dracut-kiwi-live"/>
+    <package name="glibc-locale-base"/>
+    <package name="kernel-default"/>
+    <package name="grub2"/>
+    <package name="grub2-i386-pc"/>
+    <package name="grub2-x86_64-efi"/>
+  </packages>
+  <packages type="bootstrap">
+    <package name="bash"/>
+    <package name="filesystem"/>
+    <package name="rpm"/>
+    <package name="zypper"/>
+    <package name="ca-certificates"/>
+    <package name="ca-certificates-mozilla"/>
   </packages>
 </image>
