@@ -1,0 +1,9 @@
+schema: pensuse.profile.v1
+id: FORENSICS
+name: Forensics
+description: Reserved profile for future local-first forensic analysis environments.
+status: planned
+rpm:
+  []
+containers:
+  []

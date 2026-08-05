@@ -15,6 +15,7 @@ import (
 	containerpkg "github.com/pensuse/pensuse/internal/container"
 	"github.com/pensuse/pensuse/internal/evidence"
 	"github.com/pensuse/pensuse/internal/invocation"
+	profilepkg "github.com/pensuse/pensuse/internal/profile"
 	"github.com/pensuse/pensuse/internal/scope"
 	"github.com/pensuse/pensuse/internal/version"
 	"github.com/pensuse/pensuse/internal/workbook"
@@ -44,6 +45,9 @@ func run(args []string, stdout, stderr io.Writer) int {
 	if args[0] == "container" {
 		return runContainer(args[1:], stdout, stderr)
 	}
+	if args[0] == "profile" {
+		return runProfile(args[1:], stdout, stderr)
+	}
 	if args[0] == "completion" {
 		return runCompletion(args[1:], stdout, stderr)
 	}
@@ -66,6 +70,65 @@ func run(args []string, stdout, stderr io.Writer) int {
 		return 2
 	}
 	fmt.Fprintf(stdout, "%s %s\nBase: %s\nArchitecture: %s\n", info.Name, info.Version, info.Base, info.Architecture)
+	return 0
+}
+
+func runProfile(args []string, stdout, stderr io.Writer) int {
+	if len(args) < 1 || (args[0] != "list" && args[0] != "show") {
+		fmt.Fprintln(stderr, "usage: pensuse profile list [--json] | profile show ID [--json]")
+		return 2
+	}
+	dir := os.Getenv("PENSUSE_PROFILE_DIR")
+	if dir == "" {
+		if _, err := os.Stat("profiles"); err == nil {
+			dir = "profiles"
+		} else {
+			dir = "/usr/share/pensuse/profiles"
+		}
+	}
+	if args[0] == "list" {
+		if len(args) != 1 && !(len(args) == 2 && args[1] == "--json") {
+			fmt.Fprintln(stderr, "usage: pensuse profile list [--json]")
+			return 2
+		}
+		items, err := profilepkg.LoadDir(dir)
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		if len(args) == 2 {
+			data, err := json.MarshalIndent(items, "", "  ")
+			if err != nil {
+				fmt.Fprintln(stderr, err)
+				return 1
+			}
+			fmt.Fprintln(stdout, string(data))
+			return 0
+		}
+		for _, item := range items {
+			fmt.Fprintf(stdout, "%s\t%s\t%s\n", item.ID, item.Status, item.Name)
+		}
+		return 0
+	}
+	if len(args) != 2 && !(len(args) == 3 && args[2] == "--json") {
+		fmt.Fprintln(stderr, "usage: pensuse profile show ID [--json]")
+		return 2
+	}
+	item, err := profilepkg.Find(dir, args[1])
+	if err != nil {
+		fmt.Fprintln(stderr, err)
+		return 1
+	}
+	if len(args) == 3 {
+		data, err := json.MarshalIndent(item, "", "  ")
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		fmt.Fprintln(stdout, string(data))
+		return 0
+	}
+	fmt.Fprintf(stdout, "%s\nID: %s\nStatus: %s\n%s\n", item.Name, item.ID, item.Status, item.Description)
 	return 0
 }
 

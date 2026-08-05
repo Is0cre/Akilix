@@ -1,0 +1,9 @@
+schema: pensuse.profile.v1
+id: CORE
+name: Core Platform
+description: Conservative PenSUSE platform foundation for workbook-driven work.
+status: foundation
+rpm:
+  []
+containers:
+  []

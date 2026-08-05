@@ -48,6 +48,7 @@ _pensuse() {
       'evidence[Manage evidence]' \
       'run[Execute and inspect invocations]' \
       'container[Inspect container images]' \
+      'profile[Inspect capability profiles]' \
       'completion[Generate shell completion]' ;;
     argument)
       case $words[2] in
@@ -56,6 +57,7 @@ _pensuse() {
         evidence) _values 'evidence command' import list verify ;;
         run) _message 'use: pensuse run WORKBOOK -- COMMAND [ARGS...]' ;;
         container) _values 'container command' inspect run ;;
+        profile) _values 'profile command' list show ;;
         completion) _values 'shell' zsh bash ;;
       esac ;;
   esac
@@ -77,6 +79,7 @@ const Bash = `_pensuse_complete() {
   if [[ ${COMP_WORDS[1]} == scope ]]; then COMPREPLY=($(compgen -W 'add remove exclude list check' -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == evidence ]]; then COMPREPLY=($(compgen -W 'import list verify' -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == container ]]; then COMPREPLY=($(compgen -W 'inspect' -- "$cur")); return; fi
+  if [[ ${COMP_WORDS[1]} == profile ]]; then COMPREPLY=($(compgen -W 'list show' -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == completion ]]; then COMPREPLY=($(compgen -W 'zsh bash' -- "$cur")); return; fi
 }
 complete -F _pensuse_complete pensuse

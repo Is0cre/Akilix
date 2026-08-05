@@ -16,7 +16,7 @@ PenSUSE is currently in early architectural development.
 
 Current status:
 
-**M0 platform image validated; M1/M2 implementation in progress**
+**M0 platform image validated; M1/M2 implementation and M3 profile metadata in progress**
 
 The Leap 16 live image boots in both BIOS and UEFI modes. Runtime hardware
 validation (Btrfs, Snapper, SELinux, and rootless Podman on the target laptop)

@@ -27,6 +27,8 @@ vm-check:
 
 install: build
 	install -Dm0755 pensuse $(DESTDIR)$(PREFIX)/bin/pensuse
+	install -d $(DESTDIR)$(PREFIX)/share/pensuse/profiles
+	install -m0644 profiles/*.yaml $(DESTDIR)$(PREFIX)/share/pensuse/profiles/
 
 install-completion: build
 	zsh_tmp=$$(mktemp); bash_tmp=$$(mktemp); trap 'rm -f "$$zsh_tmp" "$$bash_tmp"' EXIT; ./pensuse completion zsh >"$$zsh_tmp"; ./pensuse completion bash >"$$bash_tmp"; install -Dm0644 "$$zsh_tmp" $(DESTDIR)$(PREFIX)/share/zsh/site-functions/_pensuse; install -Dm0644 "$$bash_tmp" $(DESTDIR)$(PREFIX)/share/bash-completion/completions/pensuse
