@@ -33,6 +33,7 @@ type Record struct {
 	Stdout           string            `json:"stdout_artifact"`
 	Stderr           string            `json:"stderr_artifact"`
 	ScopeResult      string            `json:"scope_result,omitempty"`
+	ScopeTarget      string            `json:"scope_target,omitempty"`
 	ScopeOverride    bool              `json:"scope_override,omitempty"`
 	ContainerImage   string            `json:"container_image,omitempty"`
 	ContainerDigest  string            `json:"container_digest,omitempty"`
@@ -40,6 +41,7 @@ type Record struct {
 
 type Options struct {
 	ScopeResult   string
+	ScopeTarget   string
 	ScopeOverride bool
 }
 
@@ -71,6 +73,9 @@ func (r Record) Validate() error {
 	}
 	if r.ScopeResult != "" && r.ScopeResult != "ALLOW" && r.ScopeResult != "DENY" && r.ScopeResult != "UNKNOWN" {
 		return fmt.Errorf("invalid invocation scope result")
+	}
+	if r.ScopeResult != "" && r.ScopeTarget == "" || r.ScopeOverride && (r.ScopeResult != "DENY" || r.ScopeTarget == "") {
+		return fmt.Errorf("invalid invocation scope provenance")
 	}
 	if r.Executor == "container" && (r.ContainerImage == "" || !validDigest(r.ContainerDigest)) {
 		return fmt.Errorf("container invocation requires immutable image digest")
@@ -182,7 +187,7 @@ func RunWithOptions(ctx context.Context, workbookRoot, workbookID string, args [
 		}
 	}
 	workingDirectory, _ := os.Getwd()
-	r := Record{Schema: Schema, ID: id, WorkbookID: workbookID, Started: start, Ended: end, Executor: "native", Executable: executable, Arguments: append([]string(nil), args...), WorkingDirectory: workingDirectory, Environment: safeEnvironment(), GeneratedFiles: generated, ExitCode: exitCode, Status: status, Stdout: filepath.ToSlash(filepath.Join("tool-output", id+".stdout")), Stderr: filepath.ToSlash(filepath.Join("tool-output", id+".stderr")), ScopeResult: options.ScopeResult, ScopeOverride: options.ScopeOverride}
+	r := Record{Schema: Schema, ID: id, WorkbookID: workbookID, Started: start, Ended: end, Executor: "native", Executable: executable, Arguments: append([]string(nil), args...), WorkingDirectory: workingDirectory, Environment: safeEnvironment(), GeneratedFiles: generated, ExitCode: exitCode, Status: status, Stdout: filepath.ToSlash(filepath.Join("tool-output", id+".stdout")), Stderr: filepath.ToSlash(filepath.Join("tool-output", id+".stderr")), ScopeResult: options.ScopeResult, ScopeTarget: options.ScopeTarget, ScopeOverride: options.ScopeOverride}
 	if err := r.Validate(); err != nil {
 		return Record{}, err
 	}

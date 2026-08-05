@@ -12,11 +12,11 @@ func TestRunRecordsSuccessAndFailure(t *testing.T) {
 	root := t.TempDir()
 	t.Setenv("PENSUSE_TEST_SECRET", "do-not-record")
 	now := func() time.Time { return time.Unix(10, 0) }
-	r, err := RunWithOptions(context.Background(), root, "88888888-8888-7888-8888-888888888888", []string{"sh", "-c", "printf out; printf err >&2; printf generated > '" + filepath.Join(root, "tool-output", "generated.txt") + "'"}, now, Options{ScopeResult: "ALLOW", ScopeOverride: true})
+	r, err := RunWithOptions(context.Background(), root, "88888888-8888-7888-8888-888888888888", []string{"sh", "-c", "printf out; printf err >&2; printf generated > '" + filepath.Join(root, "tool-output", "generated.txt") + "'"}, now, Options{ScopeResult: "DENY", ScopeTarget: "10.0.0.1", ScopeOverride: true})
 	if err != nil || r.Status != "complete" || r.ExitCode != 0 {
 		t.Fatalf("success: %+v %v", r, err)
 	}
-	if r.ScopeResult != "ALLOW" || !r.ScopeOverride {
+	if r.ScopeResult != "DENY" || r.ScopeTarget != "10.0.0.1" || !r.ScopeOverride {
 		t.Fatalf("scope provenance missing: %+v", r)
 	}
 	if r.WorkingDirectory == "" || r.Environment == nil {

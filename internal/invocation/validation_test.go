@@ -28,3 +28,10 @@ func TestInvocationValidationRejectsUnsafePaths(t *testing.T) {
 		t.Fatal("invalid invocation ID accepted")
 	}
 }
+
+func TestInvocationValidationRequiresBoundScopeOverride(t *testing.T) {
+	r := Record{Schema: Schema, ID: "77777777-7777-7777-8777-777777777777", WorkbookID: "88888888-8888-7888-8888-888888888888", Started: time.Unix(1, 0), Ended: time.Unix(2, 0), Executor: "native", Executable: "/bin/true", Arguments: []string{"true"}, Status: "complete", Stdout: "tool-output/a.stdout", Stderr: "tool-output/a.stderr", ScopeResult: "ALLOW", ScopeOverride: true}
+	if err := r.Validate(); err == nil {
+		t.Fatal("unbound scope override accepted")
+	}
+}

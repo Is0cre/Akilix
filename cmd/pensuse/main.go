@@ -157,6 +157,10 @@ func runContainerCommand(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stderr, "command is required after --")
 		return 2
 	}
+	if override && target == "" {
+		fmt.Fprintln(stderr, "--override requires --target")
+		return 2
+	}
 	root := os.Getenv("PENSUSE_WORKBOOK_ROOT")
 	if root == "" {
 		_, state := config.UserPaths()
@@ -183,6 +187,10 @@ func runContainerCommand(args []string, stdout, stderr io.Writer) int {
 			fmt.Fprintf(stderr, "scope denied target %s; use --override to record an explicit override\n", target)
 			return 1
 		}
+		if override && scopeResult != string(scope.Deny) {
+			fmt.Fprintln(stderr, "--override is only valid for a denied target")
+			return 2
+		}
 	}
 	identity, err := containerpkg.Resolve(context.Background(), containerpkg.PodmanRunner{}, args[1])
 	if err != nil {
@@ -190,7 +198,7 @@ func runContainerCommand(args []string, stdout, stderr io.Writer) int {
 		return 1
 	}
 	spec := containerpkg.Spec{Identity: identity, Arguments: append([]string(nil), args[separator+1:]...), Workdir: workdir, Environment: environment}
-	r, err := invocation.RunContainer(context.Background(), filepath.Join(root, args[0]), m.ID, spec, time.Now, invocation.Options{ScopeResult: scopeResult, ScopeOverride: override})
+	r, err := invocation.RunContainer(context.Background(), filepath.Join(root, args[0]), m.ID, spec, time.Now, invocation.Options{ScopeResult: scopeResult, ScopeTarget: target, ScopeOverride: override})
 	if err != nil {
 		fmt.Fprintf(stderr, "invocation %s failed: %v\n", r.ID, err)
 		return r.ExitCode
@@ -271,6 +279,10 @@ func runCommand(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stderr, "command is required after --")
 		return 2
 	}
+	if override && target == "" {
+		fmt.Fprintln(stderr, "--override requires --target")
+		return 2
+	}
 	root := os.Getenv("PENSUSE_WORKBOOK_ROOT")
 	if root == "" {
 		_, state := config.UserPaths()
@@ -298,8 +310,12 @@ func runCommand(args []string, stdout, stderr io.Writer) int {
 			fmt.Fprintf(stderr, "scope denied target %s; use --override to record an explicit override\n", target)
 			return 1
 		}
+		if override && scopeResult != string(scope.Deny) {
+			fmt.Fprintln(stderr, "--override is only valid for a denied target")
+			return 2
+		}
 	}
-	r, err := invocation.RunWithOptions(context.Background(), wbRoot, m.ID, args[separator+1:], time.Now, invocation.Options{ScopeResult: scopeResult, ScopeOverride: override})
+	r, err := invocation.RunWithOptions(context.Background(), wbRoot, m.ID, args[separator+1:], time.Now, invocation.Options{ScopeResult: scopeResult, ScopeTarget: target, ScopeOverride: override})
 	if err != nil {
 		fmt.Fprintf(stderr, "invocation %s failed: %v\n", r.ID, err)
 		return r.ExitCode
