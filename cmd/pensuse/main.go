@@ -92,7 +92,7 @@ func runContainer(args []string, stdout, stderr io.Writer) int {
 		return runContainerCommand(args[1:], stdout, stderr)
 	}
 	if len(args) != 2 || args[0] != "inspect" {
-		fmt.Fprintln(stderr, "usage: pensuse container inspect IMAGE | container run WORKBOOK IMAGE [--target TARGET] [--override] [--json] -- COMMAND [ARGS...]")
+		fmt.Fprintln(stderr, "usage: pensuse container inspect IMAGE | container run WORKBOOK IMAGE [--target TARGET] [--override] [--json] [--workdir DIR] [--env KEY=VALUE] -- COMMAND [ARGS...]")
 		return 2
 	}
 	id, err := containerpkg.Resolve(context.Background(), containerpkg.PodmanRunner{}, args[1])
@@ -111,10 +111,11 @@ func runContainer(args []string, stdout, stderr io.Writer) int {
 
 func runContainerCommand(args []string, stdout, stderr io.Writer) int {
 	if len(args) < 4 {
-		fmt.Fprintln(stderr, "usage: pensuse container run WORKBOOK IMAGE [--target TARGET] [--override] [--json] -- COMMAND [ARGS...]")
+		fmt.Fprintln(stderr, "usage: pensuse container run WORKBOOK IMAGE [--target TARGET] [--override] [--json] [--workdir DIR] [--env KEY=VALUE] -- COMMAND [ARGS...]")
 		return 2
 	}
-	target, override := "", false
+	target, override, workdir := "", false, ""
+	environment := map[string]string{}
 	jsonOutput := false
 	separator := -1
 	for i := 2; i < len(args); i++ {
@@ -125,6 +126,22 @@ func runContainerCommand(args []string, stdout, stderr io.Writer) int {
 		}
 		if args[i] == "--json" {
 			jsonOutput = true
+			continue
+		}
+		if args[i] == "--workdir" && i+1 < len(args) {
+			workdir = args[i+1]
+			i++
+			continue
+		}
+		if args[i] == "--env" && i+1 < len(args) {
+			pair := args[i+1]
+			i++
+			key, value, found := strings.Cut(pair, "=")
+			if !found || key == "" {
+				fmt.Fprintln(stderr, "--env requires KEY=VALUE")
+				return 2
+			}
+			environment[key] = value
 			continue
 		}
 		if args[i] == "--override" {
@@ -172,7 +189,7 @@ func runContainerCommand(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stderr, err)
 		return 1
 	}
-	spec := containerpkg.Spec{Identity: identity, Arguments: append([]string(nil), args[separator+1:]...)}
+	spec := containerpkg.Spec{Identity: identity, Arguments: append([]string(nil), args[separator+1:]...), Workdir: workdir, Environment: environment}
 	r, err := invocation.RunContainer(context.Background(), filepath.Join(root, args[0]), m.ID, spec, time.Now, invocation.Options{ScopeResult: scopeResult, ScopeOverride: override})
 	if err != nil {
 		fmt.Fprintf(stderr, "invocation %s failed: %v\n", r.ID, err)

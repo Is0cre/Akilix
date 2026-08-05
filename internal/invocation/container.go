@@ -12,6 +12,19 @@ import (
 	containerpkg "github.com/pensuse/pensuse/internal/container"
 )
 
+type containerManifest struct {
+	Schema       string            `json:"schema"`
+	InvocationID string            `json:"invocation_id"`
+	Image        string            `json:"image"`
+	Digest       string            `json:"digest"`
+	Arguments    []string          `json:"arguments"`
+	Network      string            `json:"network"`
+	WritableRoot bool              `json:"writable_root"`
+	Environment  map[string]string `json:"environment,omitempty"`
+	Workdir      string            `json:"workdir,omitempty"`
+	Status       string            `json:"status"`
+}
+
 func RunContainer(ctx context.Context, workbookRoot, workbookID string, spec containerpkg.Spec, now func() time.Time, options Options) (Record, error) {
 	args, err := spec.Args()
 	if err != nil {
@@ -62,6 +75,14 @@ func RunContainer(ctx context.Context, workbookRoot, workbookID string, spec con
 	if err := r.Validate(); err != nil {
 		return Record{}, err
 	}
+	containerData, err := json.MarshalIndent(containerManifest{Schema: "pensuse.container.v1", InvocationID: id, Image: spec.Identity.Image, Digest: spec.Identity.Digest, Arguments: spec.Arguments, Network: spec.Network, WritableRoot: spec.WritableRoot, Environment: spec.Environment, Workdir: spec.Workdir, Status: status}, "", "  ")
+	if err != nil {
+		return Record{}, err
+	}
+	containerData = append(containerData, '\n')
+	if err := atomicWriteFile(filepath.Join(workbookRoot, ".pensuse", "containers", id+".json"), containerData); err != nil {
+		return Record{}, err
+	}
 	b, err := json.Marshal(r)
 	if err != nil {
 		return Record{}, err
@@ -91,4 +112,26 @@ func RunContainer(ctx context.Context, workbookRoot, workbookID string, spec con
 		return r, fmt.Errorf("container command failed: %w", runErr)
 	}
 	return r, nil
+}
+
+func atomicWriteFile(path string, data []byte) error {
+	if err := os.MkdirAll(filepath.Dir(path), 0700); err != nil {
+		return err
+	}
+	tmp, err := os.CreateTemp(filepath.Dir(path), ".tmp-")
+	if err != nil {
+		return err
+	}
+	name := tmp.Name()
+	defer os.Remove(name)
+	if err = tmp.Chmod(0600); err == nil {
+		_, err = tmp.Write(data)
+	}
+	if closeErr := tmp.Close(); err == nil {
+		err = closeErr
+	}
+	if err == nil {
+		err = os.Rename(name, path)
+	}
+	return err
 }

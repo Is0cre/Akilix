@@ -29,7 +29,7 @@ _pensuse() {
     esac
   fi
   if (( CURRENT >= 5 )) && [[ "$words[1]" == "pensuse" && "$words[2]" == "evidence" && "$words[3]" == "verify" ]]; then _pensuse_evidence_ids; return; fi
-  if (( CURRENT >= 6 )) && [[ "$words[1]" == "pensuse" && "$words[2]" == "container" && "$words[3]" == "run" ]]; then _values 'options' --target --override --json --; return; fi
+  if (( CURRENT >= 6 )) && [[ "$words[1]" == "pensuse" && "$words[2]" == "container" && "$words[3]" == "run" ]]; then _values 'options' --target --override --json --workdir --env --; return; fi
   if (( CURRENT >= 5 )) && [[ "$words[1]" == "pensuse" && "$words[2]" == "container" && "$words[3]" == "run" ]]; then _pensuse_images; return; fi
   if (( CURRENT >= 4 )) && [[ "$words[1]" == "pensuse" && "$words[2]" == "container" && "$words[3]" == "run" ]]; then _pensuse_workbooks; return; fi
   if (( CURRENT >= 4 )) && [[ "$words[1]" == "pensuse" && "$words[2]" == (evidence|scope|run) ]]; then
@@ -70,7 +70,7 @@ const Bash = `_pensuse_complete() {
   if [[ ${COMP_WORDS[1]} == workbook && ${COMP_CWORD} -eq 2 ]]; then COMPREPLY=($(compgen -W 'create list open status close reopen rename' -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == workbook && ${COMP_CWORD} -ge 3 ]]; then local workbooks; workbooks="$(pensuse workbook list 2>/dev/null | awk '{print $1}')"; COMPREPLY=($(compgen -W "$workbooks" -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == evidence && ${COMP_WORDS[2]} == verify && ${COMP_CWORD} -ge 4 ]]; then local ids; ids="$(pensuse evidence list "${COMP_WORDS[3]}" 2>/dev/null | awk '{print $1}')"; COMPREPLY=($(compgen -W "$ids" -- "$cur")); return; fi
-  if [[ ${COMP_WORDS[1]} == container && ${COMP_WORDS[2]} == run && ${COMP_CWORD} -ge 5 ]]; then COMPREPLY=($(compgen -W '--target --override --json --' -- "$cur")); return; fi
+  if [[ ${COMP_WORDS[1]} == container && ${COMP_WORDS[2]} == run && ${COMP_CWORD} -ge 5 ]]; then COMPREPLY=($(compgen -W '--target --override --json --workdir --env --' -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == container && ${COMP_WORDS[2]} == run && ${COMP_CWORD} -ge 4 ]]; then local images; images="$(podman images --format '{{.Repository}}:{{.Tag}}' 2>/dev/null)"; COMPREPLY=($(compgen -W "$images" -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == container && ${COMP_WORDS[2]} == run && ${COMP_CWORD} -ge 3 ]]; then local workbooks; workbooks="$(pensuse workbook list 2>/dev/null | awk '{print $1}')"; COMPREPLY=($(compgen -W "$workbooks" -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == evidence || ${COMP_WORDS[1]} == scope || ${COMP_WORDS[1]} == run ]] && [[ ${COMP_CWORD} -ge 3 ]]; then local workbooks; workbooks="$(pensuse workbook list 2>/dev/null | awk '{print $1}')"; COMPREPLY=($(compgen -W "$workbooks" -- "$cur")); return; fi
