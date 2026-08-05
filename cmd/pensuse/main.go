@@ -92,7 +92,7 @@ func runContainer(args []string, stdout, stderr io.Writer) int {
 		return runContainerCommand(args[1:], stdout, stderr)
 	}
 	if len(args) != 2 || args[0] != "inspect" {
-		fmt.Fprintln(stderr, "usage: pensuse container inspect IMAGE | container run WORKBOOK IMAGE -- COMMAND [ARGS...]")
+		fmt.Fprintln(stderr, "usage: pensuse container inspect IMAGE | container run WORKBOOK IMAGE [--target TARGET] [--override] [--json] -- COMMAND [ARGS...]")
 		return 2
 	}
 	id, err := containerpkg.Resolve(context.Background(), containerpkg.PodmanRunner{}, args[1])
@@ -111,7 +111,7 @@ func runContainer(args []string, stdout, stderr io.Writer) int {
 
 func runContainerCommand(args []string, stdout, stderr io.Writer) int {
 	if len(args) < 4 {
-		fmt.Fprintln(stderr, "usage: pensuse container run WORKBOOK IMAGE -- COMMAND [ARGS...]")
+		fmt.Fprintln(stderr, "usage: pensuse container run WORKBOOK IMAGE [--target TARGET] [--override] [--json] -- COMMAND [ARGS...]")
 		return 2
 	}
 	target, override := "", false
