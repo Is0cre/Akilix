@@ -76,3 +76,16 @@ func TestListIgnoresInterruptedCreationDirectory(t *testing.T) {
 		t.Fatalf("staging directory listed as workbook: %+v", got)
 	}
 }
+
+func TestValidateLayoutRejectsMissingDirectory(t *testing.T) {
+	root := t.TempDir()
+	if _, err := Create(root, "case-1", time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Remove(filepath.Join(root, "case-1", "notes")); err != nil {
+		t.Fatal(err)
+	}
+	if err := ValidateLayout(root, "case-1"); err == nil {
+		t.Fatal("missing canonical directory accepted")
+	}
+}

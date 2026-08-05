@@ -166,6 +166,40 @@ func List(root string) ([]Metadata, error) {
 	return out, nil
 }
 
+// ValidateLayout checks the canonical workbook files and directories without
+// consulting any optional index database.
+func ValidateLayout(root, name string) error {
+	if err := validName(name); err != nil {
+		return err
+	}
+	if _, err := Open(root, name); err != nil {
+		return err
+	}
+	dir := filepath.Join(root, name)
+	for _, file := range []string{"workbook.yaml", "scope.yaml", "README.md"} {
+		if err := requirePath(filepath.Join(dir, file), false); err != nil {
+			return err
+		}
+	}
+	for _, sub := range []string{"evidence/original", "evidence/acquired", "evidence/manifests", "artifacts/imported", "artifacts/derived", "artifacts/extracted", "captures", "tool-output", "notes", "findings", "timeline", "reports/drafts", "reports/exports", "logs/command", "logs/containers", "logs/audit", ".pensuse/locks"} {
+		if err := requirePath(filepath.Join(dir, sub), true); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func requirePath(path string, directory bool) error {
+	info, err := os.Lstat(path)
+	if err != nil {
+		return fmt.Errorf("missing workbook path %q: %w", path, err)
+	}
+	if info.Mode()&os.ModeSymlink != 0 || info.IsDir() != directory {
+		return fmt.Errorf("invalid workbook path %q", path)
+	}
+	return nil
+}
+
 func validName(name string) error {
 	if name == "" || name == "." || name == ".." || filepath.Base(name) != name || strings.ContainsAny(name, "/\\") {
 		return fmt.Errorf("invalid workbook name")

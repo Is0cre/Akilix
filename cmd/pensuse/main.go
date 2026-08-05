@@ -481,7 +481,7 @@ func runEvidence(args []string, stdout, stderr io.Writer) int {
 
 func runWorkbook(args []string, stdout, stderr io.Writer) int {
 	if len(args) == 0 {
-		fmt.Fprintln(stderr, "usage: pensuse workbook <create|list|open|status|close|reopen|rename>")
+		fmt.Fprintln(stderr, "usage: pensuse workbook <create|list|open|status|close|reopen|rename|validate>")
 		return 2
 	}
 	root := os.Getenv("PENSUSE_WORKBOOK_ROOT")
@@ -490,6 +490,39 @@ func runWorkbook(args []string, stdout, stderr io.Writer) int {
 		root = filepath.Join(state, "workbooks")
 	}
 	switch args[0] {
+	case "validate":
+		if len(args) != 2 && !(len(args) == 3 && args[2] == "--json") {
+			fmt.Fprintln(stderr, "usage: pensuse workbook validate NAME [--json]")
+			return 2
+		}
+		workbookRoot := filepath.Join(root, args[1])
+		if err := workbook.ValidateLayout(root, args[1]); err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		if _, err := scope.Load(workbookRoot); err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		if _, err := evidence.List(workbookRoot); err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		if _, err := invocation.List(workbookRoot); err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		if len(args) == 3 {
+			data, err := json.Marshal(map[string]interface{}{"valid": true, "workbook": args[1]})
+			if err != nil {
+				fmt.Fprintln(stderr, err)
+				return 1
+			}
+			fmt.Fprintln(stdout, string(data))
+			return 0
+		}
+		fmt.Fprintf(stdout, "valid %s\n", args[1])
+		return 0
 	case "create":
 		if len(args) != 2 {
 			fmt.Fprintln(stderr, "usage: pensuse workbook create NAME")
