@@ -1,7 +1,7 @@
 PREFIX ?= /usr
 VERSION ?= 0.0.1-m0
 
-.PHONY: build test check completion-check install install-completion rpm kiwi kiwi-iso schema-check vm-check
+.PHONY: build test check completion-check install install-completion rpm kiwi kiwi-iso kiwi-iso-prompt schema-check vm-check
 
 build:
 	go build -trimpath -buildvcs=false -o pensuse ./cmd/pensuse
@@ -51,3 +51,6 @@ kiwi-iso: build
 	python3 scripts/render-live-config.py image/kiwi-iso/config.xml image/kiwi-iso/config.generated.xml "$$hash"; \
 	trap 'rm -f image/kiwi-iso/config.generated.xml' EXIT; \
 	kiwi-ng system build --description image/kiwi-iso --kiwi-file=config.generated.xml --target-dir build/kiwi-iso
+
+kiwi-iso-prompt:
+	sh scripts/build-live-iso.sh
