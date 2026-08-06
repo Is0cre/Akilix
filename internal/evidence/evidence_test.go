@@ -141,3 +141,32 @@ func TestVerifyAllReportsMismatch(t *testing.T) {
 		t.Fatalf("verify all: %+v %v %v", verified, allMatch, err)
 	}
 }
+
+func TestCheckAllIsReadOnly(t *testing.T) {
+	root := t.TempDir()
+	workbook := filepath.Join(root, "workbook")
+	source := filepath.Join(root, "source.bin")
+	if err := os.WriteFile(source, []byte("evidence"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	record, err := Import(workbook, source, time.Now().UTC())
+	if err != nil {
+		t.Fatal(err)
+	}
+	manifestPath := filepath.Join(workbook, "evidence", "manifests", record.ID+".json")
+	before, err := os.ReadFile(manifestPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	checked, allMatch, err := CheckAll(workbook)
+	if err != nil || !allMatch || len(checked) != 1 || checked[0].Verification != "match" {
+		t.Fatalf("check all: %+v %v %v", checked, allMatch, err)
+	}
+	after, err := os.ReadFile(manifestPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(before) != string(after) {
+		t.Fatal("read-only evidence check modified manifest")
+	}
+}

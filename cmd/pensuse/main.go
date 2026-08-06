@@ -664,16 +664,22 @@ func runWorkbook(args []string, stdout, stderr io.Writer) int {
 			fmt.Fprintln(stderr, err)
 			return 1
 		}
-		if _, err := evidence.List(workbookRoot); err != nil {
+		evidenceRecords, allEvidenceMatch, err := evidence.CheckAll(workbookRoot)
+		if err != nil {
 			fmt.Fprintln(stderr, err)
 			return 1
 		}
-		if _, err := invocation.List(workbookRoot); err != nil {
+		invocationRecords, err := invocation.List(workbookRoot)
+		if err != nil {
 			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		if !allEvidenceMatch {
+			fmt.Fprintln(stderr, "evidence integrity mismatch")
 			return 1
 		}
 		if len(args) == 3 {
-			data, err := json.Marshal(map[string]interface{}{"valid": true, "workbook": args[1]})
+			data, err := json.Marshal(map[string]interface{}{"valid": true, "workbook": args[1], "evidence": len(evidenceRecords), "invocations": len(invocationRecords)})
 			if err != nil {
 				fmt.Fprintln(stderr, err)
 				return 1

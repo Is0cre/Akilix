@@ -190,6 +190,45 @@ func VerifyAll(workbookRoot string) ([]Record, bool, error) {
 	return verified, allMatch, nil
 }
 
+// CheckAll validates every evidence manifest and hashes each original without
+// modifying manifests. It is suitable for read-only workbook audits.
+func CheckAll(workbookRoot string) ([]Record, bool, error) {
+	records, err := List(workbookRoot)
+	if err != nil {
+		return nil, false, err
+	}
+	allMatch := true
+	for i := range records {
+		ok, err := checkRecord(workbookRoot, records[i])
+		if err != nil {
+			return nil, false, err
+		}
+		if !ok {
+			allMatch = false
+		}
+		if ok {
+			records[i].Verification = "match"
+		} else {
+			records[i].Verification = "mismatch"
+		}
+	}
+	return records, allMatch, nil
+}
+
+func checkRecord(workbookRoot string, r Record) (bool, error) {
+	f, err := os.Open(filepath.Join(workbookRoot, "evidence", "original", r.Filename))
+	if err != nil {
+		return false, err
+	}
+	defer f.Close()
+	h := sha256.New()
+	n, err := io.Copy(h, f)
+	if err != nil {
+		return false, err
+	}
+	return n == r.Size && hex.EncodeToString(h.Sum(nil)) == r.SHA256, nil
+}
+
 func List(workbookRoot string) ([]Record, error) {
 	entries, err := os.ReadDir(filepath.Join(workbookRoot, "evidence", "manifests"))
 	if os.IsNotExist(err) {

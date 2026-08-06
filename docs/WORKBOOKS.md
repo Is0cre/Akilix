@@ -151,3 +151,13 @@ Opening a workbook must not:
 - open listeners
 
 Workbook opening is a local state-selection operation.
+
+---
+
+# Workbook validation
+
+`pensuse workbook validate NAME` is a local, read-only audit. It checks the
+canonical workbook layout, parses scope and provenance records, and hashes every
+original evidence object against its manifest. A mismatch fails validation and
+does not rewrite evidence manifests. Use `pensuse evidence verify` when you
+explicitly want persisted verification status updates.
