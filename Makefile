@@ -1,7 +1,7 @@
 PREFIX ?= /usr
 VERSION ?= 0.0.1-m0
 
-.PHONY: build test check completion-check install install-completion rpm rpm-check kiwi kiwi-iso kiwi-iso-prompt schema-check vm-check
+.PHONY: build test check completion-check manifest-check install install-completion rpm rpm-check kiwi kiwi-iso kiwi-iso-prompt schema-check vm-check
 
 build:
 	go build -trimpath -buildvcs=false -o pensuse ./cmd/pensuse
@@ -14,6 +14,7 @@ check: test
 	$(MAKE) schema-check
 	$(MAKE) build
 	$(MAKE) completion-check
+	$(MAKE) manifest-check
 
 completion-check: build
 	./pensuse completion bash | bash -n
@@ -21,6 +22,9 @@ completion-check: build
 
 schema-check:
 	@for schema in schemas/*.json; do python3 -m json.tool "$$schema" >/dev/null || exit 1; done
+
+manifest-check: build
+	sh scripts/check-manifests.sh
 
 vm-check:
 	sh scripts/check-m0-platform.sh

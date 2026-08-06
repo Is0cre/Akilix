@@ -17,6 +17,8 @@ The complete local validation sequence is also available as:
 make check
 ```
 
+`make manifest-check` performs an offline repository audit. It parses every JSON schema and loads all local profile manifests through the shipped CLI. It does not contact external services or modify host state.
+
 Inspect effective configuration without changing it:
 
 ```sh
