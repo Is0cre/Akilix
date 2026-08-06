@@ -255,6 +255,10 @@ func runContainerCommand(args []string, stdout, stderr io.Writer) int {
 				fmt.Fprintln(stderr, "--env requires KEY=VALUE")
 				return 2
 			}
+			if _, exists := environment[key]; exists {
+				fmt.Fprintf(stderr, "duplicate --env key %s\n", key)
+				return 2
+			}
 			environment[key] = value
 			continue
 		}
@@ -266,6 +270,8 @@ func runContainerCommand(args []string, stdout, stderr io.Writer) int {
 			separator = i
 			break
 		}
+		fmt.Fprintf(stderr, "invalid container option %s\n", args[i])
+		return 2
 	}
 	if separator < 0 || separator+1 >= len(args) {
 		fmt.Fprintln(stderr, "command is required after --")

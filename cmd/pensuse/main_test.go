@@ -43,6 +43,17 @@ func TestRunRejectsUnknownCommand(t *testing.T) {
 	}
 }
 
+func TestContainerRunRejectsUnknownAndDuplicateOptions(t *testing.T) {
+	var out, errOut bytes.Buffer
+	if code := run([]string{"container", "run", "case-1", "image", "--bogus", "--", "true"}, &out, &errOut); code != 2 {
+		t.Fatalf("unknown container option exit code = %d, want 2", code)
+	}
+	errOut.Reset()
+	if code := run([]string{"container", "run", "case-1", "image", "--env", "A=1", "--env", "A=2", "--", "true"}, &out, &errOut); code != 2 {
+		t.Fatalf("duplicate container env exit code = %d, want 2", code)
+	}
+}
+
 func TestScopeClosedWorkbookCannotMutateAndJSONListIsJSON(t *testing.T) {
 	root := t.TempDir()
 	t.Setenv("PENSUSE_WORKBOOK_ROOT", root)
