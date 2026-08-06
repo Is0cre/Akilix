@@ -39,6 +39,14 @@ const (
 	Unknown Result = "UNKNOWN"
 )
 
+// Decision is the explainable result of evaluating one target. Rule is the
+// canonical scope entry that produced an ALLOW or DENY decision.
+type Decision struct {
+	Target string `json:"target"`
+	Result Result `json:"result"`
+	Rule   string `json:"rule,omitempty"`
+}
+
 func Load(workbookRoot string) (Config, error) {
 	b, err := os.ReadFile(filepath.Join(workbookRoot, "scope.yaml"))
 	if err != nil {
@@ -179,21 +187,25 @@ func Remove(workbookRoot, target string, exclude bool) error {
 	return Save(workbookRoot, c)
 }
 func Evaluate(c Config, target string) Result {
+	return EvaluateDecision(c, target).Result
+}
+
+func EvaluateDecision(c Config, target string) Decision {
 	target = strings.TrimSpace(target)
 	if target == "" {
-		return Unknown
+		return Decision{Target: target, Result: Unknown}
 	}
 	for _, x := range c.Excludes {
 		if matches(x, target) {
-			return Deny
+			return Decision{Target: target, Result: Deny, Rule: x}
 		}
 	}
 	for _, x := range c.Includes {
 		if matches(x, target) {
-			return Allow
+			return Decision{Target: target, Result: Allow, Rule: x}
 		}
 	}
-	return Unknown
+	return Decision{Target: target, Result: Unknown}
 }
 func matches(rule, target string) bool {
 	if rule == target {

@@ -505,9 +505,9 @@ func runScope(args []string, stdout, stderr io.Writer) int {
 			fmt.Fprintln(stderr, "target is required")
 			return 2
 		}
-		result := scope.Evaluate(c, args[2])
+		decision := scope.EvaluateDecision(c, args[2])
 		if len(args) == 4 {
-			data, err := json.Marshal(map[string]string{"target": args[2], "result": string(result)})
+			data, err := json.Marshal(decision)
 			if err != nil {
 				fmt.Fprintln(stderr, err)
 				return 1
@@ -515,7 +515,7 @@ func runScope(args []string, stdout, stderr io.Writer) int {
 			fmt.Fprintln(stdout, string(data))
 			return 0
 		}
-		fmt.Fprintln(stdout, result)
+		fmt.Fprintln(stdout, decision.Result)
 		return 0
 	default:
 		fmt.Fprintln(stderr, "unknown scope command")

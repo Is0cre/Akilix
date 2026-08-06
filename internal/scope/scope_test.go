@@ -29,6 +29,19 @@ func TestExclusionMayOverrideInclude(t *testing.T) {
 		t.Fatalf("exclusion did not override include: %s", got)
 	}
 }
+
+func TestDecisionIncludesMatchingRule(t *testing.T) {
+	c := Config{Includes: []string{"10.0.0.0/8"}, Excludes: []string{"10.0.5.0/24"}}
+	if got := EvaluateDecision(c, "10.0.5.2"); got.Result != Deny || got.Rule != "10.0.5.0/24" {
+		t.Fatalf("deny decision: %+v", got)
+	}
+	if got := EvaluateDecision(c, "10.1.2.3"); got.Result != Allow || got.Rule != "10.0.0.0/8" {
+		t.Fatalf("allow decision: %+v", got)
+	}
+	if got := EvaluateDecision(c, "other.test"); got.Result != Unknown || got.Rule != "" {
+		t.Fatalf("unknown decision: %+v", got)
+	}
+}
 func TestLoadSave(t *testing.T) {
 	root := t.TempDir()
 	if err := os.WriteFile(filepath.Join(root, "scope.yaml"), []byte("version: 1\ninclude:\n  - 192.0.2.0/24\nexclude:\n  - 192.0.2.10\n"), 0600); err != nil {

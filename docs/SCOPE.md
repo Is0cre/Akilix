@@ -82,3 +82,15 @@ The record should preserve:
 PenSUSE cannot reliably infer every target a complex security tool may touch.
 
 Documentation must not imply otherwise.
+# Explainable decisions
+
+`pensuse scope check WORKBOOK TARGET --json` returns the normalized decision and,
+when applicable, the canonical include or exclude rule that matched it:
+
+```json
+{"target":"10.0.5.2","result":"DENY","rule":"10.0.5.0/24"}
+```
+
+Exclusions are evaluated first, so a denied exclusion remains authoritative even
+when a broader include also matches. The decision record is local and does not
+imply a network probe or a security sandbox.
