@@ -18,6 +18,7 @@ import (
 	"github.com/pensuse/pensuse/internal/evidence"
 	"github.com/pensuse/pensuse/internal/invocation"
 	"github.com/pensuse/pensuse/internal/logpolicy"
+	playbookpkg "github.com/pensuse/pensuse/internal/playbook"
 	profilepkg "github.com/pensuse/pensuse/internal/profile"
 	repositorypkg "github.com/pensuse/pensuse/internal/repository"
 	"github.com/pensuse/pensuse/internal/scope"
@@ -143,13 +144,53 @@ func runTUISession(scanner *bufio.Scanner, root, selected string, color bool, st
 			return 1
 		}
 		fmt.Fprint(stdout, tuipkg.Render(overview, config, color))
-		fmt.Fprint(stdout, "[a] add scope  [x] add exclusion  [q] quit > ")
+		fmt.Fprint(stdout, "[a] add scope  [x] add exclusion  [p] preview/run discovery  [q] quit > ")
 		if !scanner.Scan() {
 			return 0
 		}
 		action := strings.ToLower(strings.TrimSpace(scanner.Text()))
 		if action == "q" || action == "quit" {
 			return 0
+		}
+		if action == "p" {
+			if overview.Status != "open" {
+				fmt.Fprintln(stderr, "workbook is closed")
+				continue
+			}
+			fmt.Fprint(stdout, "Discovery CIDR: ")
+			if !scanner.Scan() {
+				return 0
+			}
+			target := strings.TrimSpace(scanner.Text())
+			fmt.Fprint(stdout, "Local Nmap image (already pulled): ")
+			if !scanner.Scan() {
+				return 0
+			}
+			image := strings.TrimSpace(scanner.Text())
+			identity, err := containerpkg.Resolve(context.Background(), containerpkg.PodmanRunner{}, image)
+			if err != nil {
+				fmt.Fprintln(stderr, err)
+				continue
+			}
+			plan, err := playbookpkg.PlanLocalNetworkDiscovery(config, target, identity)
+			if err != nil {
+				fmt.Fprintln(stderr, err)
+				continue
+			}
+			fmt.Fprintf(stdout, "\nPLAYBOOK  %s\nSCOPE     %s via %s\nIMAGE     %s@%s\nNETWORK   %s\nOUTPUT    %s\nCOMMAND   %s\n", plan.Playbook, plan.Scope.Result, plan.Scope.Rule, plan.Image.Image, plan.Image.Digest, plan.Network, plan.OutputPath, strings.Join(plan.Arguments, " "))
+			fmt.Fprint(stdout, "Type RUN to execute this scoped discovery: ")
+			if !scanner.Scan() || scanner.Text() != "RUN" {
+				fmt.Fprintln(stdout, "cancelled")
+				continue
+			}
+			spec := containerpkg.Spec{Identity: plan.Image, Arguments: plan.Arguments, Network: plan.Network, InvocationOutput: true}
+			record, err := invocation.RunContainer(context.Background(), filepath.Join(root, selected), overview.ID, spec, time.Now, invocation.Options{ScopeResult: string(plan.Scope.Result), ScopeTarget: plan.Target})
+			if err != nil {
+				fmt.Fprintf(stderr, "invocation %s failed: %v\n", record.ID, err)
+				continue
+			}
+			fmt.Fprintf(stdout, "discovery complete: invocation %s\n", record.ID)
+			continue
 		}
 		if action != "a" && action != "x" {
 			fmt.Fprintln(stderr, "unknown action")

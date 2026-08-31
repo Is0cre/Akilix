@@ -20,3 +20,13 @@ network mode, mounts, arguments, and output path before confirmation.
 Semantic attention values (`INFO`, `SAFE`, `WARN`, and `BLOCK`) are data, not
 hard-coded ANSI colors. The TUI maps them to the current accessible palette so
 meaning remains available through labels as well as color.
+
+From the workbook TUI, press `p` to preview discovery. The operator supplies a
+CIDR and an already-local image containing Nmap. PenSUSE resolves the immutable
+digest, displays the complete plan, and requires the exact confirmation `RUN`.
+It never pulls an image or starts discovery merely because the TUI was opened.
+
+On completion, stdout and stderr are stored under `tool-output/`, scanner XML
+is written beneath `artifacts/derived/<invocation-id>/`, and both the invocation
+record and container policy manifest identify the scope decision and image
+digest.
