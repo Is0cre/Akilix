@@ -5,7 +5,6 @@ desktop-image: "background.png"
 desktop-color: "#0b1114"
 message-color: "#e8e6dd"
 message-bg-color: "#151a1d"
-terminal-box: "0 0 100% 100%"
 
 + boot_menu {
   left = 6%

@@ -8,6 +8,7 @@ import xml.etree.ElementTree as ET
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1] / "branding"
+REPOSITORY_ROOT = ROOT.parent
 FAILURES = []
 
 REQUIRED = [
@@ -87,6 +88,22 @@ for path in (ROOT / "terminal").glob("pensuse-ascii-*.txt"):
             FAILURES.append(f"non-ASCII character in {path.relative_to(ROOT)}")
     except (OSError, UnicodeError) as error:
         FAILURES.append(f"invalid terminal asset: {path.relative_to(ROOT)}: {error}")
+
+grub_theme_path = (
+    REPOSITORY_ROOT
+    / "image/kiwi-iso/root/usr/share/grub2/themes/PenSUSE/theme.txt"
+)
+try:
+    grub_theme = grub_theme_path.read_text(encoding="utf-8")
+    if 'desktop-image: "background.png"' not in grub_theme:
+        FAILURES.append("GRUB theme does not select the staged background")
+    for number, line in enumerate(grub_theme.splitlines(), 1):
+        if line.strip().startswith("terminal-box:") and "*" not in line:
+            FAILURES.append(
+                f"GRUB terminal-box on line {number} is not a pixmap pattern"
+            )
+except (OSError, UnicodeError) as error:
+    FAILURES.append(f"invalid GRUB theme: {error}")
 
 if FAILURES:
     print("branding check: FAIL")
