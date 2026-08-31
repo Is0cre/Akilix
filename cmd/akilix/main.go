@@ -164,6 +164,11 @@ func runDevice(args []string, stdout, stderr io.Writer) int {
 			fmt.Fprintln(stderr, err)
 			return 1
 		}
+		device, err = acquire.EnrichUSB(ctx, acquire.ExecRunner{}, device, usbIDsPath())
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
 		label := ""
 		if len(args) == 4 {
 			label = args[3]
@@ -1638,6 +1643,13 @@ func effectiveStateDir() string {
 	}
 	_, state := config.UserPaths()
 	return state
+}
+
+func usbIDsPath() string {
+	if path := os.Getenv("AKILIX_USB_IDS_PATH"); path != "" {
+		return path
+	}
+	return "/usr/share/hwdata/usb.ids"
 }
 
 var timeNow = func() time.Time { return time.Now().UTC() }

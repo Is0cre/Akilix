@@ -34,6 +34,10 @@
         "model": {"type": "string"},
         "serial": {"type": "string"},
         "wwn": {"type": "string"},
+        "usb_vendor_id": {"type": "string", "pattern": "^[0-9a-f]{4}$"},
+        "usb_product_id": {"type": "string", "pattern": "^[0-9a-f]{4}$"},
+        "usb_vendor_name": {"type": "string"},
+        "usb_product_name": {"type": "string"},
         "label": {"type": "string"},
         "added_at": {"type": "string", "format": "date-time"}
       }

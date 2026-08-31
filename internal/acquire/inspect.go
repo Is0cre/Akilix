@@ -52,6 +52,10 @@ type Device struct {
 	Model                string      `json:"model,omitempty"`
 	Serial               string      `json:"serial,omitempty"`
 	WWN                  string      `json:"wwn,omitempty"`
+	USBVendorID          string      `json:"usb_vendor_id,omitempty"`
+	USBProductID         string      `json:"usb_product_id,omitempty"`
+	USBVendorName        string      `json:"usb_vendor_name,omitempty"`
+	USBProductName       string      `json:"usb_product_name,omitempty"`
 	Trusted              bool        `json:"trusted"`
 	TrustID              string      `json:"trust_id,omitempty"`
 	SystemDisk           bool        `json:"system_disk"`

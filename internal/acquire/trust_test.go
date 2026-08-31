@@ -23,6 +23,22 @@ func TestTrustUsesStableIdentityAndNeverDevicePath(t *testing.T) {
 	}
 }
 
+func TestTrustPrefersNumericUSBIdentityAndMatchesLegacyEntry(t *testing.T) {
+	device := Device{Vendor: "Acme", Model: "Vault", Serial: "ABC", USBVendorID: "1234", USBProductID: "5678"}
+	_, identity, err := TrustIdentity(device)
+	if err != nil || identity != "block:usb:1234:5678|serial:abc" {
+		t.Fatalf("identity=%q err=%v", identity, err)
+	}
+	legacy := TrustEntry{ID: "TD-legacy", Identity: "block:serial:abc|vendor:acme|model:vault"}
+	registry := TrustRegistry{Schema: TrustSchema, Entries: []TrustEntry{legacy}, Revocations: []TrustRevocation{}}
+	if match, ok := registry.Match(device); !ok || match.ID != legacy.ID {
+		t.Fatalf("legacy match=%+v ok=%t", match, ok)
+	}
+	if _, err := registry.Add(device, "duplicate", time.Now()); err == nil {
+		t.Fatal("enriched duplicate bypassed legacy identity")
+	}
+}
+
 func TestTrustRegistryRoundTripAddMatchRemove(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "devices", "trusted.json")
 	device := Device{Path: "/dev/sdb", WWN: "0xABC", Serial: "S1"}

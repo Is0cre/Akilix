@@ -15,15 +15,19 @@ import (
 const TrustSchema = "akilix.device-trust.v1"
 
 type TrustEntry struct {
-	ID       string    `json:"id"`
-	Identity string    `json:"identity"`
-	Kind     string    `json:"kind"`
-	Vendor   string    `json:"vendor,omitempty"`
-	Model    string    `json:"model,omitempty"`
-	Serial   string    `json:"serial,omitempty"`
-	WWN      string    `json:"wwn,omitempty"`
-	Label    string    `json:"label,omitempty"`
-	AddedAt  time.Time `json:"added_at"`
+	ID             string    `json:"id"`
+	Identity       string    `json:"identity"`
+	Kind           string    `json:"kind"`
+	Vendor         string    `json:"vendor,omitempty"`
+	Model          string    `json:"model,omitempty"`
+	Serial         string    `json:"serial,omitempty"`
+	WWN            string    `json:"wwn,omitempty"`
+	USBVendorID    string    `json:"usb_vendor_id,omitempty"`
+	USBProductID   string    `json:"usb_product_id,omitempty"`
+	USBVendorName  string    `json:"usb_vendor_name,omitempty"`
+	USBProductName string    `json:"usb_product_name,omitempty"`
+	Label          string    `json:"label,omitempty"`
+	AddedAt        time.Time `json:"added_at"`
 }
 
 type TrustRegistry struct {
@@ -38,20 +42,35 @@ type TrustRevocation struct {
 }
 
 func TrustIdentity(device Device) (string, string, error) {
-	wwn := strings.ToLower(strings.TrimSpace(device.WWN))
-	serial := strings.TrimSpace(device.Serial)
-	vendor := strings.TrimSpace(device.Vendor)
-	model := strings.TrimSpace(device.Model)
-	var identity string
-	if wwn != "" {
-		identity = "block:wwn:" + wwn
-	} else if serial != "" && (vendor != "" || model != "") {
-		identity = "block:serial:" + strings.ToLower(serial) + "|vendor:" + strings.ToLower(vendor) + "|model:" + strings.ToLower(model)
-	} else {
-		return "", "", fmt.Errorf("device lacks a stable WWN or serial plus vendor/model identity")
+	candidates := trustIdentityCandidates(device)
+	if len(candidates) == 0 {
+		return "", "", fmt.Errorf("device lacks a stable WWN or serial plus hardware identity")
 	}
+	identity := candidates[0]
 	sum := sha256.Sum256([]byte(identity))
 	return "TD-" + hex.EncodeToString(sum[:8]), identity, nil
+}
+
+func trustIdentityCandidates(device Device) []string {
+	wwn := strings.ToLower(strings.TrimSpace(device.WWN))
+	serial := strings.ToLower(strings.TrimSpace(device.Serial))
+	vendorID := strings.ToLower(strings.TrimSpace(device.USBVendorID))
+	productID := strings.ToLower(strings.TrimSpace(device.USBProductID))
+	vendor := strings.ToLower(strings.TrimSpace(device.Vendor))
+	model := strings.ToLower(strings.TrimSpace(device.Model))
+	identities := []string{}
+	if wwn != "" {
+		identities = append(identities, "block:wwn:"+wwn)
+	}
+	if serial != "" && usbIDPattern.MatchString(vendorID) && usbIDPattern.MatchString(productID) {
+		identities = append(identities, "block:usb:"+vendorID+":"+productID+"|serial:"+serial)
+	}
+	// Retain the original identity as a compatibility candidate for registries
+	// created before numeric USB enrichment was available.
+	if serial != "" && (vendor != "" || model != "") {
+		identities = append(identities, "block:serial:"+serial+"|vendor:"+vendor+"|model:"+model)
+	}
+	return identities
 }
 
 func LoadTrust(path string) (TrustRegistry, error) {
@@ -80,15 +99,17 @@ func (r *TrustRegistry) Add(device Device, label string, now time.Time) (TrustEn
 	if err != nil {
 		return TrustEntry{}, err
 	}
-	for _, entry := range r.Entries {
-		if entry.Identity == identity {
-			return TrustEntry{}, fmt.Errorf("device is already trusted as %s", entry.ID)
+	for _, candidate := range trustIdentityCandidates(device) {
+		for _, entry := range r.Entries {
+			if entry.Identity == candidate {
+				return TrustEntry{}, fmt.Errorf("device is already trusted as %s", entry.ID)
+			}
 		}
 	}
 	if now.IsZero() {
 		now = time.Now().UTC()
 	}
-	entry := TrustEntry{ID: id, Identity: identity, Kind: "block", Vendor: device.Vendor, Model: device.Model, Serial: device.Serial, WWN: device.WWN, Label: strings.TrimSpace(label), AddedAt: now.UTC()}
+	entry := TrustEntry{ID: id, Identity: identity, Kind: "block", Vendor: device.Vendor, Model: device.Model, Serial: device.Serial, WWN: device.WWN, USBVendorID: device.USBVendorID, USBProductID: device.USBProductID, USBVendorName: device.USBVendorName, USBProductName: device.USBProductName, Label: strings.TrimSpace(label), AddedAt: now.UTC()}
 	r.Schema = TrustSchema
 	r.Entries = append(r.Entries, entry)
 	sort.Slice(r.Entries, func(i, j int) bool { return r.Entries[i].ID < r.Entries[j].ID })
@@ -110,13 +131,11 @@ func (r *TrustRegistry) Remove(id string, now time.Time) (TrustEntry, error) {
 }
 
 func (r TrustRegistry) Match(device Device) (TrustEntry, bool) {
-	_, identity, err := TrustIdentity(device)
-	if err != nil {
-		return TrustEntry{}, false
-	}
-	for _, entry := range r.Entries {
-		if entry.Identity == identity {
-			return entry, true
+	for _, identity := range trustIdentityCandidates(device) {
+		for _, entry := range r.Entries {
+			if entry.Identity == identity {
+				return entry, true
+			}
 		}
 	}
 	return TrustEntry{}, false
