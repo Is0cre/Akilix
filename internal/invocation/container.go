@@ -112,30 +112,8 @@ func RunContainer(ctx context.Context, workbookRoot, workbookID string, spec con
 	if err := atomicWriteFile(filepath.Join(workbookRoot, ".pensuse", "containers", id+".json"), containerData); err != nil {
 		return Record{}, err
 	}
-	b, err := json.Marshal(r)
-	if err != nil {
+	if err := appendRecord(workbookRoot, r); err != nil {
 		return Record{}, err
-	}
-	b = append(b, '\n')
-	manifest := filepath.Join(workbookRoot, ".pensuse", "manifest.jsonl")
-	if err := os.MkdirAll(filepath.Dir(manifest), 0700); err != nil {
-		return Record{}, err
-	}
-	f, err := os.OpenFile(manifest, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0600)
-	if err != nil {
-		return Record{}, err
-	}
-	_, writeErr := f.Write(b)
-	syncErr := f.Sync()
-	closeErr := f.Close()
-	if writeErr != nil {
-		return Record{}, writeErr
-	}
-	if syncErr != nil {
-		return Record{}, syncErr
-	}
-	if closeErr != nil {
-		return Record{}, closeErr
 	}
 	if runErr != nil {
 		return r, fmt.Errorf("container command failed: %w", runErr)

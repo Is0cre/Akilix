@@ -2,8 +2,10 @@ package invocation
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
+	"sync"
 	"testing"
 	"time"
 )
@@ -38,5 +40,40 @@ func TestRunRecordsSuccessAndFailure(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(root, ".pensuse", "manifest.jsonl")); err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestAppendRecordSerializesConcurrentWriters(t *testing.T) {
+	root := t.TempDir()
+	const writers = 32
+	var wg sync.WaitGroup
+	errs := make(chan error, writers)
+	for i := 0; i < writers; i++ {
+		wg.Add(1)
+		go func(i int) {
+			defer wg.Done()
+			record := Record{
+				Schema: Schema, ID: fmt.Sprintf("77777777-7777-7777-8777-%012x", i),
+				WorkbookID: "88888888-8888-7888-8888-888888888888",
+				Started:    time.Unix(1, 0), Ended: time.Unix(2, 0), Executor: "native",
+				Executable: "/bin/true", Arguments: []string{"true"}, ExitCode: 0,
+				Status: "complete", Stdout: "tool-output/a.stdout", Stderr: "tool-output/a.stderr",
+			}
+			errs <- appendRecord(root, record)
+		}(i)
+	}
+	wg.Wait()
+	close(errs)
+	for err := range errs {
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+	records, err := List(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(records) != writers {
+		t.Fatalf("got %d invocation records, want %d", len(records), writers)
 	}
 }

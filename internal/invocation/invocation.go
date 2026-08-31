@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"syscall"
 	"time"
 )
 
@@ -193,35 +194,78 @@ func RunWithOptions(ctx context.Context, workbookRoot, workbookID string, args [
 	if err := r.Validate(); err != nil {
 		return Record{}, err
 	}
-	b, err := json.Marshal(r)
-	if err != nil {
+	if err := appendRecord(workbookRoot, r); err != nil {
 		return Record{}, err
-	}
-	b = append(b, '\n')
-	manifest := filepath.Join(workbookRoot, ".pensuse", "manifest.jsonl")
-	if err := os.MkdirAll(filepath.Dir(manifest), 0700); err != nil {
-		return Record{}, err
-	}
-	f, err := os.OpenFile(manifest, os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0600)
-	if err != nil {
-		return Record{}, err
-	}
-	_, writeErr := f.Write(b)
-	syncErr := f.Sync()
-	closeErr := f.Close()
-	if writeErr != nil {
-		return Record{}, writeErr
-	}
-	if syncErr != nil {
-		return Record{}, syncErr
-	}
-	if closeErr != nil {
-		return Record{}, closeErr
 	}
 	if runErr != nil {
 		return r, fmt.Errorf("command failed: %w", runErr)
 	}
 	return r, nil
+}
+
+// appendRecord serializes updates to the canonical JSONL provenance stream.
+// If a detected write or sync failure occurs, it restores the previous file
+// length so a partial record cannot resemble a completed invocation.
+func appendRecord(workbookRoot string, record Record) error {
+	b, err := json.Marshal(record)
+	if err != nil {
+		return err
+	}
+	b = append(b, '\n')
+	manifestDir := filepath.Join(workbookRoot, ".pensuse")
+	if err := os.MkdirAll(manifestDir, 0700); err != nil {
+		return err
+	}
+	manifest := filepath.Join(manifestDir, "manifest.jsonl")
+	f, err := os.OpenFile(manifest, os.O_CREATE|os.O_RDWR|os.O_APPEND, 0600)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	if err := syscall.Flock(int(f.Fd()), syscall.LOCK_EX); err != nil {
+		return err
+	}
+	defer syscall.Flock(int(f.Fd()), syscall.LOCK_UN)
+	offset, err := f.Seek(0, 2)
+	if err != nil {
+		return err
+	}
+	if err := writeComplete(f, b); err != nil {
+		_ = rollbackAppend(f, offset)
+		return err
+	}
+	if err := f.Sync(); err != nil {
+		_ = rollbackAppend(f, offset)
+		return err
+	}
+	if err := syscall.Flock(int(f.Fd()), syscall.LOCK_UN); err != nil {
+		return err
+	}
+	if err := f.Close(); err != nil {
+		return err
+	}
+	return syncDirectory(manifestDir)
+}
+
+func writeComplete(f *os.File, data []byte) error {
+	for len(data) > 0 {
+		n, err := f.Write(data)
+		if err != nil {
+			return err
+		}
+		if n == 0 {
+			return fmt.Errorf("short invocation manifest write")
+		}
+		data = data[n:]
+	}
+	return nil
+}
+
+func rollbackAppend(f *os.File, offset int64) error {
+	if err := f.Truncate(offset); err != nil {
+		return err
+	}
+	return f.Sync()
 }
 
 func uuid(t time.Time) (string, error) {
