@@ -82,6 +82,11 @@ The host is intended to remain relatively conservative.
 
 Fast-moving security applications should generally run in reproducible OCI environments rather than continuously changing the base operating system.
 
+The intended graphical environment is a lightweight, keyboard-first Sway
+session with tiling enabled by default. The console remains a supported
+recovery path, and desktop packaging will not enter the release image until its
+Leap 16 OBS dependencies are pinned and auditable.
+
 ---
 
 # Workbooks

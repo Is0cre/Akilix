@@ -139,6 +139,12 @@ Profiles:
 
 Profiles may initially remain sparse.
 
+The lightweight desktop direction is documented in `docs/DESKTOP.md`. Sway is
+the intended tiling environment, but Leap 16 currently requires OBS packages
+outside the official release repository. Repository identity, keys, exact
+package versions, and rollback behavior must be modeled before the desktop is
+added to a release image.
+
 ---
 
 # M4 — Forensic Acquisition
