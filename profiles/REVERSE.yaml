@@ -1,0 +1,9 @@
+schema: akilix.profile.v1
+id: REVERSE
+name: Reverse Engineering
+description: Binary inspection, disassembly, debugging, and format analysis.
+status: planned
+rpm:
+  - radare2
+containers:
+  - akilix-reverse

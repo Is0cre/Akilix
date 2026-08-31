@@ -1,9 +1,12 @@
 schema: akilix.profile.v1
 id: FORENSICS
 name: Forensics
-description: Reserved profile for future local-first forensic analysis environments.
+description: Local-first filesystem, disk-image, metadata, and binary inspection tools.
 status: planned
 rpm:
-  []
+  - sleuthkit
+  - smartmontools
+  - nvme-cli
+  - exiftool
 containers:
-  []
+  - akilix-forensics

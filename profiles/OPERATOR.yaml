@@ -1,0 +1,13 @@
+schema: akilix.profile.v1
+id: OPERATOR
+name: Operator Utilities
+description: Fast local navigation, search, structured-data, and resource inspection tools.
+status: planned
+rpm:
+  - btop
+  - fzf
+  - jq
+  - ripgrep
+  - zoxide
+containers:
+  []

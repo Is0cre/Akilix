@@ -1,0 +1,11 @@
+schema: akilix.profile.v1
+id: NETWORK
+name: Network Engineering
+description: Scoped host and port discovery, packet inspection, and network diagnostics.
+status: planned
+rpm:
+  - nmap
+  - tcpdump
+  - ethtool
+containers:
+  - akilix-network

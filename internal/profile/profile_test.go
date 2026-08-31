@@ -35,3 +35,22 @@ func TestBuildPlanHasTransactionalPhases(t *testing.T) {
 		t.Fatalf("unexpected plan: %+v", plan)
 	}
 }
+
+func TestShippedProfileCatalog(t *testing.T) {
+	dir := filepath.Join("..", "..", "profiles")
+	items, err := LoadDir(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := map[string]bool{
+		"CORE": true, "FORENSICS": true, "INCIDENT-RESPONSE": true,
+		"NETWORK": true, "OPERATOR": true, "RECON": true,
+		"REVERSE": true, "WEB": true,
+	}
+	for _, item := range items {
+		delete(want, item.ID)
+	}
+	if len(want) != 0 {
+		t.Fatalf("missing shipped profiles: %v", want)
+	}
+}

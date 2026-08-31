@@ -1,0 +1,9 @@
+schema: akilix.profile.v1
+id: RECON
+name: Reconnaissance
+description: Scoped asset discovery and external attack-surface enumeration.
+status: planned
+rpm:
+  []
+containers:
+  - akilix-recon

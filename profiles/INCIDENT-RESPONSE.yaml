@@ -1,0 +1,11 @@
+schema: akilix.profile.v1
+id: INCIDENT-RESPONSE
+name: Incident Response
+description: Host triage, collection, timeline, and response analysis environments.
+status: planned
+rpm:
+  - lsof
+  - strace
+  - sysstat
+containers:
+  - akilix-incident-response

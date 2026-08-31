@@ -1,0 +1,9 @@
+schema: akilix.profile.v1
+id: WEB
+name: Web and API
+description: Structured HTTP probing, crawling, and content discovery environments.
+status: planned
+rpm:
+  []
+containers:
+  - akilix-web
