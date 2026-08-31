@@ -121,6 +121,9 @@ func Save(workbookRoot string, c Config) error {
 	if err = tmp.Chmod(0600); err == nil {
 		_, err = tmp.WriteString(b.String())
 	}
+	if err == nil {
+		err = tmp.Sync()
+	}
 	if closeErr := tmp.Close(); err == nil {
 		err = closeErr
 	}

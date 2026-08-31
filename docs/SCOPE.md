@@ -45,22 +45,19 @@ A specific exclusion should override a broad inclusion.
 
     version: 1
 
-    networks:
-      include:
-        - 10.40.0.0/16
-      exclude:
-        - 10.40.50.0/24
+    include:
+      - 10.40.0.0/16
+      - example.org
+      - "*.lab.example.org"
+      - vpn.example.org
+    exclude:
+      - 10.40.50.0/24
+      - payments.example.org
 
-    domains:
-      include:
-        - example.org
-        - "*.lab.example.org"
-      exclude:
-        - payments.example.org
-
-    hosts:
-      include:
-        - vpn.example.org
+The initial v1 file stores canonical target rules in common include and exclude
+lists. Target type is derived during local evaluation. A future typed scope
+schema must use an explicit schema migration rather than silently changing this
+on-disk representation.
 
 ---
 

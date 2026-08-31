@@ -62,7 +62,7 @@ func Create(root, name string, now time.Time) (Metadata, error) {
 	if err := atomicWrite(filepath.Join(stage, "workbook.yaml"), render(m), 0600); err != nil {
 		return Metadata{}, err
 	}
-	if err := atomicWrite(filepath.Join(stage, "scope.yaml"), "version: 1\nnetworks:\n  include: []\n  exclude: []\ndomains:\n  include: []\n  exclude: []\n", 0600); err != nil {
+	if err := atomicWrite(filepath.Join(stage, "scope.yaml"), "version: 1\ninclude:\n  []\nexclude:\n  []\n", 0600); err != nil {
 		return Metadata{}, err
 	}
 	if err := atomicWrite(filepath.Join(stage, "README.md"), "# "+name+"\n\nPenSUSE workbook.\n", 0600); err != nil {

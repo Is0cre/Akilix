@@ -18,6 +18,13 @@ func TestCreateOpenList(t *testing.T) {
 	if len(m.ID) != 36 || m.Status != "open" {
 		t.Fatalf("bad metadata: %+v", m)
 	}
+	scopeData, err := os.ReadFile(filepath.Join(root, "case-1", "scope.yaml"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if string(scopeData) != "version: 1\ninclude:\n  []\nexclude:\n  []\n" {
+		t.Fatalf("unexpected initial scope document: %q", scopeData)
+	}
 	if _, err := Open(root, "../escape"); err == nil {
 		t.Fatal("path traversal accepted")
 	}
