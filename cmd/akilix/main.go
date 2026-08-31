@@ -369,11 +369,14 @@ func runBar(args []string, stdout, stderr io.Writer) int {
 		return 2
 	}
 	render := func() []statusbar.Block {
+		var blocks []statusbar.Block
 		m, err := statusbar.Current(os.Getenv("XDG_RUNTIME_DIR"))
 		if err != nil {
-			return []statusbar.Block{{FullText: " Akilix · no active workbook ", Color: "#aab1af", Separator: false}}
+			blocks = []statusbar.Block{{FullText: " Akilix · no active workbook ", Color: "#aab1af", Separator: false}}
+		} else {
+			blocks = statusbar.Blocks(m)
 		}
-		return statusbar.Blocks(m)
+		return append(blocks, statusbar.TimeBlocks(time.Now())...)
 	}
 	if args[0] == "once" {
 		b, _ := json.Marshal(render())

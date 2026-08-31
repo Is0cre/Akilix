@@ -44,6 +44,7 @@ bindsym $mod+Shift+f exec pcmanfm-qt
 bindsym $mod+Shift+b exec foot --title "Akilix System Monitor" btop
 bindsym $mod+Shift+o exec foot --title "Akilix File Navigator" nnn
 bindsym $mod+Shift+p exec blueman-manager
+bindsym $mod+c exec foot --hold --title "Akilix Calendar" cal -3
 bindsym $mod+Shift+q kill
 bindsym $mod+f fullscreen toggle
 bindsym $mod+Shift+space floating toggle

@@ -113,6 +113,7 @@ The primary modifier should be the Super key. Initial bindings should include:
 - `Super+Shift+O` — `nnn` in Foot;
 - `Super+Shift+B` — `btop` in Foot;
 - `Super+Shift+P` — Bluetooth manager;
+- `Super+C` — three-month calendar in Foot;
 - `Super+Shift+Q` — close focused window;
 - `Super+1` through `Super+9` — select workspace;
 - `Super+Shift+1` through `Super+Shift+9` — move a window;
@@ -167,6 +168,11 @@ atomically marks that workbook active beneath
 failed managed invocations from canonical local files. It does not claim packet
 drops, hashing queues, or other metrics Akilix does not yet record. No daemon,
 shared global UID, network request, or telemetry service is involved.
+
+Calendar and clock blocks remain visible whether or not a workbook is active.
+They use the host's configured local timezone and the existing one-second bar
+stream; no second clock process is started. `Super+C` opens the `util-linux`
+three-month calendar in a held Foot window.
 
 ## Go terminal experience
 

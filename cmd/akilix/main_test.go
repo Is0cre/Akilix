@@ -90,8 +90,11 @@ func TestBarOnceWithoutActiveWorkbookIsValidJSON(t *testing.T) {
 		t.Fatalf("code=%d stderr=%s", code, errOut.String())
 	}
 	var blocks []map[string]interface{}
-	if err := json.Unmarshal(out.Bytes(), &blocks); err != nil || len(blocks) != 1 {
+	if err := json.Unmarshal(out.Bytes(), &blocks); err != nil || len(blocks) != 3 {
 		t.Fatalf("bar output=%q err=%v", out.String(), err)
+	}
+	if !strings.Contains(blocks[1]["full_text"].(string), "📅") || !strings.Contains(blocks[2]["full_text"].(string), "🕒") {
+		t.Fatalf("bar lacks calendar or clock: %+v", blocks)
 	}
 }
 

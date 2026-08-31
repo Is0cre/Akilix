@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 
 	"github.com/Is0cre/Akilix/internal/activity"
 	"github.com/Is0cre/Akilix/internal/scope"
@@ -115,5 +116,14 @@ func Blocks(m Metrics) []Block {
 		{FullText: " 🎯 SCOPE " + m.Scope + " ", Color: "#e8e6dd", Separator: false},
 		{FullText: fmt.Sprintf(" ⚠ FAILED %d ", m.Failed), Color: warn, Separator: false},
 		{FullText: fmt.Sprintf(" 📦 RUNNING %d ", m.Running), Color: "#c68a2b", Separator: false},
+	}
+}
+
+// TimeBlocks renders local calendar and clock state. The caller supplies time
+// so formatting is deterministic in tests and follows the configured host zone.
+func TimeBlocks(now time.Time) []Block {
+	return []Block{
+		{FullText: " 📅 " + now.Format("Mon 02 Jan") + " ", Color: "#e8e6dd", Separator: false},
+		{FullText: " 🕒 " + now.Format("15:04 MST") + " ", Color: "#0b1114", Background: "#8ead55", Separator: false},
 	}
 }

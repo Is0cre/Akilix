@@ -223,7 +223,7 @@ if "font=Noto Sans Mono:size=11,Noto Sans Symbols 2:size=11,Noto Color Emoji:siz
 if "alpha=0.78" not in foot:
     raise SystemExit("Foot does not expose the Akilix wallpaper at the selected opacity")
 sway = (image / "root/etc/sway/config").read_text()
-for setting in ("status_command /usr/bin/akilix bar stream", "focused_workspace #657a3e", "bindsym $mod+Shift+n exec featherpad", "bindsym $mod+Shift+f exec pcmanfm-qt", 'foot --title "Akilix System Monitor" btop', 'foot --title "Akilix File Navigator" nnn', "bindsym $mod+Shift+p exec blueman-manager"):
+for setting in ("status_command /usr/bin/akilix bar stream", "focused_workspace #657a3e", "bindsym $mod+Shift+n exec featherpad", "bindsym $mod+Shift+f exec pcmanfm-qt", 'foot --title "Akilix System Monitor" btop', 'foot --title "Akilix File Navigator" nnn', "bindsym $mod+Shift+p exec blueman-manager", 'bindsym $mod+c exec foot --hold --title "Akilix Calendar" cal -3'):
     if setting not in sway:
         raise SystemExit(f"Sway native command strip lacks {setting}")
 if "exec waybar" in sway or "waybar" in packages:

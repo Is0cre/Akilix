@@ -29,3 +29,11 @@ func TestMetricsAreDerivedFromCanonicalLocalState(t *testing.T) {
 		t.Fatalf("metrics=%+v err=%v", got, err)
 	}
 }
+
+func TestTimeBlocksUseLocalCalendarAndZone(t *testing.T) {
+	zone := time.FixedZone("EET", 2*60*60)
+	blocks := TimeBlocks(time.Date(2026, time.August, 31, 21, 7, 0, 0, zone))
+	if len(blocks) != 2 || blocks[0].FullText != " 📅 Mon 31 Aug " || blocks[1].FullText != " 🕒 21:07 EET " {
+		t.Fatalf("unexpected time blocks: %+v", blocks)
+	}
+}
