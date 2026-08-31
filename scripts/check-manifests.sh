@@ -41,7 +41,7 @@ import json
 from pathlib import Path
 
 lock = json.loads(Path("repositories/desktop-sway-lock.json").read_text())
-expected = {"sway", "swayidle", "swaylock", "foot", "fuzzel", "mako", "wl-clipboard", "grim", "slurp", "greetd", "greetd-branding-upstream", "tuigreet"}
+expected = {"sway", "swaybar", "swayidle", "swaylock", "foot", "fuzzel", "mako", "wl-clipboard", "grim", "slurp", "greetd", "greetd-branding-upstream", "tuigreet"}
 packages = lock.get("packages", [])
 names = {item.get("name") for item in packages}
 if lock.get("schema") != "akilix.package-lock.v1" or names != expected:
@@ -116,7 +116,7 @@ for marker in ("AKILIX", "Security work with provenance.", "Live development ima
         raise SystemExit(f"greetd issue banner lacks: {marker}")
 
 packages = {node.get("name") for node in ET.parse(image / "config.xml").findall(".//package")}
-required = {"greetd", "greetd-branding-upstream", "tuigreet", "sway"}
+required = {"greetd", "greetd-branding-upstream", "tuigreet", "sway", "swaybar"}
 if not required <= packages:
     raise SystemExit("KIWI image lacks the complete greetd/Sway session")
 

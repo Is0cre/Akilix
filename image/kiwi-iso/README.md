@@ -47,6 +47,8 @@ The session opens one Foot terminal as its visible starting point;
 `Ctrl+Alt+T` remains available when a VM or host compositor intercepts the
 Super key. Exact OBS RPM identities are recorded in
 `repositories/desktop-sway-lock.json`.
+The split `swaybar` RPM is installed explicitly; installing `sway` alone does
+not provide `/usr/bin/swaybar` on this Leap repository.
 
 The operator account uses Zsh with the documented Akilix system baseline,
 durable extended history, and generated CLI completion. See `docs/SHELL.md`.

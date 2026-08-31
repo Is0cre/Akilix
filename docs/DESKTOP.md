@@ -41,7 +41,8 @@ comfortable workstation:
 - Sway compositor and tiling window manager;
 - Xwayland for applications that still require X11;
 - Foot or another small Wayland-native terminal;
-- Sway's native bar with a local Akilix workbook status stream;
+- Sway's separately packaged native `swaybar` with a local Akilix workbook
+  status stream;
 - Fuzzel or an equivalently small application launcher;
 - Mako for local notifications;
 - wl-clipboard;

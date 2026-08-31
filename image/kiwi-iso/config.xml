@@ -54,6 +54,7 @@
     <package name="grub2-i386-pc"/>
     <package name="grub2-x86_64-efi"/>
     <package name="sway"/>
+    <package name="swaybar"/>
     <package name="swayidle"/>
     <package name="swaylock"/>
     <package name="foot"/>
