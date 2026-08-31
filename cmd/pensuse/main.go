@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -72,19 +73,7 @@ func run(args []string, stdout, stderr io.Writer) int {
 			fmt.Fprintln(stderr, "usage: pensuse tui [WORKBOOK] [--no-color]")
 			return 2
 		}
-		root := effectiveWorkbookRoot()
-		overview, err := workbookview.Build(root, args[1])
-		if err != nil {
-			fmt.Fprintln(stderr, err)
-			return 1
-		}
-		config, err := scope.Load(filepath.Join(root, args[1]))
-		if err != nil {
-			fmt.Fprintln(stderr, err)
-			return 1
-		}
-		fmt.Fprint(stdout, tuipkg.Render(overview, config, len(args) != 3))
-		return 0
+		return runTUISession(bufio.NewScanner(os.Stdin), effectiveWorkbookRoot(), args[1], len(args) != 3, stdout, stderr)
 	}
 	if args[0] != "version" {
 		fmt.Fprintln(stderr, "usage: pensuse version [--json] | workbook ... | scope ... | evidence ... | run ... | container ...")
@@ -109,6 +98,7 @@ func run(args []string, stdout, stderr io.Writer) int {
 }
 
 func runTUIHome(stdin io.Reader, stdout, stderr io.Writer) int {
+	scanner := bufio.NewScanner(stdin)
 	root := effectiveWorkbookRoot()
 	items, err := workbook.List(root)
 	if err != nil {
@@ -126,25 +116,59 @@ func runTUIHome(stdin io.Reader, stdout, stderr io.Writer) int {
 			fmt.Fprintf(stdout, "  %d  %-24s %s\n", i+1, item.Name, strings.ToUpper(item.Status))
 		}
 		fmt.Fprint(stdout, "Select workbook: ")
-		var choice int
-		if _, err := fmt.Fscan(bufio.NewReader(stdin), &choice); err != nil || choice < 1 || choice > len(items) {
+		if !scanner.Scan() {
+			fmt.Fprintln(stderr, "workbook selection cancelled")
+			return 1
+		}
+		choice, err := strconv.Atoi(strings.TrimSpace(scanner.Text()))
+		if err != nil || choice < 1 || choice > len(items) {
 			fmt.Fprintln(stderr, "workbook selection cancelled")
 			return 1
 		}
 		selected = items[choice-1].Name
 	}
-	overview, err := workbookview.Build(root, selected)
-	if err != nil {
-		fmt.Fprintln(stderr, err)
-		return 1
+	return runTUISession(scanner, root, selected, os.Getenv("NO_COLOR") == "", stdout, stderr)
+}
+
+func runTUISession(scanner *bufio.Scanner, root, selected string, color bool, stdout, stderr io.Writer) int {
+	for {
+		overview, err := workbookview.Build(root, selected)
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		config, err := scope.Load(filepath.Join(root, selected))
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		fmt.Fprint(stdout, tuipkg.Render(overview, config, color))
+		fmt.Fprint(stdout, "[a] add scope  [x] add exclusion  [q] quit > ")
+		if !scanner.Scan() {
+			return 0
+		}
+		action := strings.ToLower(strings.TrimSpace(scanner.Text()))
+		if action == "q" || action == "quit" {
+			return 0
+		}
+		if action != "a" && action != "x" {
+			fmt.Fprintln(stderr, "unknown action")
+			continue
+		}
+		if overview.Status != "open" {
+			fmt.Fprintln(stderr, "workbook is closed")
+			continue
+		}
+		fmt.Fprint(stdout, "Target (IP, CIDR, hostname, domain, or URL): ")
+		if !scanner.Scan() {
+			return 0
+		}
+		if err := scope.Add(filepath.Join(root, selected), strings.TrimSpace(scanner.Text()), action == "x"); err != nil {
+			fmt.Fprintln(stderr, err)
+			continue
+		}
+		fmt.Fprintln(stdout, "scope updated")
 	}
-	config, err := scope.Load(filepath.Join(root, selected))
-	if err != nil {
-		fmt.Fprintln(stderr, err)
-		return 1
-	}
-	fmt.Fprint(stdout, tuipkg.Render(overview, config, os.Getenv("NO_COLOR") == ""))
-	return 0
 }
 
 func runRepository(args []string, stdout, stderr io.Writer) int {

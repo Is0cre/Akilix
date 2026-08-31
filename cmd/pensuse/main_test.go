@@ -8,6 +8,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/pensuse/pensuse/internal/scope"
 	"github.com/pensuse/pensuse/internal/version"
 	"github.com/pensuse/pensuse/internal/workbook"
 )
@@ -52,6 +53,25 @@ func TestTUIHomeSelectsWorkbookWithoutSideEffects(t *testing.T) {
 	}
 	if !strings.Contains(out.String(), "beta") || !strings.Contains(out.String(), "Select workbook") {
 		t.Fatalf("selector output: %q", out.String())
+	}
+}
+
+func TestTUISessionEditsScopeThroughBackend(t *testing.T) {
+	root := t.TempDir()
+	t.Setenv("PENSUSE_WORKBOOK_ROOT", root)
+	if _, err := workbook.Create(root, "lab", time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+	var out, errOut bytes.Buffer
+	if code := runTUIHome(strings.NewReader("a\n192.168.2.0/24\nx\n192.168.2.1\nq\n"), &out, &errOut); code != 0 {
+		t.Fatalf("code=%d stderr=%s", code, errOut.String())
+	}
+	config, err := scope.Load(filepath.Join(root, "lab"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(config.Includes) != 1 || len(config.Excludes) != 1 {
+		t.Fatalf("scope=%+v", config)
 	}
 }
 
