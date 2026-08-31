@@ -1,3 +1,0 @@
-#!/bin/sh
-exec foot --fullscreen --app-id=pensuse-weathr --title='PenSUSE Weather' \
-    /usr/bin/weathr --simulate rain --night --hide-hud --silent

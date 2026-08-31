@@ -1,8 +1,8 @@
 package tui
 
 import (
-	"github.com/pensuse/pensuse/internal/scope"
-	"github.com/pensuse/pensuse/internal/workbookview"
+	"github.com/Is0cre/Akilix/internal/scope"
+	"github.com/Is0cre/Akilix/internal/workbookview"
 	"strings"
 	"testing"
 )

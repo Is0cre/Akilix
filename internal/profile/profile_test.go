@@ -8,7 +8,7 @@ import (
 
 func TestLoadDirAndFind(t *testing.T) {
 	dir := t.TempDir()
-	data := "schema: pensuse.profile.v1\nid: CORE\nname: Core Platform\ndescription: Minimal platform\nstatus: foundation\nrpm:\n  - zsh\ncontainers:\n  []\n"
+	data := "schema: akilix.profile.v1\nid: CORE\nname: Core Platform\ndescription: Minimal platform\nstatus: foundation\nrpm:\n  - zsh\ncontainers:\n  []\n"
 	if err := os.WriteFile(filepath.Join(dir, "CORE.yaml"), []byte(data), 0600); err != nil {
 		t.Fatal(err)
 	}

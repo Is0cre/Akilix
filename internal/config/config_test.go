@@ -10,7 +10,7 @@ func TestPathsUseXDG(t *testing.T) {
 	values := map[string]string{"XDG_CONFIG_HOME": "/tmp/config", "XDG_STATE_HOME": "/tmp/state", "HOME": "/home/test"}
 	get := func(key string) string { return values[key] }
 	configFile, stateDir := Paths(get)
-	if configFile != "/tmp/config/pensuse/config.yaml" || stateDir != "/tmp/state/pensuse" {
+	if configFile != "/tmp/config/akilix/config.yaml" || stateDir != "/tmp/state/akilix" {
 		t.Fatalf("unexpected paths: %q %q", configFile, stateDir)
 	}
 }
@@ -23,7 +23,7 @@ func TestPathsDefaultToHome(t *testing.T) {
 		return ""
 	}
 	configFile, stateDir := Paths(get)
-	if configFile != "/home/test/.config/pensuse/config.yaml" || stateDir != "/home/test/.local/state/pensuse" {
+	if configFile != "/home/test/.config/akilix/config.yaml" || stateDir != "/home/test/.local/state/akilix" {
 		t.Fatalf("unexpected defaults: %q %q", configFile, stateDir)
 	}
 }
@@ -32,14 +32,14 @@ func TestEffectiveConfigPrecedence(t *testing.T) {
 	root := t.TempDir()
 	configHome := filepath.Join(root, "config")
 	stateHome := filepath.Join(root, "state")
-	if err := os.MkdirAll(filepath.Join(configHome, "pensuse"), 0700); err != nil {
+	if err := os.MkdirAll(filepath.Join(configHome, "akilix"), 0700); err != nil {
 		t.Fatal(err)
 	}
-	configFile := filepath.Join(configHome, "pensuse", "config.yaml")
-	if err := os.WriteFile(configFile, []byte("schema: pensuse.config.v1\nworkbook_root: /from-file\nprofile_dir: /profiles\n"), 0600); err != nil {
+	configFile := filepath.Join(configHome, "akilix", "config.yaml")
+	if err := os.WriteFile(configFile, []byte("schema: akilix.config.v1\nworkbook_root: /from-file\nprofile_dir: /profiles\n"), 0600); err != nil {
 		t.Fatal(err)
 	}
-	values := map[string]string{"XDG_CONFIG_HOME": configHome, "XDG_STATE_HOME": stateHome, "HOME": root, "PENSUSE_WORKBOOK_ROOT": "/from-env"}
+	values := map[string]string{"XDG_CONFIG_HOME": configHome, "XDG_STATE_HOME": stateHome, "HOME": root, "AKILIX_WORKBOOK_ROOT": "/from-env"}
 	settings, err := Effective(func(key string) string { return values[key] }, func(path string) error { _, err := os.Stat(path); return err })
 	if err != nil {
 		t.Fatal(err)

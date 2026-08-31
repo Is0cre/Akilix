@@ -1,4 +1,4 @@
-# PenSUSE deliberately uses a static boot surface: no timing-dependent animation,
+# Akilix deliberately uses a static boot surface: no timing-dependent animation,
 # external fonts, or network-loaded resources.
 Window.SetBackgroundTopColor(0.035, 0.055, 0.063);
 Window.SetBackgroundBottomColor(0.016, 0.027, 0.031);

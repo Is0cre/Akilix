@@ -1,8 +1,8 @@
-# PenSUSE Desktop Direction
+# Akilix Desktop Direction
 
 ## Decision
 
-PenSUSE intends to provide a lightweight, keyboard-first Sway desktop with
+Akilix intends to provide a lightweight, keyboard-first Sway desktop with
 tiling enabled by default. The desktop is an operator UX layer; it must not
 duplicate workbook, scope, evidence, or provenance business logic from the Go
 backend.
@@ -21,14 +21,14 @@ repository:
 - <https://software.opensuse.org/download/package?package=waybar&project=X11%3AWayland>
 
 The repository is an explicitly approved experimental input for the development
-ISO. PenSUSE records its URL and signing-key fingerprint and keeps the resolved
+ISO. Akilix records its URL and signing-key fingerprint and keeps the resolved
 x86_64 RPM identities in `repositories/desktop-sway-lock.json`. A local mirror
-or PenSUSE OBS project remains preferred for reproducible release builds.
+or Akilix OBS project remains preferred for reproducible release builds.
 
 The repository identity is recorded as an approved development-image source in
 `repositories/repositories.json`. Inspect it locally with:
 
-    pensuse repository show x11-wayland-leap-16
+    akilix repository show x11-wayland-leap-16
 
 This inspection performs no network access. Enabling the source in the KIWI
 description does not add it to an already-running host.
@@ -41,13 +41,13 @@ comfortable workstation:
 - Sway compositor and tiling window manager;
 - Xwayland for applications that still require X11;
 - Foot or another small Wayland-native terminal;
-- Sway's native bar with a local PenSUSE workbook status stream;
+- Sway's native bar with a local Akilix workbook status stream;
 - Fuzzel or an equivalently small application launcher;
 - Mako for local notifications;
 - wl-clipboard;
 - Grim and Slurp for explicit operator-requested screenshots;
 - a minimal PolicyKit agent where graphical elevation workflows require it;
-- the PenSUSE wallpaper and icon assets already stored under `branding/`.
+- the Akilix wallpaper and icon assets already stored under `branding/`.
 - an offline-by-default Weathr ASCII animation for the idle screen;
 
 The development ISO runs `greetd` with the terminal-native `tuigreet` greeter
@@ -79,10 +79,10 @@ The primary modifier should be the Super key. Initial bindings should include:
 
 The live session opens one Foot terminal at startup. This gives an otherwise
 empty tiling workspace an obvious first action without depending on the VM
-console forwarding the host's Super key. It does not run a PenSUSE command,
+console forwarding the host's Super key. It does not run a Akilix command,
 select a workbook, or initiate network activity.
 
-Sway displays the staged PenSUSE 3840×2160 wallpaper on every output using
+Sway displays the staged Akilix 3840×2160 wallpaper on every output using
 `fill` scaling. Foot uses the matching graphite palette at 92% opacity so the
 branding remains subtly visible behind terminal work without compromising text
 contrast. Per-user Foot or Sway configuration may override these system
@@ -112,16 +112,16 @@ Opening the desktop or bar must not open a workbook or perform network
 activity. Workbook widgets may display local state only after the operator has
 explicitly selected a workbook.
 
-The native command strip runs `pensuse bar stream` using the i3bar JSON
+The native command strip runs `akilix bar stream` using the i3bar JSON
 protocol. Entering a workbook TUI atomically marks that workbook active beneath
-`$XDG_RUNTIME_DIR/pensuse/`. The strip derives declared scope and running or
+`$XDG_RUNTIME_DIR/akilix/`. The strip derives declared scope and running or
 failed managed invocations from canonical local files. It does not claim packet
-drops, hashing queues, or other metrics PenSUSE does not yet record. No daemon,
+drops, hashing queues, or other metrics Akilix does not yet record. No daemon,
 shared global UID, network request, or telemetry service is involved.
 
 ## Go terminal experience
 
-The `pensuse` Go backend remains the source of truth. Terminal comfort should
+The `akilix` Go backend remains the source of truth. Terminal comfort should
 grow through:
 
 - fast shell completion without network lookups;
@@ -145,7 +145,7 @@ Before the desktop becomes the ISO default, test at minimum:
 - representative Intel, AMD, and NVIDIA behavior is documented;
 - keyboard layout, HiDPI, multi-monitor, suspend, and resume behavior;
 - terminal, launcher, bar, notifications, clipboard, and screenshots;
-- no unexpected listeners or PenSUSE network activity after login;
+- no unexpected listeners or Akilix network activity after login;
 - opening and validating a workbook remains passive;
 - original evidence paths are never exposed as writable convenience mounts;
 - logout returns to a controlled login or console state.

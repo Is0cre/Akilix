@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	containerpkg "github.com/pensuse/pensuse/internal/container"
-	"github.com/pensuse/pensuse/internal/scope"
+	containerpkg "github.com/Is0cre/Akilix/internal/container"
+	"github.com/Is0cre/Akilix/internal/scope"
 )
 
 func TestPlanLocalDiscoveryRequiresExplicitCIDRScope(t *testing.T) {

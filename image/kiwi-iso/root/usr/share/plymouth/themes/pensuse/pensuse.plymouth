@@ -1,8 +1,0 @@
-[Plymouth Theme]
-Name=PenSUSE
-Description=Static PenSUSE boot identity
-ModuleName=script
-
-[script]
-ImageDir=/usr/share/plymouth/themes/pensuse
-ScriptFile=/usr/share/plymouth/themes/pensuse/pensuse.script

@@ -1,11 +1,11 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://pensuse.dev/schemas/pensuse.config.v1.json",
-  "title": "PenSUSE configuration",
+  "$id": "https://akilix.dev/schemas/akilix.config.v1.json",
+  "title": "Akilix configuration",
   "type": "object",
   "required": ["schema", "config_file", "state_dir", "workbook_root", "profile_dir"],
   "properties": {
-    "schema": {"const": "pensuse.config.v1"},
+    "schema": {"const": "akilix.config.v1"},
     "config_file": {"type": "string", "minLength": 1},
     "state_dir": {"type": "string", "minLength": 1},
     "workbook_root": {"type": "string", "minLength": 1},

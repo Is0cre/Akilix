@@ -1,26 +1,30 @@
-# PenSUSE
+# Akilix
+
+> The project was renamed to Akilix during pre-release development. See
+> [the identity migration note](docs/IDENTITY.md) for storage, repository, and
+> visual-branding boundaries.
 
 <p align="center">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="branding/web/pensuse-horizontal-dark.png">
-    <source media="(prefers-color-scheme: light)" srcset="branding/web/pensuse-horizontal-light.png">
-    <img alt="PenSUSE — Security work with provenance" src="branding/web/pensuse-horizontal-light.png" width="720">
+    <source media="(prefers-color-scheme: dark)" srcset="branding/web/akilix-horizontal-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="branding/web/akilix-horizontal-light.png">
+    <img alt="Akilix — Security work with provenance" src="branding/web/akilix-horizontal-light.png" width="720">
   </picture>
 </p>
 
-[![CI](https://github.com/Is0cre/PenSUSE/actions/workflows/ci.yml/badge.svg)](https://github.com/Is0cre/PenSUSE/actions/workflows/ci.yml)
+[![CI](https://github.com/Is0cre/Akilix/actions/workflows/ci.yml/badge.svg)](https://github.com/Is0cre/Akilix/actions/workflows/ci.yml)
 
 **Security work with provenance.**
 
-PenSUSE is an openSUSE-based security engineering and digital forensics workstation designed around reproducible execution, scoped operations, forensic provenance, isolated tooling, and evidence-backed analysis.
+Akilix is an openSUSE-based security engineering and digital forensics workstation designed around reproducible execution, scoped operations, forensic provenance, isolated tooling, and evidence-backed analysis.
 
-PenSUSE is not intended to be another security distribution containing thousands of preinstalled offensive tools.
+Akilix is not intended to be another security distribution containing thousands of preinstalled offensive tools.
 
 Instead, it provides an operating environment for conducting professional security work from engagement creation through acquisition, analysis, findings, and reporting.
 
 ## Status
 
-PenSUSE is currently in early architectural development.
+Akilix is currently in early architectural development.
 
 Current status:
 
@@ -36,7 +40,7 @@ Do not consider the current system production-ready for forensic or security eng
 
 # Design goals
 
-PenSUSE is intended to support:
+Akilix is intended to support:
 
 - penetration testing
 - red-team operations
@@ -71,7 +75,7 @@ The system is built around several principles:
 
 # Foundation
 
-The initial PenSUSE platform targets:
+The initial Akilix platform targets:
 
 - openSUSE Leap 16.x
 - RPM
@@ -100,7 +104,7 @@ remains disabled until runtime validation is complete.
 
 # Workbooks
 
-The central PenSUSE abstraction is a **workbook**.
+The central Akilix abstraction is a **workbook**.
 
 A workbook represents one authorized:
 
@@ -112,8 +116,8 @@ A workbook represents one authorized:
 
 Example:
 
-    pensuse workbook create client-2026
-    pensuse workbook open client-2026
+    akilix workbook create client-2026
+    akilix workbook open client-2026
 
 A workbook may contain:
 
@@ -145,7 +149,7 @@ Examples:
 - applications
 - exclusions
 
-PenSUSE-managed execution may warn when a target appears outside declared scope.
+Akilix-managed execution may warn when a target appears outside declared scope.
 
 Scope assistance does not pretend to be perfect containment.
 
@@ -210,7 +214,7 @@ Original evidence must not be modified by analysis operations.
 
 # Evidence and provenance
 
-PenSUSE models evidence as structured objects rather than merely files.
+Akilix models evidence as structured objects rather than merely files.
 
 A finding should be capable of tracing back through:
 
@@ -241,7 +245,7 @@ Important operations may record:
 
 # LLM-assisted analysis
 
-PenSUSE intends to support local-first LLM-assisted investigation.
+Akilix intends to support local-first LLM-assisted investigation.
 
 Conceptual modes:
 
@@ -294,7 +298,7 @@ No hidden operator monitoring is part of the design.
 
 # Profiles
 
-PenSUSE uses curated capability profiles rather than one enormous default installation.
+Akilix uses curated capability profiles rather than one enormous default installation.
 
 Planned profiles include:
 
@@ -317,7 +321,7 @@ Installing a profile does not necessarily mean installing all of its application
 
 # Transactional host management
 
-PenSUSE should manage significant host changes using:
+Akilix should manage significant host changes using:
 
     SNAPSHOT
     APPLY
@@ -331,7 +335,7 @@ Case data must remain separate from operating-system rollback semantics.
 
 # Technology sovereignty
 
-PenSUSE should remain usable without mandatory external services.
+Akilix should remain usable without mandatory external services.
 
 Core functionality must not require:
 
@@ -343,13 +347,13 @@ Core functionality must not require:
 
 Local mirrors, local OCI registries, local LLMs, and disconnected forensic laboratories should remain first-class deployment models.
 
-PenSUSE is intended to be an independent European security engineering platform built on the openSUSE ecosystem.
+Akilix is intended to be an independent European security engineering platform built on the openSUSE ecosystem.
 
 ---
 
 # Non-goals
 
-PenSUSE is not intended to:
+Akilix is not intended to:
 
 - maximize installed security-tool count
 - automatically scan networks
@@ -372,13 +376,13 @@ The container execution foundation is documented in [M2.md](M2.md).
 Current local workflow examples:
 
 ```sh
-pensuse workbook create client-2026
-pensuse tui client-2026
-pensuse scope add client-2026 10.20.30.0/24
-pensuse evidence import client-2026 disk.E01
-pensuse run client-2026 --target 10.20.30.40 -- printf 'local check'
-pensuse evidence list client-2026
-pensuse run list client-2026
+akilix workbook create client-2026
+akilix tui client-2026
+akilix scope add client-2026 10.20.30.0/24
+akilix evidence import client-2026 disk.E01
+akilix run client-2026 --target 10.20.30.40 -- printf 'local check'
+akilix evidence list client-2026
+akilix run list client-2026
 ```
 
 Shell completion is available for Zsh and Bash. Install it with
@@ -403,7 +407,7 @@ for development rules and current goals.
 
 Traditional security distributions largely help users obtain and run tools.
 
-PenSUSE aims to preserve the context around those tools:
+Akilix aims to preserve the context around those tools:
 
     authorization
          +
@@ -421,4 +425,4 @@ PenSUSE aims to preserve the context around those tools:
          +
       reporting
 
-**PenSUSE helps operators conduct security work.**
+**Akilix helps operators conduct security work.**

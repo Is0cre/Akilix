@@ -1,4 +1,4 @@
-# PenSUSE M0 ISO definition
+# Akilix M0 ISO definition
 
 This KIWI definition produces an openSUSE Leap 16 ISO suitable for a first
 USB/Ventoy boot test. It intentionally contains platform prerequisites only;
@@ -12,7 +12,7 @@ make kiwi-iso-prompt
 
 The helper asks for the password without echoing it. The password is required
 at build time, converted to a SHA-512 crypt hash, and never written to Git.
-The resulting image provides the regular `pensuse`
+The resulting image provides the regular `akilix`
 operator account; root remains unavailable for ordinary console login.
 
 The target builds the current CLI and shell completions into the image overlay
@@ -20,14 +20,14 @@ before KIWI runs. The result is written under `build/kiwi-iso/`. If that path
 already exists, the target first preserves it as
 `build/kiwi-iso.previous-YYYYMMDDTHHMMSSZ`; KIWI never reuses an existing image
 root. Verify the generated checksum before copying the ISO to Ventoy media. A Ventoy boot test
-must verify that the system reaches the expected target, does not start PenSUSE
+must verify that the system reaches the expected target, does not start Akilix
 listeners, and preserves the documented passive-opening behavior.
 
 The image display name, console banner, GRUB menu, Plymouth screen, and Sway
 session are branded through tracked KIWI inputs. Artwork requirements are
 documented in `docs/BRANDING.md`.
 
-`make kiwi-iso` validates the canonical branding kit and stages the PenSUSE
+`make kiwi-iso` validates the canonical branding kit and stages the Akilix
 GRUB background, theme, shared logo, and asset license into the KIWI overlay.
 The graphical boot menu retains GRUB's text-console fallback and must be tested
 in both BIOS and UEFI modes before the image is published.
@@ -46,13 +46,13 @@ The session opens one Foot terminal as its visible starting point;
 Super key. Exact OBS RPM identities are recorded in
 `repositories/desktop-sway-lock.json`.
 
-The operator account uses Zsh with the documented PenSUSE system baseline,
+The operator account uses Zsh with the documented Akilix system baseline,
 durable extended history, and generated CLI completion. See `docs/SHELL.md`.
 
 After login, validate the container substrate without pulling an image:
 
 ```sh
-pensuse container doctor
+akilix container doctor
 ```
 
 A passing result confirms that Podman is operating rootless and that the live

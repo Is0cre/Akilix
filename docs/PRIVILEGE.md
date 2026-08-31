@@ -1,8 +1,8 @@
-# PenSUSE Privilege Model
+# Akilix Privilege Model
 
 ## Principle
 
-Ordinary PenSUSE operation is unprivileged.
+Ordinary Akilix operation is unprivileged.
 
 Root access is exceptional, explicit, and narrowly scoped.
 
@@ -41,7 +41,7 @@ Privilege must not be granted simply because a security tool expects it.
 
 # Early milestones
 
-Do not introduce a permanently running privileged PenSUSE daemon in M0 or M1.
+Do not introduce a permanently running privileged Akilix daemon in M0 or M1.
 
 Use explicit elevation where necessary.
 
@@ -70,7 +70,7 @@ The main CLI should not become root merely because one sub-operation requires pr
 
 Conceptually:
 
-    user pensuse process
+    user akilix process
           |
           | explicit authorized request
           v
@@ -87,4 +87,4 @@ Scope checks and confirmation prompts are safety guards.
 
 Unix permissions, SELinux, namespaces, capabilities, and mount flags may act as security boundaries.
 
-PenSUSE documentation must distinguish these categories.
+Akilix documentation must distinguish these categories.

@@ -1,4 +1,4 @@
-# PenSUSE LLM Architecture
+# Akilix LLM Architecture
 
 ## Purpose
 
@@ -10,7 +10,7 @@ The model is not an evidence source.
 
 # Modes
 
-PenSUSE defines four conceptual modes.
+Akilix defines four conceptual modes.
 
 ## OFF
 
@@ -101,7 +101,7 @@ LLM-assisted output should be capable of recording:
 
 Remote providers are optional adapters.
 
-Core PenSUSE operation must not depend on a remote model.
+Core Akilix operation must not depend on a remote model.
 
 `REMOTE-EXPLICIT` must not silently become persistent consent.
 

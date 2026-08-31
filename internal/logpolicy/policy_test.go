@@ -27,7 +27,7 @@ func TestDefaultRoundTripAndTransparentOptIn(t *testing.T) {
 
 func TestLoadRejectsMissingAndUnknownKeys(t *testing.T) {
 	root := t.TempDir()
-	if err := os.WriteFile(filepath.Join(root, "logging.yaml"), []byte("schema: pensuse.logging.v1\nterminal_recording: false\nsecret_capture: true\n"), 0600); err != nil {
+	if err := os.WriteFile(filepath.Join(root, "logging.yaml"), []byte("schema: akilix.logging.v1\nterminal_recording: false\nsecret_capture: true\n"), 0600); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := Load(root); err == nil {

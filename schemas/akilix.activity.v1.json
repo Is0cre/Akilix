@@ -1,11 +1,11 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://pensuse.org/schemas/pensuse.activity.v1.json",
-  "title": "PenSUSE invocation activity event v1",
+  "$id": "https://akilix.org/schemas/akilix.activity.v1.json",
+  "title": "Akilix invocation activity event v1",
   "type": "object",
   "required": ["schema", "invocation_id", "workbook_id", "timestamp", "phase", "executor", "tool"],
   "properties": {
-    "schema": {"const": "pensuse.activity.v1"},
+    "schema": {"const": "akilix.activity.v1"},
     "invocation_id": {"type": "string", "minLength": 1},
     "workbook_id": {"type": "string", "minLength": 1},
     "timestamp": {"type": "string", "format": "date-time"},

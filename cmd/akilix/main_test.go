@@ -9,9 +9,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pensuse/pensuse/internal/scope"
-	"github.com/pensuse/pensuse/internal/version"
-	"github.com/pensuse/pensuse/internal/workbook"
+	"github.com/Is0cre/Akilix/internal/scope"
+	"github.com/Is0cre/Akilix/internal/version"
+	"github.com/Is0cre/Akilix/internal/workbook"
 )
 
 func TestVersionJSONShape(t *testing.T) {
@@ -42,7 +42,7 @@ func TestRunVersion(t *testing.T) {
 
 func TestTUIHomeSelectsWorkbookWithoutSideEffects(t *testing.T) {
 	root := t.TempDir()
-	t.Setenv("PENSUSE_WORKBOOK_ROOT", root)
+	t.Setenv("AKILIX_WORKBOOK_ROOT", root)
 	for _, name := range []string{"alpha", "beta"} {
 		if _, err := workbook.Create(root, name, time.Now().UTC()); err != nil {
 			t.Fatal(err)
@@ -59,7 +59,7 @@ func TestTUIHomeSelectsWorkbookWithoutSideEffects(t *testing.T) {
 
 func TestTUISessionEditsScopeThroughBackend(t *testing.T) {
 	root := t.TempDir()
-	t.Setenv("PENSUSE_WORKBOOK_ROOT", root)
+	t.Setenv("AKILIX_WORKBOOK_ROOT", root)
 	if _, err := workbook.Create(root, "lab", time.Now().UTC()); err != nil {
 		t.Fatal(err)
 	}
@@ -132,7 +132,7 @@ func TestContainerRunRejectsUnknownAndDuplicateOptions(t *testing.T) {
 
 func TestScopeClosedWorkbookCannotMutateAndJSONListIsJSON(t *testing.T) {
 	root := t.TempDir()
-	t.Setenv("PENSUSE_WORKBOOK_ROOT", root)
+	t.Setenv("AKILIX_WORKBOOK_ROOT", root)
 	if _, err := workbook.Create(root, "case-1", time.Now().UTC()); err != nil {
 		t.Fatal(err)
 	}
@@ -164,7 +164,7 @@ func TestScopeClosedWorkbookCannotMutateAndJSONListIsJSON(t *testing.T) {
 
 func TestLoggingStatusIsExplicitAndJSONReadable(t *testing.T) {
 	root := t.TempDir()
-	t.Setenv("PENSUSE_WORKBOOK_ROOT", root)
+	t.Setenv("AKILIX_WORKBOOK_ROOT", root)
 	if _, err := workbook.Create(root, "case-1", time.Now().UTC()); err != nil {
 		t.Fatal(err)
 	}
@@ -191,7 +191,7 @@ func TestLoggingStatusIsExplicitAndJSONReadable(t *testing.T) {
 
 func TestWorkbookOverviewAndSectionPath(t *testing.T) {
 	root := t.TempDir()
-	t.Setenv("PENSUSE_WORKBOOK_ROOT", root)
+	t.Setenv("AKILIX_WORKBOOK_ROOT", root)
 	if _, err := workbook.Create(root, "case-1", time.Now().UTC()); err != nil {
 		t.Fatal(err)
 	}
@@ -222,7 +222,7 @@ func TestWorkbookOverviewAndSectionPath(t *testing.T) {
 
 func TestWorkbookFollowOnceIsPassive(t *testing.T) {
 	root := t.TempDir()
-	t.Setenv("PENSUSE_WORKBOOK_ROOT", root)
+	t.Setenv("AKILIX_WORKBOOK_ROOT", root)
 	if _, err := workbook.Create(root, "case-1", time.Now().UTC()); err != nil {
 		t.Fatal(err)
 	}
@@ -233,13 +233,13 @@ func TestWorkbookFollowOnceIsPassive(t *testing.T) {
 	if !strings.Contains(out.String(), "workbook activity · case-1") || !strings.Contains(out.String(), "Waiting for canonical invocation records") {
 		t.Fatalf("follow output: %q", out.String())
 	}
-	if _, err := os.Stat(filepath.Join(root, "case-1", ".pensuse", "manifest.jsonl")); !os.IsNotExist(err) {
+	if _, err := os.Stat(filepath.Join(root, "case-1", ".akilix", "manifest.jsonl")); !os.IsNotExist(err) {
 		t.Fatalf("passive follower created manifest: %v", err)
 	}
 }
 
 func TestRepositoryListExposesApprovedImageSources(t *testing.T) {
-	t.Setenv("PENSUSE_REPOSITORY_MANIFEST", "../../repositories/repositories.json")
+	t.Setenv("AKILIX_REPOSITORY_MANIFEST", "../../repositories/repositories.json")
 	var out, errOut bytes.Buffer
 	if code := run([]string{"repository", "list", "--json"}, &out, &errOut); code != 0 {
 		t.Fatalf("repository list: %d %s", code, errOut.String())

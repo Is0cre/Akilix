@@ -1,13 +1,13 @@
-# PenSUSE M0 build guide
+# Akilix M0 build guide
 
 The M0 implementation is intentionally small and uses the Go standard library only.
 
 ## Local CLI
 
 ```sh
-go build -o pensuse ./cmd/pensuse
-./pensuse version
-./pensuse version --json
+go build -o akilix ./cmd/akilix
+./akilix version
+./akilix version --json
 go test ./...
 ```
 
@@ -22,20 +22,20 @@ make check
 Inspect effective configuration without changing it:
 
 ```sh
-pensuse config show
-pensuse config show --json
-pensuse config path
+akilix config show
+akilix config show --json
+akilix config path
 ```
 
 Configuration is read from the XDG config path when present. Environment
-overrides such as `PENSUSE_WORKBOOK_ROOT` and `PENSUSE_PROFILE_DIR` take
+overrides such as `AKILIX_WORKBOOK_ROOT` and `AKILIX_PROFILE_DIR` take
 precedence; no config file is created automatically.
 
 In restricted build environments where the default home directory is
 read-only, use writable temporary Go caches:
 
 ```sh
-GOCACHE=/tmp/pensuse-go-cache GOPATH=/tmp/pensuse-gopath go test ./...
+GOCACHE=/tmp/akilix-go-cache GOPATH=/tmp/akilix-gopath go test ./...
 ```
 
 ## RPM
@@ -47,7 +47,7 @@ make rpm
 ```
 
 The RPM target creates a source archive, builds with `rpmbuild`, and installs
-the CLI at `/usr/bin/pensuse`.
+the CLI at `/usr/bin/akilix`.
 
 Verify the package payload with:
 
@@ -58,7 +58,7 @@ make rpm-check
 Local RPMs are intentionally unsigned during M0 development. A deployment
 repository must add signing and key-distribution policy before publication.
 
-The spec installs the CLI at `/usr/bin/pensuse`.
+The spec installs the CLI at `/usr/bin/akilix`.
 
 ## Development image
 
@@ -77,7 +77,7 @@ make kiwi-iso-prompt
 KIWI image builds require root privileges and a writable build host.
 The helper asks for a local test password without echoing it. It is hashed into
 the image and is not a repository default. For automation, use
-`PENSUSE_LIVE_PASSWORD=... make kiwi-iso` without committing that value.
+`AKILIX_LIVE_PASSWORD=... make kiwi-iso` without committing that value.
 
 The image definition is under `image/kiwi/`. The image intentionally contains
 only platform prerequisites; it does not install security-tool collections.
@@ -97,7 +97,7 @@ regular operator account:
 make vm-check
 ```
 
-The same check is installed in the live ISO as `pensuse-m0-check`, so it can
+The same check is installed in the live ISO as `akilix-m0-check`, so it can
 be run directly from the console without a checkout.
 
 The check is observational: it does not create snapshots, pull container

@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	containerpkg "github.com/pensuse/pensuse/internal/container"
+	containerpkg "github.com/Is0cre/Akilix/internal/container"
 )
 
 func TestBuildContainerManifestCapturesEffectivePolicy(t *testing.T) {

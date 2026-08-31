@@ -1,4 +1,4 @@
-title-text: "PenSUSE Live"
+title-text: "Akilix Live"
 title-color: "#e8e6dd"
 title-font: "Unifont Regular 20"
 desktop-image: "background.png"

@@ -8,7 +8,7 @@ import (
 
 func TestLoadAndCandidateCannotBeEnabled(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "repositories.json")
-	data := `{"schema":"pensuse.repositories.v1","repositories":[{"id":"leap-oss","name":"Leap OSS","purpose":"base","tier":"release","base_url":"https://example.test/repo/","key_url":"https://example.test/key","key_fingerprint":"AD485664E901B867051AB15F35A2F86E29B700A4","image_enabled":true,"status":"approved"}]}`
+	data := `{"schema":"akilix.repositories.v1","repositories":[{"id":"leap-oss","name":"Leap OSS","purpose":"base","tier":"release","base_url":"https://example.test/repo/","key_url":"https://example.test/key","key_fingerprint":"AD485664E901B867051AB15F35A2F86E29B700A4","image_enabled":true,"status":"approved"}]}`
 	if err := os.WriteFile(path, []byte(data), 0600); err != nil {
 		t.Fatal(err)
 	}

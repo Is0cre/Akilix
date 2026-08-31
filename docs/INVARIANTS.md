@@ -1,6 +1,6 @@
-# PenSUSE Invariants
+# Akilix Invariants
 
-These rules define behavior that PenSUSE must preserve across milestones.
+These rules define behavior that Akilix must preserve across milestones.
 
 They should eventually become automated tests wherever technically feasible.
 
@@ -67,13 +67,13 @@ Scope checking MUST NOT be described as providing perfect sandboxing or technica
 
 ## PS-INV-008 — Scope overrides are visible
 
-An explicit override of a PenSUSE scope warning MUST be represented in invocation provenance.
+An explicit override of a Akilix scope warning MUST be represented in invocation provenance.
 
 ---
 
 ## PS-INV-009 — No hidden telemetry
 
-PenSUSE MUST NOT transmit telemetry by default.
+Akilix MUST NOT transmit telemetry by default.
 
 ---
 
@@ -107,7 +107,7 @@ LLM-assisted analysis MUST support distinction between:
 
 ## PS-INV-014 — Evidence-backed factual claims
 
-Where an LLM presents a factual claim derived from workbook material, PenSUSE SHOULD preserve source references sufficient to inspect the supporting material.
+Where an LLM presents a factual claim derived from workbook material, Akilix SHOULD preserve source references sufficient to inspect the supporting material.
 
 ---
 
@@ -127,7 +127,7 @@ System snapshots and workbook data require separate lifecycle handling.
 
 ## PS-INV-017 — Snapshots are not evidence integrity
 
-PenSUSE documentation and UI MUST NOT represent Btrfs snapshots as a substitute for evidence hashing.
+Akilix documentation and UI MUST NOT represent Btrfs snapshots as a substitute for evidence hashing.
 
 ---
 
@@ -145,7 +145,7 @@ Raw physical-device acquisition MUST NOT depend on generic unrestricted privileg
 
 ## PS-INV-020 — Least privilege
 
-Ordinary PenSUSE operations SHOULD execute without root privileges.
+Ordinary Akilix operations SHOULD execute without root privileges.
 
 Privileged operations MUST be explicit.
 
@@ -153,13 +153,13 @@ Privileged operations MUST be explicit.
 
 ## PS-INV-021 — No automatic attacks
 
-PenSUSE MUST NOT automatically perform attacks because a workbook, profile, or application was opened.
+Akilix MUST NOT automatically perform attacks because a workbook, profile, or application was opened.
 
 ---
 
 ## PS-INV-022 — No automatic listeners
 
-Installing or enabling a PenSUSE security profile MUST NOT silently expose network listeners.
+Installing or enabling a Akilix security profile MUST NOT silently expose network listeners.
 
 ---
 
@@ -207,7 +207,7 @@ Managed executions SHOULD record tool versions where they can be reliably determ
 
 ## PS-INV-030 — Host modifications are recoverable
 
-Major PenSUSE-managed host/profile changes SHOULD use:
+Major Akilix-managed host/profile changes SHOULD use:
 
     SNAPSHOT
     APPLY
@@ -219,7 +219,7 @@ where technically practical.
 
 ## PS-INV-031 — No mandatory external service
 
-Core PenSUSE functionality MUST NOT require an external SaaS service, hosted control plane, telemetry endpoint, or remote LLM.
+Core Akilix functionality MUST NOT require an external SaaS service, hosted control plane, telemetry endpoint, or remote LLM.
 
 ---
 

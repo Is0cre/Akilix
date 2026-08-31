@@ -1,14 +1,14 @@
-# AGENTS.md — PenSUSE Engineering Instructions
+# AGENTS.md — Akilix Engineering Instructions
 
 ## Project
 
-PenSUSE is an openSUSE-based professional security engineering and digital forensics workstation.
+Akilix is an openSUSE-based professional security engineering and digital forensics workstation.
 
-PenSUSE is NOT intended to be a Kali Linux or Parrot OS clone.
+Akilix is NOT intended to be a Kali Linux or Parrot OS clone.
 
 The project is not measured by how many offensive-security tools it contains.
 
-PenSUSE is designed around:
+Akilix is designed around:
 
 - reproducible security work
 - scoped engagements
@@ -22,7 +22,7 @@ PenSUSE is designed around:
 - local-first analysis
 - traceable LLM-assisted investigation
 
-The fundamental PenSUSE abstraction is the **workbook**.
+The fundamental Akilix abstraction is the **workbook**.
 
 A workbook represents one authorized engagement, investigation, incident, case, or laboratory exercise.
 
@@ -49,7 +49,7 @@ Do not sacrifice evidence integrity or provenance for convenience.
 
 # Distribution foundation
 
-Initial PenSUSE development targets:
+Initial Akilix development targets:
 
 - openSUSE Leap 16.x
 - x86_64
@@ -71,7 +71,7 @@ Do not replace native openSUSE infrastructure without a strong technical reason.
 
 # Language
 
-The primary PenSUSE CLI/backend should be implemented in Go unless an architectural decision record explicitly changes this.
+The primary Akilix CLI/backend should be implemented in Go unless an architectural decision record explicitly changes this.
 
 Shell scripting is allowed for:
 
@@ -82,7 +82,7 @@ Shell scripting is allowed for:
 
 Shell scripts must not become the primary application architecture.
 
-Python may be used where an ecosystem dependency strongly justifies it, particularly in forensic or analytical tooling, but PenSUSE core functionality must not depend on arbitrary Python environments.
+Python may be used where an ecosystem dependency strongly justifies it, particularly in forensic or analytical tooling, but Akilix core functionality must not depend on arbitrary Python environments.
 
 ---
 
@@ -90,26 +90,26 @@ Python may be used where an ecosystem dependency strongly justifies it, particul
 
 The primary interface is:
 
-    pensuse
+    akilix
 
 Examples:
 
-    pensuse version
+    akilix version
 
-    pensuse workbook create client-2026
-    pensuse workbook open client-2026
-    pensuse workbook status
+    akilix workbook create client-2026
+    akilix workbook open client-2026
+    akilix workbook status
 
-    pensuse scope check 10.20.30.40
+    akilix scope check 10.20.30.40
 
-    pensuse evidence import disk.E01
-    pensuse evidence verify EV-000001
+    akilix evidence import disk.E01
+    akilix evidence verify EV-000001
 
-    pensuse run ...
+    akilix run ...
 
-    pensuse acquire ...
+    akilix acquire ...
 
-    pensuse profile ...
+    akilix profile ...
 
 The CLI, future TUI, future GUI, and shell integration must reuse common backend logic.
 
@@ -119,13 +119,13 @@ Do not implement separate business logic for each interface.
 
 # Architecture rule
 
-PenSUSE consists conceptually of these layers:
+Akilix consists conceptually of these layers:
 
 1. Operator UX
 2. Workbook engine
 3. Security execution layer
 4. Forensic acquisition layer
-5. PenSUSE platform management
+5. Akilix platform management
 6. openSUSE host
 
 The workbook engine is the central layer.
@@ -154,7 +154,7 @@ Every workbook must have:
 
 Prefer UUIDv7 for globally unique workbook and object identifiers.
 
-A workbook should remain interpretable from its files even if the PenSUSE application or local index database is unavailable.
+A workbook should remain interpretable from its files even if the Akilix application or local index database is unavailable.
 
 SQLite may be used as an index.
 
@@ -235,7 +235,7 @@ Example:
 
 # Provenance
 
-Every PenSUSE-managed tool invocation that can generate security-relevant output should be capable of recording:
+Every Akilix-managed tool invocation that can generate security-relevant output should be capable of recording:
 
 - invocation ID
 - workbook ID
@@ -263,7 +263,7 @@ Do not depend on parsing shell history to reconstruct provenance.
 
 # Scope
 
-PenSUSE assists operators with engagement scope.
+Akilix assists operators with engagement scope.
 
 Scope may include:
 
@@ -275,11 +275,11 @@ Scope may include:
 - URLs/applications
 - exclusions
 
-PenSUSE may warn or block PenSUSE-managed execution when obvious scope violations are detected.
+Akilix may warn or block Akilix-managed execution when obvious scope violations are detected.
 
-PenSUSE scope handling MUST NOT be described as a security sandbox.
+Akilix scope handling MUST NOT be described as a security sandbox.
 
-Security tools may behave in ways PenSUSE cannot completely inspect or constrain.
+Security tools may behave in ways Akilix cannot completely inspect or constrain.
 
 Scope enforcement is operator assistance, not perfect containment.
 
@@ -386,13 +386,13 @@ If privileged operations become necessary:
 - use explicit elevation
 - maintain clear privilege boundaries
 
-Do not solve permission problems by making the main PenSUSE process run as root.
+Do not solve permission problems by making the main Akilix process run as root.
 
 ---
 
 # Host modifications
 
-PenSUSE host changes should follow:
+Akilix host changes should follow:
 
     SNAPSHOT
     APPLY
@@ -412,7 +412,7 @@ Rolling back the operating system must not silently roll back investigative evid
 
 # Profiles
 
-PenSUSE uses curated profiles.
+Akilix uses curated profiles.
 
 Initial conceptual profiles:
 
@@ -444,7 +444,7 @@ Profiles should not simply install enormous tool collections on the host.
 
 # LLM architecture
 
-LLM integration is a major PenSUSE capability but is NOT part of M0.
+LLM integration is a major Akilix capability but is NOT part of M0.
 
 Supported conceptual modes:
 
@@ -503,7 +503,7 @@ No secret call-home functionality.
 
 # Network behavior
 
-PenSUSE must not:
+Akilix must not:
 
 - automatically scan networks
 - automatically attack targets
@@ -520,7 +520,7 @@ Security actions require explicit operator actions.
 
 # Technology sovereignty
 
-Core PenSUSE functionality must not require:
+Core Akilix functionality must not require:
 
 - a cloud account
 - a hosted control plane
@@ -542,7 +542,7 @@ Do NOT begin development by adding hundreds of security tools.
 
 Do NOT add a tool merely because Kali contains it.
 
-A tool should be added because a PenSUSE workflow requires it.
+A tool should be added because a Akilix workflow requires it.
 
 Before adding significant tooling, the following architecture must exist:
 
@@ -583,10 +583,10 @@ M0 should establish:
 
 - repository structure
 - architecture documents
-- PenSUSE invariants
+- Akilix invariants
 - Go module
-- minimal `pensuse` CLI
-- `pensuse version`
+- minimal `akilix` CLI
+- `akilix version`
 - basic configuration handling
 - RPM packaging skeleton
 - KIWI image definition
@@ -679,9 +679,9 @@ Schemas should be versioned.
 
 Example:
 
-    pensuse.workbook.v1
-    pensuse.evidence.v1
-    pensuse.invocation.v1
+    akilix.workbook.v1
+    akilix.evidence.v1
+    akilix.invocation.v1
 
 Schema evolution must be deliberate.
 
@@ -754,7 +754,7 @@ A change is complete when:
 
 # Project identity
 
-PenSUSE helps operators conduct security work.
+Akilix helps operators conduct security work.
 
 It is not merely a system that happens to contain security tools.
 

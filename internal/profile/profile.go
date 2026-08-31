@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-const Schema = "pensuse.profile.v1"
+const Schema = "akilix.profile.v1"
 
 type Manifest struct {
 	Schema      string   `json:"schema"`

@@ -1,4 +1,4 @@
-# PenSUSE interactive shell baseline. This file is loaded by openSUSE's
+# Akilix interactive shell baseline. This file is loaded by openSUSE's
 # /etc/zshrc after distribution defaults and remains user-overridable.
 [[ -o interactive ]] || return
 
@@ -27,5 +27,5 @@ bindkey '^[[B' history-beginning-search-forward-end
 
 # Compact prompt: identity and location remain visible in every captured log.
 setopt PROMPT_SUBST
-PROMPT='%F{green}%n@pensuse%f %F{blue}%~%f %# '
+PROMPT='%F{green}%n@akilix%f %F{blue}%~%f %# '
 RPROMPT='%(?..%F{red}exit %?%f)'

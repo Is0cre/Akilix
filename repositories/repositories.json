@@ -1,5 +1,5 @@
 {
-  "schema": "pensuse.repositories.v1",
+  "schema": "akilix.repositories.v1",
   "repositories": [
     {
       "id": "leap-16-oss",

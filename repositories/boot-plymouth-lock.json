@@ -1,5 +1,5 @@
 {
-  "schema": "pensuse.package-lock.v1",
+  "schema": "akilix.package-lock.v1",
   "repository_id": "base-system-leap-16",
   "architecture": "x86_64",
   "resolved_at": "2026-08-31T00:00:00Z",

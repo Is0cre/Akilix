@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "PenSUSE Logging Policy v1",
+  "title": "Akilix Logging Policy v1",
   "type": "object",
   "required": [
     "schema",
@@ -15,7 +15,7 @@
     "terminal_recording"
   ],
   "properties": {
-    "schema": {"const": "pensuse.logging.v1"},
+    "schema": {"const": "akilix.logging.v1"},
     "command_metadata": {"type": "boolean"},
     "command_arguments": {"type": "boolean"},
     "container_metadata": {"type": "boolean"},

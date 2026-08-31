@@ -13,7 +13,7 @@ func Render(overview Overview) string {
 		fmt.Fprintf(&b, "├─ %s %s\n", title, strings.Repeat("─", max(1, 70-len(title))))
 	}
 
-	fmt.Fprintln(&b, "╭─ PenSUSE / WORKBOOK ────────────────────────────────────────────────────")
+	fmt.Fprintln(&b, "╭─ Akilix / WORKBOOK ────────────────────────────────────────────────────")
 	fmt.Fprintf(&b, "│  %s  [%s]\n", overview.Name, strings.ToUpper(overview.Status))
 	writeRule("CASE")
 	fmt.Fprintf(&b, "│  ID       %s\n", overview.ID)
@@ -32,8 +32,8 @@ func Render(overview Overview) string {
 		fmt.Fprintf(&b, "│  %-18s %s\n", section.Name, section.Path)
 	}
 	writeRule("QUICK JUMPS")
-	fmt.Fprintf(&b, "│  cd \"$(pensuse workbook path %s evidence)\"\n", overview.Name)
-	fmt.Fprintf(&b, "│  cd \"$(pensuse workbook path %s reports)\"\n", overview.Name)
+	fmt.Fprintf(&b, "│  cd \"$(akilix workbook path %s evidence)\"\n", overview.Name)
+	fmt.Fprintf(&b, "│  cd \"$(akilix workbook path %s reports)\"\n", overview.Name)
 	fmt.Fprintln(&b, "╰─ Read-only view · no network activity · original evidence stays immutable")
 	return b.String()
 }

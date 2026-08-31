@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<image schemaversion="8.0" name="pensuse-m0-iso" displayname="PenSUSE Live">
+<image schemaversion="8.0" name="akilix-m0-iso" displayname="Akilix Live">
   <description type="system">
-    <author>PenSUSE Contributors</author>
+    <author>Akilix Contributors</author>
     <contact>project maintainers</contact>
-    <specification>PenSUSE M0 bootable ISO for USB/Ventoy testing</specification>
+    <specification>Akilix M0 bootable ISO for USB/Ventoy testing</specification>
   </description>
   <preferences>
     <type image="iso" filesystem="squashfs" firmware="uefi" eficsm="true"
@@ -12,25 +12,25 @@
     <packagemanager>zypper</packagemanager>
     <locale>en_US</locale>
     <keytable>us</keytable>
-    <bootloader-theme>PenSUSE</bootloader-theme>
-    <bootsplash-theme>pensuse</bootsplash-theme>
+    <bootloader-theme>Akilix</bootloader-theme>
+    <bootsplash-theme>akilix</bootsplash-theme>
   </preferences>
   <!-- The password placeholder is replaced only in a local build config. -->
   <users>
-    <user name="pensuse" groups="wheel" home="/home/pensuse" shell="/bin/zsh"
-          realname="PenSUSE Operator" password="__PENSUSE_LIVE_PASSWORD_HASH__"
+    <user name="akilix" groups="wheel" home="/home/akilix" shell="/bin/zsh"
+          realname="Akilix Operator" password="__AKILIX_LIVE_PASSWORD_HASH__"
           pwdformat="encrypted"/>
   </users>
   <repository type="rpm-md" alias="openSUSE-Leap-16.0-OSS">
     <source path="https://download.opensuse.org/distribution/leap/16.0/repo/oss/"/>
   </repository>
-  <repository type="rpm-md" alias="PenSUSE-X11-Wayland-Leap-16">
+  <repository type="rpm-md" alias="Akilix-X11-Wayland-Leap-16">
     <source path="https://download.opensuse.org/repositories/X11:/Wayland/16.0/"/>
   </repository>
-  <repository type="rpm-md" alias="PenSUSE-Base-System-Leap-16">
+  <repository type="rpm-md" alias="Akilix-Base-System-Leap-16">
     <source path="https://download.opensuse.org/repositories/Base:/System/16.0/"/>
   </repository>
-  <repository type="rpm-md" alias="PenSUSE-M17N-Fonts-Leap-16">
+  <repository type="rpm-md" alias="Akilix-M17N-Fonts-Leap-16">
     <source path="https://download.opensuse.org/repositories/M17N:/fonts/16.0/"/>
   </repository>
   <packages type="image">

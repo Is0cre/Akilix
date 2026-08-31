@@ -8,9 +8,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/pensuse/pensuse/internal/activity"
-	"github.com/pensuse/pensuse/internal/scope"
-	"github.com/pensuse/pensuse/internal/workbook"
+	"github.com/Is0cre/Akilix/internal/activity"
+	"github.com/Is0cre/Akilix/internal/scope"
+	"github.com/Is0cre/Akilix/internal/workbook"
 )
 
 type State struct {
@@ -37,7 +37,7 @@ func Activate(runtimeDir, root, name string) error {
 	if _, err := workbook.Open(root, name); err != nil {
 		return err
 	}
-	dir := filepath.Join(runtimeDir, "pensuse")
+	dir := filepath.Join(runtimeDir, "akilix")
 	if err := os.MkdirAll(dir, 0700); err != nil {
 		return err
 	}
@@ -64,7 +64,7 @@ func Current(runtimeDir string) (Metrics, error) {
 	if runtimeDir == "" {
 		return Metrics{}, fmt.Errorf("XDG_RUNTIME_DIR is unavailable")
 	}
-	b, err := os.ReadFile(filepath.Join(runtimeDir, "pensuse", "active-workbook.json"))
+	b, err := os.ReadFile(filepath.Join(runtimeDir, "akilix", "active-workbook.json"))
 	if err != nil {
 		return Metrics{}, err
 	}

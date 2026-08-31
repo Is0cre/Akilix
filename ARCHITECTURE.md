@@ -1,8 +1,8 @@
-# PenSUSE Architecture
+# Akilix Architecture
 
 ## 1. Purpose
 
-This document defines the initial architectural boundaries of PenSUSE.
+This document defines the initial architectural boundaries of Akilix.
 
 Architecture should evolve through explicit decisions rather than accidental implementation.
 
@@ -10,7 +10,7 @@ Architecture should evolve through explicit decisions rather than accidental imp
 
 # 2. System model
 
-PenSUSE consists conceptually of six layers.
+Akilix consists conceptually of six layers.
 
     ┌─────────────────────────────────────────────┐
     │               Operator UX                   │
@@ -25,14 +25,14 @@ PenSUSE consists conceptually of six layers.
     │          Forensic Acquisition Layer         │
     │ Block / Memory / Firmware / Device metadata │
     ├─────────────────────────────────────────────┤
-    │             PenSUSE Platform                │
+    │             Akilix Platform                │
     │ Profiles / Policy / Snapshots / Privilege   │
     ├─────────────────────────────────────────────┤
     │             openSUSE Leap                   │
     │ RPM / Btrfs / SELinux / systemd / Podman    │
     └─────────────────────────────────────────────┘
 
-The workbook engine is the defining PenSUSE component.
+The workbook engine is the defining Akilix component.
 
 ---
 
@@ -61,7 +61,7 @@ Native installation remains appropriate for:
 - filesystem tooling
 - Podman
 - virtualization
-- trusted PenSUSE components
+- trusted Akilix components
 - acquisition utilities requiring direct hardware access
 
 ---
@@ -75,10 +75,10 @@ Conceptually:
     /
       operating-system state
 
-    /var/lib/pensuse/
-      PenSUSE machine state
+    /var/lib/akilix/
+      Akilix machine state
 
-    /srv/pensuse/workbooks/
+    /srv/akilix/workbooks/
       workbook data
 
 Exact layout may evolve during M0.
@@ -128,7 +128,7 @@ Conceptual layout:
     ├── timeline/
     ├── reports/
     ├── logs/
-    └── .pensuse/
+    └── .akilix/
         ├── index.sqlite
         ├── manifest.jsonl
         ├── state.json
@@ -184,7 +184,7 @@ Presentation material generated from case objects.
 
 # 7. Provenance graph
 
-PenSUSE should support relationships such as:
+Akilix should support relationships such as:
 
     EV-0001
     disk-image.E01
@@ -253,7 +253,7 @@ Use explicit argument vectors.
 
 Conceptually:
 
-    pensuse run \
+    akilix run \
         --environment network \
         -- nmap -sV 10.20.30.40
 
@@ -298,14 +298,14 @@ Default properties:
 
 Possible environments:
 
-    pensuse/recon
-    pensuse/network
-    pensuse/web
-    pensuse/directory
-    pensuse/cloud
-    pensuse/reverse
-    pensuse/malware
-    pensuse/forensics
+    akilix/recon
+    akilix/network
+    akilix/web
+    akilix/directory
+    akilix/cloud
+    akilix/reverse
+    akilix/malware
+    akilix/forensics
 
 These are conceptual environments, not mandatory one-tool-per-container designs.
 
@@ -332,7 +332,7 @@ Acquisition may interact with:
 
 Therefore acquisition must have a narrowly designed privilege model.
 
-Generic `podman --privileged` is not the PenSUSE acquisition architecture.
+Generic `podman --privileged` is not the Akilix acquisition architecture.
 
 ---
 
@@ -340,7 +340,7 @@ Generic `podman --privileged` is not the PenSUSE acquisition architecture.
 
 Initial principle:
 
-The `pensuse` command runs unprivileged.
+The `akilix` command runs unprivileged.
 
 Privileged operations should use explicit elevation.
 
@@ -427,7 +427,7 @@ Desired pipeline:
      v
     Build system
      |
-     +-- PenSUSE RPM repository
+     +-- Akilix RPM repository
      +-- OCI images
      +-- VM image
      +-- ISO
@@ -442,25 +442,25 @@ The build process should not depend on hand-modified machines.
 
 Prefer upstream openSUSE packages whenever possible.
 
-PenSUSE-specific packages should live separately.
+Akilix-specific packages should live separately.
 
 Conceptual progression:
 
-    PenSUSE:Factory
+    Akilix:Factory
         |
-        +---- PenSUSE:Testing
+        +---- Akilix:Testing
         |
-        +---- PenSUSE:Stable
+        +---- Akilix:Stable
 
 Avoid unnecessary forks.
 
-A PenSUSE fork creates long-term maintenance responsibility and should require justification.
+A Akilix fork creates long-term maintenance responsibility and should require justification.
 
 ---
 
 # 17. Offline and sovereignty model
 
-PenSUSE core workflows should remain usable in disconnected environments.
+Akilix core workflows should remain usable in disconnected environments.
 
 Architecture must not require:
 
@@ -478,7 +478,7 @@ External integrations should remain adapters around the core platform.
 
 # 18. Failure model
 
-PenSUSE must assume operations can fail because of:
+Akilix must assume operations can fail because of:
 
 - process crashes
 - power loss
@@ -500,7 +500,7 @@ Generated records should use atomic writes where practical.
 
 # 19. Security boundary philosophy
 
-PenSUSE should clearly distinguish:
+Akilix should clearly distinguish:
 
 ## Security boundary
 

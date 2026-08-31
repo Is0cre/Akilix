@@ -1,20 +1,20 @@
-# PenSUSE Workbooks
+# Akilix Workbooks
 
 ## Purpose
 
 A workbook represents a specific authorized engagement, investigation, incident, case, or lab.
 
-The workbook is the primary operational context of PenSUSE.
+The workbook is the primary operational context of Akilix.
 
 Examples:
 
-    pensuse workbook create client-2026
-    pensuse workbook open client-2026
-    pensuse workbook overview client-2026
+    akilix workbook create client-2026
+    akilix workbook open client-2026
+    akilix workbook overview client-2026
 
 ## Terminal navigation
 
-`pensuse workbook open NAME` and `pensuse workbook overview NAME` present a
+`akilix workbook open NAME` and `akilix workbook overview NAME` present a
 TUI-influenced workspace: workbook identity and lifecycle state, scope and
 evidence counts, invocation health, explicit capture policy, canonical section
 paths, and safe quick-jump commands. The view is deliberately passive and has
@@ -22,12 +22,12 @@ no terminal control sequences, so it remains useful when copied or redirected.
 Use `overview --json` for future interactive TUI, GUI, or automation consumers;
 those interfaces should reuse this model rather than reimplement discovery.
 
-`pensuse workbook path NAME [SECTION]` prints exactly one absolute path for
+`akilix workbook path NAME [SECTION]` prints exactly one absolute path for
 shell composition. Sections are allowlisted and resolved only after opening a
 valid workbook. For example:
 
-    cd "$(pensuse workbook path client-2026 evidence)"
-    cd "$(pensuse workbook path client-2026 original-evidence)"
+    cd "$(akilix workbook path client-2026 evidence)"
+    cd "$(akilix workbook path client-2026 original-evidence)"
 
 Available sections are `root`, `artifacts`, `evidence`, `findings`, `logs`,
 `notes`, `original-evidence`, `reports`, `timeline`, and `tool-output`.
@@ -77,7 +77,7 @@ Renaming a workbook must never change its identity.
     │   ├── command/
     │   ├── containers/
     │   └── audit/
-    └── .pensuse/
+    └── .akilix/
         ├── index.sqlite
         ├── manifest.jsonl
         ├── state.json
@@ -87,13 +87,13 @@ The filesystem remains canonical for evidence and primary provenance.
 
 ## Live activity window
 
-`pensuse workbook follow NAME` renders new canonical invocation records as they
-are completed. `pensuse workbook follow NAME --once` prints the current
+`akilix workbook follow NAME` renders new canonical invocation records as they
+are completed. `akilix workbook follow NAME --once` prints the current
 snapshot and exits, which is useful for scripts and diagnostics. In the
 workbook TUI, `[l]` explicitly opens the follower in a separate Foot window so
 Sway can tile it beside the operator workspace.
 
-For each confirmed TUI playbook run under Sway, PenSUSE assigns a dedicated
+For each confirmed TUI playbook run under Sway, Akilix assigns a dedicated
 Foot window to a workspace named for the tool and the final four invocation-ID
 characters, such as `naabu-4a2c`. That window filters lifecycle events to the
 invocation and follows its captured stdout and stderr while the workbook-wide
@@ -102,7 +102,7 @@ same backend execution has no desktop side effect.
 
 Following is a local, read-only operation. It does not execute tools, inspect
 the network, capture the terminal, or change the workbook. The versioned
-`.pensuse/activity.jsonl` journal emits `STARTED`, `COMPLETED`, and `FAILED`
+`.akilix/activity.jsonl` journal emits `STARTED`, `COMPLETED`, and `FAILED`
 events for managed native and container executions. It is an operator activity
 stream; the final invocation manifest remains the canonical provenance record.
 
@@ -116,7 +116,7 @@ SQLite is an index and convenience layer.
 
 Conceptual fields:
 
-    schema: pensuse.workbook.v1
+    schema: akilix.workbook.v1
     id: 019c28b8-e4be-7ae5-a952-7ab97591a384
     name: client-2026
     created: 2026-08-04T18:00:00Z
@@ -199,8 +199,8 @@ Workbook opening is a local state-selection operation.
 
 # Workbook validation
 
-`pensuse workbook validate NAME` is a local, read-only audit. It checks the
+`akilix workbook validate NAME` is a local, read-only audit. It checks the
 canonical workbook layout, parses scope and provenance records, and hashes every
 original evidence object against its manifest. A mismatch fails validation and
-does not rewrite evidence manifests. Use `pensuse evidence verify` when you
+does not rewrite evidence manifests. Use `akilix evidence verify` when you
 explicitly want persisted verification status updates.

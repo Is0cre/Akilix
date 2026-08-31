@@ -14,7 +14,7 @@ import (
 	"time"
 )
 
-const Schema = "pensuse.evidence.v1"
+const Schema = "akilix.evidence.v1"
 
 type Record struct {
 	Schema         string    `json:"schema"`

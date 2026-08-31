@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 
-PLACEHOLDER = "__PENSUSE_LIVE_PASSWORD_HASH__"
+PLACEHOLDER = "__AKILIX_LIVE_PASSWORD_HASH__"
 HASH_PATTERN = re.compile(r"^\$6\$[A-Za-z0-9./$]+$")
 
 

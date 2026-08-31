@@ -1,0 +1,8 @@
+[Plymouth Theme]
+Name=Akilix
+Description=Static Akilix boot identity
+ModuleName=script
+
+[script]
+ImageDir=/usr/share/plymouth/themes/akilix
+ScriptFile=/usr/share/plymouth/themes/akilix/akilix.script

@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-const Schema = "pensuse.logging.v1"
+const Schema = "akilix.logging.v1"
 
 type Policy struct {
 	Schema                string `json:"schema"`

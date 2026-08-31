@@ -1,4 +1,4 @@
-PenSUSE palette
+Akilix palette
 Graphite       #151A1D
 Deep Graphite  #0B1114
 Bone           #E8E6DD

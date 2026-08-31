@@ -1,18 +1,18 @@
-# PenSUSE Branding
+# Akilix Branding
 
 Branding is a reproducible image input. Canonical assets belong in the source
 tree and are copied into images through the KIWI overlay; generated files must
 not be edited inside `build/`.
 
-PenSUSE branding must not obscure the openSUSE Leap foundation or imply that
+Akilix branding must not obscure the openSUSE Leap foundation or imply that
 an early development image is ready for production forensic work.
 
 ## Boot and session surfaces
 
 The current development live image has these branding surfaces:
 
-- the `PenSUSE Live` image and boot-menu display name;
-- `/etc/issue.d/50-pensuse.issue` before console login;
+- the `Akilix Live` image and boot-menu display name;
+- `/etc/issue.d/50-akilix.issue` before console login;
 - the `greetd`/`tuigreet` login and Sway session;
 - a static Plymouth boot screen;
 - CLI version and help output.
@@ -28,18 +28,18 @@ Its script renderer and Dracut integration come from the approved openSUSE OBS
 Approved artwork is stored under `branding/`. The canonical and OS-facing
 inputs are:
 
-- `source/pensuse-master.png` — canonical full raster artwork;
-- `source/pensuse-mark-master.png` — canonical compact raster artwork;
-- `source/pensuse-wordmark.svg` — editable wordmark;
+- `source/akilix-master.png` — canonical full raster artwork;
+- `source/akilix-mark-master.png` — canonical compact raster artwork;
+- `source/akilix-wordmark.svg` — editable wordmark;
 - `os/grub/background-1920x1080.png` — 16:9 bootloader background;
 - `os/grub/logo.png` — compact bootloader mark;
 - `os/plymouth/logo.png` — centered boot-splash mark;
-- `os/wallpaper/pensuse-3840x2160.png` — Sway wallpaper.
+- `os/wallpaper/akilix-3840x2160.png` — Sway wallpaper.
 
 SVG files must not contain scripts, remote references, embedded fonts, or data
 URIs. Relative references must remain inside `branding/`. Keep source artwork
 and its license/provenance record beside the assets. Do not derive branding
-from trademarks that PenSUSE is not authorized to redistribute.
+from trademarks that Akilix is not authorized to redistribute.
 
 ## Integration and testing
 

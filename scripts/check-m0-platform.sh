@@ -7,11 +7,11 @@ pass() { printf '%s\n' "PASS: $*"; }
 warn() { printf '%s\n' "WARN: $*"; }
 fail() { printf '%s\n' "FAIL: $*"; failures=$((failures + 1)); }
 
-if command -v pensuse >/dev/null 2>&1; then
-    pass "pensuse CLI found at $(command -v pensuse)"
-    pensuse version >/dev/null 2>&1 && pass "pensuse version" || fail "pensuse version"
+if command -v akilix >/dev/null 2>&1; then
+    pass "akilix CLI found at $(command -v akilix)"
+    akilix version >/dev/null 2>&1 && pass "akilix version" || fail "akilix version"
 else
-    fail "pensuse CLI not found in PATH"
+    fail "akilix CLI not found in PATH"
 fi
 
 if command -v btrfs >/dev/null 2>&1; then
@@ -32,8 +32,8 @@ if command -v podman >/dev/null 2>&1; then
     pass "podman utility available"
     if [ "$(id -u)" -eq 0 ]; then
         warn "running as root; rootless Podman requires a regular operator account"
-	    elif command -v pensuse >/dev/null 2>&1; then
-	        pensuse container doctor >/dev/null 2>&1 && pass "PenSUSE rootless container runtime" || fail "PenSUSE rootless container runtime"
+	    elif command -v akilix >/dev/null 2>&1; then
+	        akilix container doctor >/dev/null 2>&1 && pass "Akilix rootless container runtime" || fail "Akilix rootless container runtime"
     else
 	        podman info --format '{{.Host.Security.Rootless}}' >/dev/null 2>&1 && pass "podman info available" || fail "podman info"
         podman unshare true >/dev/null 2>&1 && pass "rootless user namespace" || fail "rootless user namespace"

@@ -13,22 +13,22 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pensuse/pensuse/internal/activity"
-	"github.com/pensuse/pensuse/internal/completion"
-	"github.com/pensuse/pensuse/internal/config"
-	containerpkg "github.com/pensuse/pensuse/internal/container"
-	"github.com/pensuse/pensuse/internal/evidence"
-	"github.com/pensuse/pensuse/internal/invocation"
-	"github.com/pensuse/pensuse/internal/logpolicy"
-	playbookpkg "github.com/pensuse/pensuse/internal/playbook"
-	profilepkg "github.com/pensuse/pensuse/internal/profile"
-	repositorypkg "github.com/pensuse/pensuse/internal/repository"
-	"github.com/pensuse/pensuse/internal/scope"
-	"github.com/pensuse/pensuse/internal/statusbar"
-	tuipkg "github.com/pensuse/pensuse/internal/tui"
-	"github.com/pensuse/pensuse/internal/version"
-	"github.com/pensuse/pensuse/internal/workbook"
-	"github.com/pensuse/pensuse/internal/workbookview"
+	"github.com/Is0cre/Akilix/internal/activity"
+	"github.com/Is0cre/Akilix/internal/completion"
+	"github.com/Is0cre/Akilix/internal/config"
+	containerpkg "github.com/Is0cre/Akilix/internal/container"
+	"github.com/Is0cre/Akilix/internal/evidence"
+	"github.com/Is0cre/Akilix/internal/invocation"
+	"github.com/Is0cre/Akilix/internal/logpolicy"
+	playbookpkg "github.com/Is0cre/Akilix/internal/playbook"
+	profilepkg "github.com/Is0cre/Akilix/internal/profile"
+	repositorypkg "github.com/Is0cre/Akilix/internal/repository"
+	"github.com/Is0cre/Akilix/internal/scope"
+	"github.com/Is0cre/Akilix/internal/statusbar"
+	tuipkg "github.com/Is0cre/Akilix/internal/tui"
+	"github.com/Is0cre/Akilix/internal/version"
+	"github.com/Is0cre/Akilix/internal/workbook"
+	"github.com/Is0cre/Akilix/internal/workbookview"
 )
 
 func main() {
@@ -77,13 +77,13 @@ func run(args []string, stdout, stderr io.Writer) int {
 			return runTUIHome(os.Stdin, stdout, stderr)
 		}
 		if len(args) > 3 || len(args) == 3 && args[2] != "--no-color" {
-			fmt.Fprintln(stderr, "usage: pensuse tui [WORKBOOK] [--no-color]")
+			fmt.Fprintln(stderr, "usage: akilix tui [WORKBOOK] [--no-color]")
 			return 2
 		}
 		return runTUISession(bufio.NewScanner(os.Stdin), effectiveWorkbookRoot(), args[1], len(args) != 3, stdout, stderr)
 	}
 	if args[0] != "version" {
-		fmt.Fprintln(stderr, "usage: pensuse version [--json] | workbook ... | scope ... | evidence ... | run ... | container ... | bar ...")
+		fmt.Fprintln(stderr, "usage: akilix version [--json] | workbook ... | scope ... | evidence ... | run ... | container ... | bar ...")
 		return 2
 	}
 	info := version.Current()
@@ -97,7 +97,7 @@ func run(args []string, stdout, stderr io.Writer) int {
 		return 0
 	}
 	if len(args) != 1 {
-		fmt.Fprintln(stderr, "usage: pensuse version [--json]")
+		fmt.Fprintln(stderr, "usage: akilix version [--json]")
 		return 2
 	}
 	fmt.Fprintf(stdout, "%s %s\nBase: %s\nArchitecture: %s\n", info.Name, info.Version, info.Base, info.Architecture)
@@ -113,12 +113,12 @@ func runTUIHome(stdin io.Reader, stdout, stderr io.Writer) int {
 		return 1
 	}
 	if len(items) == 0 {
-		fmt.Fprintln(stdout, "PenSUSE has no workbooks yet.\n\nCreate one with:\n  pensuse workbook create NAME")
+		fmt.Fprintln(stdout, "Akilix has no workbooks yet.\n\nCreate one with:\n  akilix workbook create NAME")
 		return 0
 	}
 	selected := items[0].Name
 	if len(items) > 1 {
-		fmt.Fprintln(stdout, "PenSUSE workbooks")
+		fmt.Fprintln(stdout, "Akilix workbooks")
 		for i, item := range items {
 			fmt.Fprintf(stdout, "  %d  %-24s %s\n", i+1, item.Name, strings.ToUpper(item.Status))
 		}
@@ -242,13 +242,13 @@ func runTUISession(scanner *bufio.Scanner, root, selected string, color bool, st
 
 func runBar(args []string, stdout, stderr io.Writer) int {
 	if len(args) != 1 || args[0] != "once" && args[0] != "stream" {
-		fmt.Fprintln(stderr, "usage: pensuse bar <once|stream>")
+		fmt.Fprintln(stderr, "usage: akilix bar <once|stream>")
 		return 2
 	}
 	render := func() []statusbar.Block {
 		m, err := statusbar.Current(os.Getenv("XDG_RUNTIME_DIR"))
 		if err != nil {
-			return []statusbar.Block{{FullText: " PenSUSE · no active workbook ", Color: "#aab1af", Separator: false}}
+			return []statusbar.Block{{FullText: " Akilix · no active workbook ", Color: "#aab1af", Separator: false}}
 		}
 		return statusbar.Blocks(m)
 	}
@@ -285,9 +285,9 @@ func launchWorkbookLog(name string) error {
 	}
 	self, err := os.Executable()
 	if err != nil {
-		return fmt.Errorf("locate pensuse executable: %w", err)
+		return fmt.Errorf("locate akilix executable: %w", err)
 	}
-	cmd := exec.Command(terminal, "--title", "PenSUSE · "+name+" · Activity", self, "workbook", "follow", name)
+	cmd := exec.Command(terminal, "--title", "Akilix · "+name+" · Activity", self, "workbook", "follow", name)
 	if err := cmd.Start(); err != nil {
 		return fmt.Errorf("open workbook log window: %w", err)
 	}
@@ -320,13 +320,13 @@ func launchInvocationWorkspace(workbookName, playbook, id string) error {
 	if len(short) > 4 {
 		short = short[len(short)-4:]
 	}
-	appID, workspace := "pensuse-invocation-"+id, tool+"-"+short
+	appID, workspace := "akilix-invocation-"+id, tool+"-"+short
 	criteria := `[app_id="` + appID + `"]`
 	command := `move container to workspace "` + workspace + `"`
 	if err := exec.Command(swaymsg, "for_window", criteria, command).Run(); err != nil {
 		return fmt.Errorf("register invocation workspace: %w", err)
 	}
-	cmd := exec.Command(terminal, "--app-id", appID, "--title", "PenSUSE · "+workspace, self, "workbook", "follow", workbookName, "--invocation", id)
+	cmd := exec.Command(terminal, "--app-id", appID, "--title", "Akilix · "+workspace, self, "workbook", "follow", workbookName, "--invocation", id)
 	if err := cmd.Start(); err != nil {
 		return err
 	}
@@ -335,12 +335,12 @@ func launchInvocationWorkspace(workbookName, playbook, id string) error {
 
 func runRepository(args []string, stdout, stderr io.Writer) int {
 	if len(args) < 1 || args[0] != "list" && args[0] != "show" {
-		fmt.Fprintln(stderr, "usage: pensuse repository list [--json] | repository show ID [--json]")
+		fmt.Fprintln(stderr, "usage: akilix repository list [--json] | repository show ID [--json]")
 		return 2
 	}
-	path := os.Getenv("PENSUSE_REPOSITORY_MANIFEST")
+	path := os.Getenv("AKILIX_REPOSITORY_MANIFEST")
 	if path == "" {
-		path = "/usr/share/pensuse/repositories.json"
+		path = "/usr/share/akilix/repositories.json"
 		if _, err := os.Stat("repositories/repositories.json"); err == nil {
 			path = "repositories/repositories.json"
 		}
@@ -352,7 +352,7 @@ func runRepository(args []string, stdout, stderr io.Writer) int {
 	}
 	if args[0] == "list" {
 		if len(args) != 1 && !(len(args) == 2 && args[1] == "--json") {
-			fmt.Fprintln(stderr, "usage: pensuse repository list [--json]")
+			fmt.Fprintln(stderr, "usage: akilix repository list [--json]")
 			return 2
 		}
 		if len(args) == 2 {
@@ -370,7 +370,7 @@ func runRepository(args []string, stdout, stderr io.Writer) int {
 		return 0
 	}
 	if len(args) != 2 && !(len(args) == 3 && args[2] == "--json") {
-		fmt.Fprintln(stderr, "usage: pensuse repository show ID [--json]")
+		fmt.Fprintln(stderr, "usage: akilix repository show ID [--json]")
 		return 2
 	}
 	item, err := set.Find(args[1])
@@ -393,7 +393,7 @@ func runRepository(args []string, stdout, stderr io.Writer) int {
 
 func runLogging(args []string, stdout, stderr io.Writer) int {
 	if len(args) != 2 && !(len(args) == 3 && args[2] == "--json") || len(args) > 0 && args[0] != "status" {
-		fmt.Fprintln(stderr, "usage: pensuse logging status WORKBOOK [--json]")
+		fmt.Fprintln(stderr, "usage: akilix logging status WORKBOOK [--json]")
 		return 2
 	}
 	root := effectiveWorkbookRoot()
@@ -431,7 +431,7 @@ func enabled(value bool) string {
 
 func runConfig(args []string, stdout, stderr io.Writer) int {
 	if len(args) != 1 && !(len(args) == 2 && args[1] == "--json") || args[0] != "show" && args[0] != "path" {
-		fmt.Fprintln(stderr, "usage: pensuse config show [--json] | config path")
+		fmt.Fprintln(stderr, "usage: akilix config show [--json] | config path")
 		return 2
 	}
 	settings, err := config.Effective(os.Getenv, func(path string) error { _, err := os.Stat(path); return err })
@@ -458,10 +458,10 @@ func runConfig(args []string, stdout, stderr io.Writer) int {
 
 func runProfile(args []string, stdout, stderr io.Writer) int {
 	if len(args) < 1 || (args[0] != "list" && args[0] != "show" && args[0] != "plan") {
-		fmt.Fprintln(stderr, "usage: pensuse profile list [--json] | profile show ID [--json] | profile plan ID [--json]")
+		fmt.Fprintln(stderr, "usage: akilix profile list [--json] | profile show ID [--json] | profile plan ID [--json]")
 		return 2
 	}
-	dir := os.Getenv("PENSUSE_PROFILE_DIR")
+	dir := os.Getenv("AKILIX_PROFILE_DIR")
 	if dir == "" {
 		if _, err := os.Stat("profiles"); err == nil {
 			dir = "profiles"
@@ -476,7 +476,7 @@ func runProfile(args []string, stdout, stderr io.Writer) int {
 	}
 	if args[0] == "list" {
 		if len(args) != 1 && !(len(args) == 2 && args[1] == "--json") {
-			fmt.Fprintln(stderr, "usage: pensuse profile list [--json]")
+			fmt.Fprintln(stderr, "usage: akilix profile list [--json]")
 			return 2
 		}
 		items, err := profilepkg.LoadDir(dir)
@@ -499,7 +499,7 @@ func runProfile(args []string, stdout, stderr io.Writer) int {
 		return 0
 	}
 	if len(args) != 2 && !(len(args) == 3 && args[2] == "--json") {
-		fmt.Fprintln(stderr, "usage: pensuse profile show ID [--json]")
+		fmt.Fprintln(stderr, "usage: akilix profile show ID [--json]")
 		return 2
 	}
 	item, err := profilepkg.Find(dir, args[1])
@@ -538,7 +538,7 @@ func runProfile(args []string, stdout, stderr io.Writer) int {
 
 func runCompletion(args []string, stdout, stderr io.Writer) int {
 	if len(args) != 1 {
-		fmt.Fprintln(stderr, "usage: pensuse completion <zsh|bash>")
+		fmt.Fprintln(stderr, "usage: akilix completion <zsh|bash>")
 		return 2
 	}
 	switch args[0] {
@@ -557,7 +557,7 @@ func runCompletion(args []string, stdout, stderr io.Writer) int {
 func runContainer(args []string, stdout, stderr io.Writer) int {
 	if len(args) >= 1 && args[0] == "doctor" {
 		if len(args) > 2 || len(args) == 2 && args[1] != "--json" {
-			fmt.Fprintln(stderr, "usage: pensuse container doctor [--json]")
+			fmt.Fprintln(stderr, "usage: akilix container doctor [--json]")
 			return 2
 		}
 		status, err := containerpkg.CheckRuntime(context.Background(), containerpkg.PodmanRunner{})
@@ -581,7 +581,7 @@ func runContainer(args []string, stdout, stderr io.Writer) int {
 		return runContainerCommand(args[1:], stdout, stderr)
 	}
 	if len(args) != 2 || args[0] != "inspect" {
-		fmt.Fprintln(stderr, "usage: pensuse container doctor [--json] | container inspect IMAGE | container run WORKBOOK IMAGE [--mount-originals] [--target TARGET] [--override] [--json] [--workdir DIR] [--env KEY=VALUE] -- COMMAND [ARGS...]")
+		fmt.Fprintln(stderr, "usage: akilix container doctor [--json] | container inspect IMAGE | container run WORKBOOK IMAGE [--mount-originals] [--target TARGET] [--override] [--json] [--workdir DIR] [--env KEY=VALUE] -- COMMAND [ARGS...]")
 		return 2
 	}
 	id, err := containerpkg.Resolve(context.Background(), containerpkg.PodmanRunner{}, args[1])
@@ -600,7 +600,7 @@ func runContainer(args []string, stdout, stderr io.Writer) int {
 
 func runContainerCommand(args []string, stdout, stderr io.Writer) int {
 	if len(args) < 4 {
-		fmt.Fprintln(stderr, "usage: pensuse container run WORKBOOK IMAGE [--mount-originals] [--target TARGET] [--override] [--json] [--workdir DIR] [--env KEY=VALUE] -- COMMAND [ARGS...]")
+		fmt.Fprintln(stderr, "usage: akilix container run WORKBOOK IMAGE [--mount-originals] [--target TARGET] [--override] [--json] [--workdir DIR] [--env KEY=VALUE] -- COMMAND [ARGS...]")
 		return 2
 	}
 	target, override, workdir := "", false, ""
@@ -736,7 +736,7 @@ func runContainerCommand(args []string, stdout, stderr io.Writer) int {
 func runCommand(args []string, stdout, stderr io.Writer) int {
 	if len(args) >= 1 && args[0] == "list" {
 		if len(args) != 2 && !(len(args) == 3 && args[2] == "--json") {
-			fmt.Fprintln(stderr, "usage: pensuse run list WORKBOOK")
+			fmt.Fprintln(stderr, "usage: akilix run list WORKBOOK")
 			return 2
 		}
 		root := effectiveWorkbookRoot()
@@ -764,7 +764,7 @@ func runCommand(args []string, stdout, stderr io.Writer) int {
 		return 0
 	}
 	if len(args) < 3 {
-		fmt.Fprintln(stderr, "usage: pensuse run WORKBOOK [--target TARGET] [--override] -- COMMAND [ARGS...]")
+		fmt.Fprintln(stderr, "usage: akilix run WORKBOOK [--target TARGET] [--override] -- COMMAND [ARGS...]")
 		return 2
 	}
 	workbookName := args[0]
@@ -835,7 +835,7 @@ func runCommand(args []string, stdout, stderr io.Writer) int {
 
 func runScope(args []string, stdout, stderr io.Writer) int {
 	if len(args) < 2 {
-		fmt.Fprintln(stderr, "usage: pensuse scope <add|remove|exclude|list|check> WORKBOOK [TARGET]")
+		fmt.Fprintln(stderr, "usage: akilix scope <add|remove|exclude|list|check> WORKBOOK [TARGET]")
 		return 2
 	}
 	root := effectiveWorkbookRoot()
@@ -926,7 +926,7 @@ func runScope(args []string, stdout, stderr io.Writer) int {
 
 func runEvidence(args []string, stdout, stderr io.Writer) int {
 	if len(args) == 0 {
-		fmt.Fprintln(stderr, "usage: pensuse evidence <import|list|verify> WORKBOOK [SOURCE|ID]")
+		fmt.Fprintln(stderr, "usage: akilix evidence <import|list|verify> WORKBOOK [SOURCE|ID]")
 		return 2
 	}
 	if len(args) < 2 {
@@ -947,7 +947,7 @@ func runEvidence(args []string, stdout, stderr io.Writer) int {
 	switch args[0] {
 	case "import":
 		if len(args) != 3 {
-			fmt.Fprintln(stderr, "usage: pensuse evidence import WORKBOOK SOURCE")
+			fmt.Fprintln(stderr, "usage: akilix evidence import WORKBOOK SOURCE")
 			return 2
 		}
 		r, err := evidence.Import(workbookRoot, args[2], time.Now().UTC())
@@ -959,7 +959,7 @@ func runEvidence(args []string, stdout, stderr io.Writer) int {
 		return 0
 	case "list":
 		if len(args) != 2 && !(len(args) == 3 && args[2] == "--json") {
-			fmt.Fprintln(stderr, "usage: pensuse evidence list WORKBOOK")
+			fmt.Fprintln(stderr, "usage: akilix evidence list WORKBOOK")
 			return 2
 		}
 		records, err := evidence.List(workbookRoot)
@@ -1012,7 +1012,7 @@ func runEvidence(args []string, stdout, stderr io.Writer) int {
 			return 0
 		}
 		if len(args) != 3 && !(len(args) == 4 && args[3] == "--json") {
-			fmt.Fprintln(stderr, "usage: pensuse evidence verify WORKBOOK EVIDENCE_ID [--json] | --all [--json]")
+			fmt.Fprintln(stderr, "usage: akilix evidence verify WORKBOOK EVIDENCE_ID [--json] | --all [--json]")
 			return 2
 		}
 		ok, record, err := evidence.Verify(workbookRoot, args[2])
@@ -1046,21 +1046,21 @@ func runEvidence(args []string, stdout, stderr io.Writer) int {
 
 func runWorkbook(args []string, stdout, stderr io.Writer) int {
 	if len(args) == 0 {
-		fmt.Fprintln(stderr, "usage: pensuse workbook <create|list|open|overview|follow|path|status|close|reopen|rename|validate>")
+		fmt.Fprintln(stderr, "usage: akilix workbook <create|list|open|overview|follow|path|status|close|reopen|rename|validate>")
 		return 2
 	}
 	root := effectiveWorkbookRoot()
 	switch args[0] {
 	case "follow":
 		if len(args) != 2 && !(len(args) == 3 && args[2] == "--once") && !(len(args) == 4 && args[2] == "--invocation" && args[3] != "") {
-			fmt.Fprintln(stderr, "usage: pensuse workbook follow NAME [--once | --invocation ID]")
+			fmt.Fprintln(stderr, "usage: akilix workbook follow NAME [--once | --invocation ID]")
 			return 2
 		}
 		if _, err := workbook.Open(root, args[1]); err != nil {
 			fmt.Fprintln(stderr, err)
 			return 1
 		}
-		fmt.Fprintf(stdout, "PenSUSE workbook activity · %s\nWaiting for canonical invocation records…\n\n", args[1])
+		fmt.Fprintf(stdout, "Akilix workbook activity · %s\nWaiting for canonical invocation records…\n\n", args[1])
 		seen := 0
 		var stdoutOffset, stderrOffset int64
 		for {
@@ -1091,7 +1091,7 @@ func runWorkbook(args []string, stdout, stderr io.Writer) int {
 		}
 	case "overview":
 		if len(args) != 2 && !(len(args) == 3 && args[2] == "--json") {
-			fmt.Fprintln(stderr, "usage: pensuse workbook overview NAME [--json]")
+			fmt.Fprintln(stderr, "usage: akilix workbook overview NAME [--json]")
 			return 2
 		}
 		overview, err := workbookview.Build(root, args[1])
@@ -1112,7 +1112,7 @@ func runWorkbook(args []string, stdout, stderr io.Writer) int {
 		return 0
 	case "path":
 		if len(args) != 2 && len(args) != 3 {
-			fmt.Fprintln(stderr, "usage: pensuse workbook path NAME [SECTION]")
+			fmt.Fprintln(stderr, "usage: akilix workbook path NAME [SECTION]")
 			return 2
 		}
 		section := "root"
@@ -1128,7 +1128,7 @@ func runWorkbook(args []string, stdout, stderr io.Writer) int {
 		return 0
 	case "validate":
 		if len(args) != 2 && !(len(args) == 3 && args[2] == "--json") {
-			fmt.Fprintln(stderr, "usage: pensuse workbook validate NAME [--json]")
+			fmt.Fprintln(stderr, "usage: akilix workbook validate NAME [--json]")
 			return 2
 		}
 		workbookRoot := filepath.Join(root, args[1])
@@ -1171,7 +1171,7 @@ func runWorkbook(args []string, stdout, stderr io.Writer) int {
 		return 0
 	case "create":
 		if len(args) != 2 {
-			fmt.Fprintln(stderr, "usage: pensuse workbook create NAME")
+			fmt.Fprintln(stderr, "usage: akilix workbook create NAME")
 			return 2
 		}
 		m, err := workbook.Create(root, args[1], timeNow())
@@ -1183,7 +1183,7 @@ func runWorkbook(args []string, stdout, stderr io.Writer) int {
 		return 0
 	case "rename":
 		if len(args) != 3 {
-			fmt.Fprintln(stderr, "usage: pensuse workbook rename OLD_NAME NEW_NAME")
+			fmt.Fprintln(stderr, "usage: akilix workbook rename OLD_NAME NEW_NAME")
 			return 2
 		}
 		m, err := workbook.Rename(root, args[1], args[2])
@@ -1195,7 +1195,7 @@ func runWorkbook(args []string, stdout, stderr io.Writer) int {
 		return 0
 	case "list":
 		if len(args) != 1 && !(len(args) == 2 && args[1] == "--json") {
-			fmt.Fprintln(stderr, "usage: pensuse workbook list")
+			fmt.Fprintln(stderr, "usage: akilix workbook list")
 			return 2
 		}
 		items, err := workbook.List(root)
@@ -1218,7 +1218,7 @@ func runWorkbook(args []string, stdout, stderr io.Writer) int {
 		return 0
 	case "open", "status", "close", "reopen":
 		if len(args) != 2 && !(args[0] == "status" && len(args) == 3 && args[2] == "--json") {
-			fmt.Fprintf(stderr, "usage: pensuse workbook %s NAME\n", args[0])
+			fmt.Fprintf(stderr, "usage: akilix workbook %s NAME\n", args[0])
 			return 2
 		}
 		if args[0] == "close" {

@@ -1,6 +1,6 @@
-# PenSUSE Shell
+# Akilix Shell
 
-The live operator account uses Zsh by default. PenSUSE builds on openSUSE's
+The live operator account uses Zsh by default. Akilix builds on openSUSE's
 packaged `/etc/zshrc` and adds a small system-wide baseline through the native
 `/etc/zsh.zshrc.local` hook. It does not install a plugin framework or perform
 network access while starting a shell.
@@ -12,8 +12,8 @@ space are not recorded, giving operators an explicit way to avoid retaining a
 command containing a credential or other sensitive value.
 
 Shell history is operator convenience, not canonical provenance. Commands run
-through `pensuse run` must continue to produce structured invocation records;
+through `akilix run` must continue to produce structured invocation records;
 history must never be parsed as a substitute for those records.
 
 Users can override the system baseline in `~/.zshrc`. The image also installs
-the generated `pensuse` completion function through Zsh's standard `fpath`.
+the generated `akilix` completion function through Zsh's standard `fpath`.

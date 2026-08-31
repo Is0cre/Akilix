@@ -1,4 +1,4 @@
-# PenSUSE Container Model
+# Akilix Container Model
 
 ## Runtime
 
@@ -8,7 +8,7 @@ Rootless execution is preferred.
 
 Check the local runtime without contacting a registry:
 
-    pensuse container doctor
+    akilix container doctor
 
 The check requires Podman to report rootless operation and verifies that the
 operator's user namespace can be entered. It does not pull or build an image.
@@ -38,7 +38,7 @@ Initial conceptual environments include:
 - malware
 - forensics
 
-PenSUSE does not require one container per tool.
+Akilix does not require one container per tool.
 
 Coherent family images are preferred where practical.
 
@@ -94,9 +94,9 @@ reserved for derived evidence, tool output, and temporary workspaces.
 Original evidence is not mounted by default. The operator must request the
 fixed policy explicitly:
 
-    pensuse container run CASE IMAGE --mount-originals -- TOOL /workbook/evidence/original/item
+    akilix container run CASE IMAGE --mount-originals -- TOOL /workbook/evidence/original/item
 
-PenSUSE validates that the canonical source directory has not been replaced or
+Akilix validates that the canonical source directory has not been replaced or
 redirected by a symlink and always mounts it read-only at
 `/workbook/evidence/original`. Arbitrary host paths are not accepted.
 
@@ -146,7 +146,7 @@ Long-term container infrastructure should support:
 - local mirrors/registries
 - offline import/export
 
-PenSUSE should remain operable with self-hosted OCI infrastructure.
+Akilix should remain operable with self-hosted OCI infrastructure.
 
 ---
 

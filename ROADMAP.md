@@ -1,4 +1,4 @@
-# PenSUSE Development Roadmap
+# Akilix Development Roadmap
 
 This roadmap defines architectural ordering.
 
@@ -10,7 +10,7 @@ Later milestones should not be implemented prematurely merely because a feature 
 
 # M0 — Architecture and Platform Foundation
 
-Build the smallest correct PenSUSE system.
+Build the smallest correct Akilix system.
 
 Primary subjects:
 
@@ -36,7 +36,7 @@ Security tooling is deliberately minimal.
 Implementation is in progress: workbooks, evidence hashing, scope assistance,
 and native provenance-recorded execution are available in the current CLI.
 
-Implement the defining PenSUSE abstraction.
+Implement the defining Akilix abstraction.
 
 Primary subjects:
 
@@ -55,22 +55,22 @@ Primary subjects:
 
 Expected commands include:
 
-    pensuse workbook create
-    pensuse workbook list
-    pensuse workbook open
-    pensuse workbook close
-    pensuse workbook status
+    akilix workbook create
+    akilix workbook list
+    akilix workbook open
+    akilix workbook close
+    akilix workbook status
 
-    pensuse scope add
-    pensuse scope remove
-    pensuse scope list
-    pensuse scope check
+    akilix scope add
+    akilix scope remove
+    akilix scope list
+    akilix scope check
 
-    pensuse evidence import
-    pensuse evidence list
-    pensuse evidence verify
+    akilix evidence import
+    akilix evidence list
+    akilix evidence verify
 
-    pensuse run
+    akilix run
 
 The initial tool used to demonstrate managed execution may be deliberately boring.
 
@@ -170,10 +170,10 @@ Primary subjects:
 
 Conceptual commands:
 
-    pensuse acquire inspect
-    pensuse acquire protect
-    pensuse acquire image
-    pensuse acquire verify
+    akilix acquire inspect
+    akilix acquire protect
+    akilix acquire image
+    akilix acquire verify
 
 Privilege boundaries become a major focus in M4.
 
@@ -215,7 +215,7 @@ Primary subjects:
 - blue-team tools
 - incident-response tools
 
-Scope awareness should integrate with PenSUSE-managed commands.
+Scope awareness should integrate with Akilix-managed commands.
 
 No milestone KPI should involve raw tool count.
 
@@ -288,7 +288,7 @@ Raw workbook evidence must never be silently transmitted.
 
 # M10 — Workstation Experience
 
-Polish PenSUSE as a professional daily workstation.
+Polish Akilix as a professional daily workstation.
 
 Primary subjects:
 

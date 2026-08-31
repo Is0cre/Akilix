@@ -10,7 +10,7 @@ import (
 	"time"
 )
 
-const Schema = "pensuse.activity.v1"
+const Schema = "akilix.activity.v1"
 
 type Event struct {
 	Schema       string    `json:"schema"`
@@ -32,7 +32,7 @@ func Append(root string, event Event) error {
 		return err
 	}
 	b = append(b, '\n')
-	dir := filepath.Join(root, ".pensuse")
+	dir := filepath.Join(root, ".akilix")
 	if err := os.MkdirAll(dir, 0700); err != nil {
 		return err
 	}
@@ -52,7 +52,7 @@ func Append(root string, event Event) error {
 }
 
 func List(root string) ([]Event, error) {
-	f, err := os.Open(filepath.Join(root, ".pensuse", "activity.jsonl"))
+	f, err := os.Open(filepath.Join(root, ".akilix", "activity.jsonl"))
 	if os.IsNotExist(err) {
 		return []Event{}, nil
 	}

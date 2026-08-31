@@ -5,8 +5,8 @@ import (
 	"net"
 	"strings"
 
-	"github.com/pensuse/pensuse/internal/scope"
-	"github.com/pensuse/pensuse/internal/workbookview"
+	"github.com/Is0cre/Akilix/internal/scope"
+	"github.com/Is0cre/Akilix/internal/workbookview"
 )
 
 type Palette struct{ Blue, Green, Amber, Red, Purple, Muted, Reset string }
@@ -39,7 +39,7 @@ func Render(overview workbookview.Overview, config scope.Config, color bool) str
 		readyColor, ready = p.Amber, "NEEDS SCOPE"
 	}
 	var b strings.Builder
-	fmt.Fprintf(&b, "%s┌─ PenSUSE ─ Workbook workspace ──────────────────────────────┐%s\n", p.Blue, p.Reset)
+	fmt.Fprintf(&b, "%s┌─ Akilix ─ Workbook workspace ───────────────────────────────┐%s\n", p.Blue, p.Reset)
 	b.WriteString(frameRow(fmt.Sprintf("%s%s%s  %s%s%s  ID %.18s…", p.Blue, overview.Name, p.Reset, stateColor, strings.ToUpper(overview.Status), p.Reset, overview.ID)))
 	fmt.Fprintf(&b, "├─ Scope ───────────────────┬─ Activity ──────────────────────┤\n")
 	b.WriteString(frameRow(fmt.Sprintf("Includes %-3d  CIDRs %-3d  │  Invocations %-4d  %s%s%s", overview.ScopeIncludes, cidrs, overview.Invocations, healthColor, health, p.Reset)))

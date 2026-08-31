@@ -3,7 +3,7 @@ package version
 import "runtime"
 
 const (
-	Name    = "PenSUSE"
+	Name    = "Akilix"
 	Version = "0.0.1-m0"
 	Base    = "openSUSE Leap 16"
 )

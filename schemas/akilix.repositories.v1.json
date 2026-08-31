@@ -1,10 +1,10 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "title": "PenSUSE Repository Set v1",
+  "title": "Akilix Repository Set v1",
   "type": "object",
   "required": ["schema", "repositories"],
   "properties": {
-    "schema": {"const": "pensuse.repositories.v1"},
+    "schema": {"const": "akilix.repositories.v1"},
     "repositories": {
       "type": "array",
       "minItems": 1,

@@ -1,4 +1,4 @@
-name: PenSUSE CI
+name: Akilix CI
 
 on:
   push:

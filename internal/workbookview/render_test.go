@@ -12,8 +12,8 @@ func TestRenderProvidesNavigablePassiveWorkspace(t *testing.T) {
 	}
 	got := Render(overview)
 	for _, want := range []string{
-		"PenSUSE / WORKBOOK", "case-1  [OPEN]", "WORKSPACE", "CAPTURE POLICY",
-		"evidence", `pensuse workbook path case-1 evidence`,
+		"Akilix / WORKBOOK", "case-1  [OPEN]", "WORKSPACE", "CAPTURE POLICY",
+		"evidence", `akilix workbook path case-1 evidence`,
 		"Read-only view · no network activity · original evidence stays immutable",
 	} {
 		if !strings.Contains(got, want) {

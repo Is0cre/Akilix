@@ -10,7 +10,7 @@ import (
 	"sort"
 	"time"
 
-	containerpkg "github.com/pensuse/pensuse/internal/container"
+	containerpkg "github.com/Is0cre/Akilix/internal/container"
 )
 
 type containerManifest struct {
@@ -136,7 +136,7 @@ func RunContainer(ctx context.Context, workbookRoot, workbookID string, spec con
 		return Record{}, err
 	}
 	containerData = append(containerData, '\n')
-	if err := atomicWriteFile(filepath.Join(workbookRoot, ".pensuse", "containers", id+".json"), containerData); err != nil {
+	if err := atomicWriteFile(filepath.Join(workbookRoot, ".akilix", "containers", id+".json"), containerData); err != nil {
 		return Record{}, err
 	}
 	if err := appendRecord(workbookRoot, r); err != nil {
@@ -208,7 +208,7 @@ func buildContainerManifest(id string, spec containerpkg.Spec, generated []strin
 		mounts = append(mounts, containerMount{Source: mount.Source, Destination: mount.Destination, ReadOnly: mount.ReadOnly, OriginalEvidence: mount.OriginalEvidence})
 	}
 	return containerManifest{
-		Schema: "pensuse.container.v1", InvocationID: id, Image: spec.Identity.Image, Digest: spec.Identity.Digest,
+		Schema: "akilix.container.v1", InvocationID: id, Image: spec.Identity.Image, Digest: spec.Identity.Digest,
 		Arguments: spec.Arguments, Network: effectiveNetwork(spec.Network), WritableRoot: spec.WritableRoot,
 		Environment: spec.Environment, Workdir: spec.Workdir, Mounts: mounts, Generated: generated, Status: status,
 		Policy: containerPolicy{Pull: "never", UserNS: "keep-id", PIDNS: "private", IPCNS: "private", UTSNS: "private", NoNewPrivs: true, Capabilities: "drop-all", RootReadOnly: !spec.WritableRoot},

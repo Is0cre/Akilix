@@ -1,4 +1,4 @@
-# PenSUSE Evidence Model
+# Akilix Evidence Model
 
 ## Principle
 
@@ -10,7 +10,7 @@ Analysis operates on evidence without modifying the original source.
 
 # Classes
 
-PenSUSE should distinguish:
+Akilix should distinguish:
 
 ## Original evidence
 
@@ -26,7 +26,7 @@ Examples:
 
 ## Acquired evidence
 
-Evidence created by PenSUSE acquisition workflows.
+Evidence created by Akilix acquisition workflows.
 
 ## Derived artifact
 
@@ -84,7 +84,7 @@ Evidence should have machine-readable sidecar metadata rather than relying only 
 Conceptual example:
 
     {
-      "schema": "pensuse.evidence.v1",
+      "schema": "akilix.evidence.v1",
       "evidence_id": "019c...",
       "classification": "original",
       "filename": "disk01.E01",
@@ -130,7 +130,7 @@ Read-only mount policy is a safety/security control but does not replace hashing
 
 Software read-only controls should be attempted and verified where technically possible.
 
-PenSUSE must clearly distinguish software protection from hardware forensic write blockers.
+Akilix must clearly distinguish software protection from hardware forensic write blockers.
 
 ---
 

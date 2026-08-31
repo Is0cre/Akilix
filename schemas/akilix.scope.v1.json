@@ -1,0 +1,1 @@
+{"$schema":"https://json-schema.org/draft/2020-12/schema","title":"Akilix Scope Decision v1","type":"object","required":["target","result"],"properties":{"target":{"type":"string"},"result":{"enum":["ALLOW","DENY","UNKNOWN"]},"rule":{"type":"string"}},"additionalProperties":false}

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
-<image schemaversion="8.0" name="pensuse-m0" displayname="PenSUSE">
+<image schemaversion="8.0" name="akilix-m0" displayname="Akilix">
   <description type="system">
-    <author>PenSUSE Contributors</author>
+    <author>Akilix Contributors</author>
     <contact>project maintainers</contact>
-    <specification>PenSUSE M0 development image</specification>
+    <specification>Akilix M0 development image</specification>
   </description>
   <preferences>
     <type image="oem" filesystem="btrfs" format="qcow2"/>

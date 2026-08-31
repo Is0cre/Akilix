@@ -15,10 +15,10 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/pensuse/pensuse/internal/activity"
+	"github.com/Is0cre/Akilix/internal/activity"
 )
 
-const Schema = "pensuse.invocation.v1"
+const Schema = "akilix.invocation.v1"
 
 type Record struct {
 	Schema           string            `json:"schema"`
@@ -105,7 +105,7 @@ func validHex(value string, length int) bool {
 }
 
 func List(workbookRoot string) ([]Record, error) {
-	f, err := os.Open(filepath.Join(workbookRoot, ".pensuse", "manifest.jsonl"))
+	f, err := os.Open(filepath.Join(workbookRoot, ".akilix", "manifest.jsonl"))
 	if os.IsNotExist(err) {
 		return []Record{}, nil
 	}
@@ -245,7 +245,7 @@ func appendRecord(workbookRoot string, record Record) error {
 		return err
 	}
 	b = append(b, '\n')
-	manifestDir := filepath.Join(workbookRoot, ".pensuse")
+	manifestDir := filepath.Join(workbookRoot, ".akilix")
 	if err := os.MkdirAll(manifestDir, 0700); err != nil {
 		return err
 	}

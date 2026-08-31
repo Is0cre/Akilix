@@ -9,15 +9,15 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pensuse/pensuse/internal/activity"
+	"github.com/Is0cre/Akilix/internal/activity"
 )
 
 func TestRunRecordsSuccessAndFailure(t *testing.T) {
 	root := t.TempDir()
-	t.Setenv("PENSUSE_TEST_SECRET", "do-not-record")
+	t.Setenv("AKILIX_TEST_SECRET", "do-not-record")
 	now := func() time.Time { return time.Unix(10, 0) }
 	startedID := ""
-	r, err := RunWithOptions(context.Background(), root, "88888888-8888-7888-8888-888888888888", []string{"sh", "-c", "[ -z \"$PENSUSE_TEST_SECRET\" ] || exit 9; printf out; printf err >&2; printf generated > '" + filepath.Join(root, "tool-output", "generated.txt") + "'"}, now, Options{ScopeResult: "DENY", ScopeTarget: "10.0.0.1", ScopeOverride: true, OnStarted: func(id string) { startedID = id }})
+	r, err := RunWithOptions(context.Background(), root, "88888888-8888-7888-8888-888888888888", []string{"sh", "-c", "[ -z \"$AKILIX_TEST_SECRET\" ] || exit 9; printf out; printf err >&2; printf generated > '" + filepath.Join(root, "tool-output", "generated.txt") + "'"}, now, Options{ScopeResult: "DENY", ScopeTarget: "10.0.0.1", ScopeOverride: true, OnStarted: func(id string) { startedID = id }})
 	if err != nil || r.Status != "complete" || r.ExitCode != 0 {
 		t.Fatalf("success: %+v %v", r, err)
 	}
@@ -30,7 +30,7 @@ func TestRunRecordsSuccessAndFailure(t *testing.T) {
 	if r.WorkingDirectory == "" || r.Environment == nil {
 		t.Fatalf("execution environment provenance missing: %+v", r)
 	}
-	if _, found := r.Environment["PENSUSE_TEST_SECRET"]; found {
+	if _, found := r.Environment["AKILIX_TEST_SECRET"]; found {
 		t.Fatal("unapproved environment variable recorded")
 	}
 	if len(r.GeneratedFiles) != 1 || r.GeneratedFiles[0] != "tool-output/generated.txt" {
@@ -44,7 +44,7 @@ func TestRunRecordsSuccessAndFailure(t *testing.T) {
 	if err == nil || r.Status != "failed" || r.ExitCode != 7 {
 		t.Fatalf("failure: %+v %v", r, err)
 	}
-	if _, err := os.Stat(filepath.Join(root, ".pensuse", "manifest.jsonl")); err != nil {
+	if _, err := os.Stat(filepath.Join(root, ".akilix", "manifest.jsonl")); err != nil {
 		t.Fatal(err)
 	}
 	events, err := activity.List(root)

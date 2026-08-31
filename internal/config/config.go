@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-const Schema = "pensuse.config.v1"
+const Schema = "akilix.config.v1"
 
 type Settings struct {
 	Schema       string `json:"schema"`
@@ -19,7 +19,7 @@ type Settings struct {
 
 func (s Settings) Validate() error {
 	if s.Schema != Schema || s.ConfigFile == "" || s.StateDir == "" || s.WorkbookRoot == "" || s.ProfileDir == "" {
-		return fmt.Errorf("invalid PenSUSE configuration")
+		return fmt.Errorf("invalid Akilix configuration")
 	}
 	return nil
 }
@@ -35,14 +35,14 @@ func Paths(environ func(string) string) (configFile, stateDir string) {
 	if stateHome == "" {
 		stateHome = filepath.Join(environ("HOME"), ".local", "state")
 	}
-	return filepath.Join(configHome, "pensuse", "config.yaml"), filepath.Join(stateHome, "pensuse")
+	return filepath.Join(configHome, "akilix", "config.yaml"), filepath.Join(stateHome, "akilix")
 }
 
 func UserPaths() (string, string) { return Paths(os.Getenv) }
 
 func Effective(environ func(string) string, stat func(string) error) (Settings, error) {
 	configFile, stateDir := Paths(environ)
-	settings := Settings{Schema: Schema, ConfigFile: configFile, StateDir: stateDir, WorkbookRoot: filepath.Join(stateDir, "workbooks"), ProfileDir: "/usr/share/pensuse/profiles"}
+	settings := Settings{Schema: Schema, ConfigFile: configFile, StateDir: stateDir, WorkbookRoot: filepath.Join(stateDir, "workbooks"), ProfileDir: "/usr/share/akilix/profiles"}
 	if err := stat(configFile); err == nil {
 		loaded, err := load(configFile)
 		if err != nil {
@@ -57,10 +57,10 @@ func Effective(environ func(string) string, stat func(string) error) (Settings, 
 	} else if !os.IsNotExist(err) {
 		return Settings{}, err
 	}
-	if value := environ("PENSUSE_WORKBOOK_ROOT"); value != "" {
+	if value := environ("AKILIX_WORKBOOK_ROOT"); value != "" {
 		settings.WorkbookRoot = value
 	}
-	if value := environ("PENSUSE_PROFILE_DIR"); value != "" {
+	if value := environ("AKILIX_PROFILE_DIR"); value != "" {
 		settings.ProfileDir = value
 	}
 	return settings, settings.Validate()

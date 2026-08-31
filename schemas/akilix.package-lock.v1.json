@@ -1,10 +1,10 @@
 {
   "$schema":"https://json-schema.org/draft/2020-12/schema",
-  "title":"PenSUSE RPM Package Lock v1",
+  "title":"Akilix RPM Package Lock v1",
   "type":"object",
   "required":["schema","repository_id","architecture","resolved_at","repomd_revision","primary_sha512","packages"],
   "properties":{
-    "schema":{"const":"pensuse.package-lock.v1"},
+    "schema":{"const":"akilix.package-lock.v1"},
     "repository_id":{"type":"string","minLength":1},
     "architecture":{"const":"x86_64"},
     "resolved_at":{"type":"string","format":"date-time"},

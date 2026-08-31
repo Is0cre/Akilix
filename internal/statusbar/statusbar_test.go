@@ -4,9 +4,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pensuse/pensuse/internal/activity"
-	"github.com/pensuse/pensuse/internal/scope"
-	"github.com/pensuse/pensuse/internal/workbook"
+	"github.com/Is0cre/Akilix/internal/activity"
+	"github.com/Is0cre/Akilix/internal/scope"
+	"github.com/Is0cre/Akilix/internal/workbook"
 )
 
 func TestMetricsAreDerivedFromCanonicalLocalState(t *testing.T) {

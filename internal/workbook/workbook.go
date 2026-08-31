@@ -11,10 +11,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/pensuse/pensuse/internal/logpolicy"
+	"github.com/Is0cre/Akilix/internal/logpolicy"
 )
 
-const Schema = "pensuse.workbook.v1"
+const Schema = "akilix.workbook.v1"
 
 type Metadata struct {
 	Schema  string
@@ -56,7 +56,7 @@ func Create(root, name string, now time.Time) (Metadata, error) {
 	}
 	defer os.RemoveAll(stage)
 	m := Metadata{Schema: Schema, ID: id, Name: name, Created: now.UTC(), Status: "open"}
-	for _, sub := range []string{"evidence/original", "evidence/acquired", "evidence/manifests", "artifacts/imported", "artifacts/derived", "artifacts/extracted", "captures", "tool-output", "notes", "findings", "timeline", "reports/drafts", "reports/exports", "logs/command", "logs/containers", "logs/audit", ".pensuse/locks"} {
+	for _, sub := range []string{"evidence/original", "evidence/acquired", "evidence/manifests", "artifacts/imported", "artifacts/derived", "artifacts/extracted", "captures", "tool-output", "notes", "findings", "timeline", "reports/drafts", "reports/exports", "logs/command", "logs/containers", "logs/audit", ".akilix/locks"} {
 		if err := os.MkdirAll(filepath.Join(stage, sub), 0700); err != nil {
 			return Metadata{}, err
 		}
@@ -74,7 +74,7 @@ func Create(root, name string, now time.Time) (Metadata, error) {
 	if err := atomicWrite(filepath.Join(stage, "logging.yaml"), loggingPolicy, 0600); err != nil {
 		return Metadata{}, err
 	}
-	if err := atomicWrite(filepath.Join(stage, "README.md"), "# "+name+"\n\nPenSUSE workbook.\n", 0600); err != nil {
+	if err := atomicWrite(filepath.Join(stage, "README.md"), "# "+name+"\n\nAkilix workbook.\n", 0600); err != nil {
 		return Metadata{}, err
 	}
 	if err := syncDir(stage); err != nil {
@@ -198,7 +198,7 @@ func ValidateLayout(root, name string) error {
 			return err
 		}
 	}
-	for _, sub := range []string{"evidence/original", "evidence/acquired", "evidence/manifests", "artifacts/imported", "artifacts/derived", "artifacts/extracted", "captures", "tool-output", "notes", "findings", "timeline", "reports/drafts", "reports/exports", "logs/command", "logs/containers", "logs/audit", ".pensuse/locks"} {
+	for _, sub := range []string{"evidence/original", "evidence/acquired", "evidence/manifests", "artifacts/imported", "artifacts/derived", "artifacts/extracted", "captures", "tool-output", "notes", "findings", "timeline", "reports/drafts", "reports/exports", "logs/command", "logs/containers", "logs/audit", ".akilix/locks"} {
 		if err := requirePath(filepath.Join(dir, sub), true); err != nil {
 			return err
 		}

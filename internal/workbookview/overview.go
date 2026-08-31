@@ -7,11 +7,11 @@ import (
 	"sort"
 	"time"
 
-	"github.com/pensuse/pensuse/internal/evidence"
-	"github.com/pensuse/pensuse/internal/invocation"
-	"github.com/pensuse/pensuse/internal/logpolicy"
-	"github.com/pensuse/pensuse/internal/scope"
-	"github.com/pensuse/pensuse/internal/workbook"
+	"github.com/Is0cre/Akilix/internal/evidence"
+	"github.com/Is0cre/Akilix/internal/invocation"
+	"github.com/Is0cre/Akilix/internal/logpolicy"
+	"github.com/Is0cre/Akilix/internal/scope"
+	"github.com/Is0cre/Akilix/internal/workbook"
 )
 
 type Overview struct {

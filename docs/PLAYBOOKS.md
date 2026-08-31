@@ -1,4 +1,4 @@
-# PenSUSE Playbooks
+# Akilix Playbooks
 
 Playbooks are typed Go plans shared by the CLI, TUI, and future interfaces.
 They do not contain shell strings and planning never performs the described
@@ -22,7 +22,7 @@ hard-coded ANSI colors. The TUI maps them to the current accessible palette so
 meaning remains available through labels as well as color.
 
 From the workbook TUI, press `n` to preview discovery. The operator supplies a
-CIDR and an already-local image containing Nmap. PenSUSE resolves the immutable
+CIDR and an already-local image containing Nmap. Akilix resolves the immutable
 digest, displays the complete plan, and requires the exact confirmation `RUN`.
 It never pulls an image or starts discovery merely because the TUI was opened.
 

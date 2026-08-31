@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Offline structural validation for canonical PenSUSE branding inputs."""
+"""Offline structural validation for canonical Akilix branding inputs."""
 
 import re
 import struct
@@ -14,24 +14,24 @@ FAILURES = []
 REQUIRED = [
     "LICENSE",
     "README.md",
-    "source/pensuse-master.png",
-    "source/pensuse-mark-master.png",
-    "source/pensuse-wordmark.svg",
+    "source/akilix-master.png",
+    "source/akilix-mark-master.png",
+    "source/akilix-wordmark.svg",
     "os/grub/background-1920x1080.png",
     "os/grub/logo.png",
     "os/plymouth/logo.png",
     "os/plymouth/splash-1920x1080.png",
     "os/installer/logo.png",
     "os/installer/banner.png",
-    "os/wallpaper/pensuse-1920x1080.png",
-    "os/wallpaper/pensuse-2560x1440.png",
-    "os/wallpaper/pensuse-3840x2160.png",
-    "terminal/pensuse-ascii-small.txt",
-    "terminal/pensuse-motd.txt",
+    "os/wallpaper/akilix-1920x1080.png",
+    "os/wallpaper/akilix-2560x1440.png",
+    "os/wallpaper/akilix-3840x2160.png",
+    "terminal/akilix-ascii-small.txt",
+    "terminal/akilix-motd.txt",
     "web/favicon.svg",
     "web/favicon.ico",
-    "web/pensuse-horizontal.png",
-    "web/pensuse-mark.png",
+    "web/akilix-horizontal.png",
+    "web/akilix-mark.png",
 ]
 
 PNG_DIMENSIONS = {
@@ -41,11 +41,11 @@ PNG_DIMENSIONS = {
     "os/plymouth/splash-1920x1080.png": (1920, 1080),
     "os/installer/logo.png": (800, 280),
     "os/installer/banner.png": (1400, 360),
-    "os/wallpaper/pensuse-1920x1080.png": (1920, 1080),
-    "os/wallpaper/pensuse-2560x1440.png": (2560, 1440),
-    "os/wallpaper/pensuse-3840x2160.png": (3840, 2160),
-    "web/pensuse-horizontal.png": (1200, 420),
-    "web/pensuse-mark.png": (900, 900),
+    "os/wallpaper/akilix-1920x1080.png": (1920, 1080),
+    "os/wallpaper/akilix-2560x1440.png": (2560, 1440),
+    "os/wallpaper/akilix-3840x2160.png": (3840, 2160),
+    "web/akilix-horizontal.png": (1200, 420),
+    "web/akilix-mark.png": (900, 900),
 }
 
 
@@ -82,7 +82,7 @@ for path in ROOT.rglob("*.svg"):
     if re.search(r"<script|(?:href|xlink:href|src)\s*=\s*['\"](?:https?://|data:)", text, re.I):
         FAILURES.append(f"SVG contains script or remote/embedded reference: {path.relative_to(ROOT)}")
 
-for path in (ROOT / "terminal").glob("pensuse-ascii-*.txt"):
+for path in (ROOT / "terminal").glob("akilix-ascii-*.txt"):
     try:
         if any(ord(character) > 127 for character in path.read_text(encoding="utf-8")):
             FAILURES.append(f"non-ASCII character in {path.relative_to(ROOT)}")
@@ -91,7 +91,7 @@ for path in (ROOT / "terminal").glob("pensuse-ascii-*.txt"):
 
 grub_theme_path = (
     REPOSITORY_ROOT
-    / "image/kiwi-iso/root/usr/share/grub2/themes/PenSUSE/theme.txt"
+    / "image/kiwi-iso/root/usr/share/grub2/themes/Akilix/theme.txt"
 )
 try:
     grub_theme = grub_theme_path.read_text(encoding="utf-8")
@@ -107,12 +107,12 @@ except (OSError, UnicodeError) as error:
 
 plymouth_root = (
     REPOSITORY_ROOT
-    / "image/kiwi-iso/root/usr/share/plymouth/themes/pensuse"
+    / "image/kiwi-iso/root/usr/share/plymouth/themes/akilix"
 )
 try:
-    plymouth_theme = (plymouth_root / "pensuse.plymouth").read_text(encoding="utf-8")
-    plymouth_script = (plymouth_root / "pensuse.script").read_text(encoding="utf-8")
-    if "ModuleName=script" not in plymouth_theme or "pensuse.script" not in plymouth_theme:
+    plymouth_theme = (plymouth_root / "akilix.plymouth").read_text(encoding="utf-8")
+    plymouth_script = (plymouth_root / "akilix.script").read_text(encoding="utf-8")
+    if "ModuleName=script" not in plymouth_theme or "akilix.script" not in plymouth_theme:
         FAILURES.append("Plymouth theme does not select the tracked script")
     if 'Image("logo.png")' not in plymouth_script:
         FAILURES.append("Plymouth script does not select the staged logo")

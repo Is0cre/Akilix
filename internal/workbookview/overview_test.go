@@ -4,7 +4,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/pensuse/pensuse/internal/workbook"
+	"github.com/Is0cre/Akilix/internal/workbook"
 )
 
 func TestBuildAndSafeSectionPath(t *testing.T) {

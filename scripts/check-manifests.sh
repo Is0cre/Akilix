@@ -5,15 +5,20 @@ set -eu
 repo_dir=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 cd "$repo_dir"
 
+if grep -R "oakilix" --exclude-dir=.git --exclude-dir=build . >/dev/null 2>&1; then
+	echo "corrupted openSUSE origin found after identity substitution" >&2
+	exit 1
+fi
+
 for schema in schemas/*.json; do
 	python3 -m json.tool "$schema" >/dev/null
 done
 
 # Use the built CLI when available so this check exercises the shipped binary.
 # Fall back to go run for direct developer use before `make build`.
-cli=./pensuse
+cli=./akilix
 if [ ! -x "$cli" ]; then
-	cli="go run ./cmd/pensuse"
+	cli="go run ./cmd/akilix"
 fi
 
 repositories_json=$($cli repository list --json)
@@ -39,7 +44,7 @@ lock = json.loads(Path("repositories/desktop-sway-lock.json").read_text())
 expected = {"sway", "swayidle", "swaylock", "foot", "fuzzel", "mako", "wl-clipboard", "grim", "slurp", "greetd", "greetd-branding-upstream", "tuigreet"}
 packages = lock.get("packages", [])
 names = {item.get("name") for item in packages}
-if lock.get("schema") != "pensuse.package-lock.v1" or names != expected:
+if lock.get("schema") != "akilix.package-lock.v1" or names != expected:
     raise SystemExit("desktop package lock is incomplete")
 for item in packages:
     location = item.get("location", "")
@@ -54,7 +59,7 @@ from pathlib import Path
 lock = json.loads(Path("repositories/desktop-fonts-lock.json").read_text())
 expected = {"google-noto-sans-fonts", "google-noto-sans-mono-fonts", "google-noto-sans-symbols2-fonts"}
 packages = lock.get("packages", [])
-if lock.get("schema") != "pensuse.package-lock.v1" or lock.get("repository_id") != "m17n-fonts-leap-16":
+if lock.get("schema") != "akilix.package-lock.v1" or lock.get("repository_id") != "m17n-fonts-leap-16":
     raise SystemExit("desktop font lock has the wrong source identity")
 if {item.get("name") for item in packages} != expected:
     raise SystemExit("desktop font lock is incomplete")
@@ -70,7 +75,7 @@ from pathlib import Path
 lock = json.loads(Path("repositories/boot-plymouth-lock.json").read_text())
 expected = {"plymouth", "plymouth-branding-upstream", "plymouth-dracut", "plymouth-plugin-script"}
 packages = lock.get("packages", [])
-if lock.get("schema") != "pensuse.package-lock.v1":
+if lock.get("schema") != "akilix.package-lock.v1":
     raise SystemExit("Plymouth package lock has the wrong schema")
 if lock.get("repository_id") != "base-system-leap-16":
     raise SystemExit("Plymouth package lock has the wrong repository")
@@ -108,25 +113,25 @@ links = {
 for path, target in links.items():
     if not path.is_symlink() or str(path.readlink()) != target:
         raise SystemExit(f"invalid systemd image link: {path}")
-if (image / "root/etc/profile.d/50-pensuse-sway.sh").exists():
+if (image / "root/etc/profile.d/50-akilix-sway.sh").exists():
     raise SystemExit("legacy shell-profile Sway autostart is still present")
 
 tree = ET.parse(image / "config.xml")
-operator = tree.find(".//user[@name='pensuse']")
+operator = tree.find(".//user[@name='akilix']")
 if operator is None or operator.get("shell") != "/bin/zsh":
     raise SystemExit("live operator does not use Zsh by default")
 repositories = {node.get("alias"): node.find("source").get("path") for node in tree.findall("repository")}
-if repositories.get("PenSUSE-Base-System-Leap-16") != "https://download.opensuse.org/repositories/Base:/System/16.0/":
+if repositories.get("Akilix-Base-System-Leap-16") != "https://download.opensuse.org/repositories/Base:/System/16.0/":
     raise SystemExit("KIWI image lacks the audited Base:System source")
-if repositories.get("PenSUSE-M17N-Fonts-Leap-16") != "https://download.opensuse.org/repositories/M17N:/fonts/16.0/":
+if repositories.get("Akilix-M17N-Fonts-Leap-16") != "https://download.opensuse.org/repositories/M17N:/fonts/16.0/":
     raise SystemExit("KIWI image lacks the audited M17N:fonts source")
 plymouth = {"plymouth", "plymouth-branding-upstream", "plymouth-plugin-script", "plymouth-dracut"}
 if not plymouth <= packages:
     raise SystemExit("KIWI image lacks the complete Plymouth/initrd package set")
 preferences = tree.find("preferences")
 image_type = preferences.find("type")
-if preferences.findtext("bootsplash-theme") != "pensuse":
-    raise SystemExit("KIWI does not select the PenSUSE Plymouth theme")
+if preferences.findtext("bootsplash-theme") != "akilix":
+    raise SystemExit("KIWI does not select the Akilix Plymouth theme")
 if "splash" not in image_type.get("kernelcmdline", "").split():
     raise SystemExit("KIWI kernel command line does not activate Plymouth")
 
@@ -137,7 +142,7 @@ foot = (image / "root/etc/xdg/foot/foot.ini").read_text()
 if "font=Noto Sans Mono:size=11,Noto Sans Symbols 2:size=11" not in foot:
     raise SystemExit("Foot does not use the installed Noto font stack")
 sway = (image / "root/etc/sway/config").read_text()
-for setting in ("status_command pensuse bar stream", "focused_workspace #657a3e"):
+for setting in ("status_command akilix bar stream", "focused_workspace #657a3e"):
     if setting not in sway:
         raise SystemExit(f"Sway native command strip lacks {setting}")
 if "exec waybar" in sway or "waybar" in packages:
@@ -151,8 +156,8 @@ PY
 
 zsh -n image/kiwi-iso/root/etc/zsh.zshrc.local
 
-profile_dir=${PENSUSE_PROFILE_DIR:-profiles}
-profiles_json=$(PENSUSE_PROFILE_DIR="$profile_dir" $cli profile list --json)
+profile_dir=${AKILIX_PROFILE_DIR:-profiles}
+profiles_json=$(AKILIX_PROFILE_DIR="$profile_dir" $cli profile list --json)
 PROFILE_JSON="$profiles_json" python3 - <<'PY'
 import json
 import os
@@ -178,8 +183,8 @@ PY
 # keeps the audit aligned with the operator-facing command surface.
 profile_ids=$(printf '%s\n' "$profiles_json" | python3 -c 'import json,sys; print("\n".join(item["id"] for item in json.load(sys.stdin)))')
 for profile_id in $profile_ids; do
-	show_json=$(PENSUSE_PROFILE_DIR="$profile_dir" $cli profile show "$profile_id" --json)
-	plan_json=$(PENSUSE_PROFILE_DIR="$profile_dir" $cli profile plan "$profile_id" --json)
+	show_json=$(AKILIX_PROFILE_DIR="$profile_dir" $cli profile show "$profile_id" --json)
+	plan_json=$(AKILIX_PROFILE_DIR="$profile_dir" $cli profile plan "$profile_id" --json)
 	SHOW_JSON="$show_json" PLAN_JSON="$plan_json" python3 - <<'PY'
 import json
 import os

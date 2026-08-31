@@ -1,8 +1,8 @@
-# PenSUSE Security Policy
+# Akilix Security Policy
 
 ## Status
 
-PenSUSE is under active development and is not yet production-ready.
+Akilix is under active development and is not yet production-ready.
 
 Do not rely on development builds as the sole protection mechanism for forensic evidence or production security work.
 
@@ -10,7 +10,7 @@ Do not rely on development builds as the sole protection mechanism for forensic 
 
 # Security principles
 
-PenSUSE follows these baseline principles:
+Akilix follows these baseline principles:
 
 - least privilege
 - explicit operator action
@@ -42,11 +42,11 @@ Software write protection does not substitute for hardware forensic write blocke
 
 # Privilege model
 
-The main `pensuse` process should run unprivileged for ordinary operations.
+The main `akilix` process should run unprivileged for ordinary operations.
 
 Privileged actions must be explicit and narrowly scoped.
 
-PenSUSE must not solve convenience problems by making the primary process permanently root.
+Akilix must not solve convenience problems by making the primary process permanently root.
 
 ---
 
@@ -68,7 +68,7 @@ Original evidence mounts should be read-only during analysis where technically p
 
 # Network behavior
 
-PenSUSE itself must not silently:
+Akilix itself must not silently:
 
 - scan
 - attack
@@ -85,7 +85,7 @@ External service integration must be explicit.
 
 LLM output is analysis, not evidence.
 
-PenSUSE must distinguish:
+Akilix must distinguish:
 
 - FACT
 - INFERENCE

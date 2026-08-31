@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-const Schema = "pensuse.repositories.v1"
+const Schema = "akilix.repositories.v1"
 
 type Set struct {
 	Schema       string `json:"schema"`

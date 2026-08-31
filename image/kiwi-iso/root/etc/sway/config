@@ -13,16 +13,16 @@ gaps inner 6
 gaps outer 3
 smart_gaps on
 
-output * bg /usr/share/backgrounds/pensuse/pensuse-3840x2160.png fill
+output * bg /usr/share/backgrounds/akilix/akilix-3840x2160.png fill
 
 exec mako
-exec swayidle -w timeout 300 'systemd-run --user --unit=pensuse-weathr-screensaver --collect /usr/bin/pensuse-weathr-screensaver' resume 'systemctl --user stop pensuse-weathr-screensaver.service' timeout 600 'swaylock --color 0b1114' before-sleep 'swaylock --color 0b1114'
-exec $term --title "PenSUSE Workspace"
+exec swayidle -w timeout 300 'systemd-run --user --unit=akilix-weathr-screensaver --collect /usr/bin/akilix-weathr-screensaver' resume 'systemctl --user stop akilix-weathr-screensaver.service' timeout 600 'swaylock --color 0b1114' before-sleep 'swaylock --color 0b1114'
+exec $term --title "Akilix Workspace"
 
 bar {
     position top
     font pango:Noto Sans 10
-    status_command pensuse bar stream
+    status_command akilix bar stream
     colors {
         background #0b1114
         statusline #e8e6dd
@@ -94,8 +94,8 @@ bindsym $mod+w layout tabbed
 bindsym $mod+e layout toggle split
 bindsym $mod+a focus parent
 bindsym $mod+Shift+c reload
-bindsym $mod+Shift+e exec swaynag -t warning -m 'Exit the PenSUSE session?' -B 'Exit' 'swaymsg exit'
-bindsym $mod+Shift+r exec systemd-run --user --unit=pensuse-weathr-screensaver --collect /usr/bin/pensuse-weathr-screensaver
+bindsym $mod+Shift+e exec swaynag -t warning -m 'Exit the Akilix session?' -B 'Exit' 'swaymsg exit'
+bindsym $mod+Shift+r exec systemd-run --user --unit=akilix-weathr-screensaver --collect /usr/bin/akilix-weathr-screensaver
 bindsym $mod+Shift+l exec swaylock --color 0b1114
 
 client.focused #8ead55 #657a3e #e8e6dd #c68a2b #8ead55

@@ -1,10 +1,10 @@
-# PenSUSE Scope Model
+# Akilix Scope Model
 
 ## Purpose
 
 Scope describes targets an operator is authorized to assess within a workbook.
 
-PenSUSE uses scope information to reduce accidental mistakes in managed workflows.
+Akilix uses scope information to reduce accidental mistakes in managed workflows.
 
 Scope is not a perfect sandbox.
 
@@ -76,12 +76,12 @@ The record should preserve:
 
 # Limits
 
-PenSUSE cannot reliably infer every target a complex security tool may touch.
+Akilix cannot reliably infer every target a complex security tool may touch.
 
 Documentation must not imply otherwise.
 # Explainable decisions
 
-`pensuse scope check WORKBOOK TARGET --json` returns the normalized decision and,
+`akilix scope check WORKBOOK TARGET --json` returns the normalized decision and,
 when applicable, the canonical include or exclude rule that matched it:
 
 ```json
