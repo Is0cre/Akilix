@@ -1,4 +1,6 @@
 set $mod Mod4
+set $term foot
+set $menu fuzzel
 set $left h
 set $down j
 set $up k
@@ -15,9 +17,13 @@ output * bg /usr/share/backgrounds/pensuse/pensuse-3840x2160.png fill
 
 exec waybar
 exec mako
+exec $term --title "PenSUSE Workspace"
 
-bindsym $mod+Return exec foot
-bindsym $mod+d exec fuzzel
+bindsym $mod+Return exec $term
+bindsym $mod+d exec $menu
+# VM consoles and host compositors frequently intercept the Super key.
+bindsym Ctrl+Alt+t exec $term
+bindsym Alt+F2 exec $menu
 bindsym $mod+Shift+q kill
 bindsym $mod+f fullscreen toggle
 bindsym $mod+Shift+space floating toggle

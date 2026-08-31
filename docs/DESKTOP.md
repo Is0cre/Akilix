@@ -63,7 +63,9 @@ recording, telemetry, cloud synchronization, or workbook uploads.
 The primary modifier should be the Super key. Initial bindings should include:
 
 - `Super+Enter` — terminal;
+- `Ctrl+Alt+T` — terminal fallback for VM consoles that intercept Super;
 - `Super+D` — launcher;
+- `Alt+F2` — launcher fallback;
 - `Super+Shift+Q` — close focused window;
 - `Super+1` through `Super+9` — select workspace;
 - `Super+Shift+1` through `Super+Shift+9` — move a window;
@@ -73,6 +75,11 @@ The primary modifier should be the Super key. Initial bindings should include:
 - `Super+Shift+Space` — toggle floating;
 - `Super+Shift+E` — show an explicit logout prompt;
 - `Print` — operator-requested screenshot only.
+
+The live session opens one Foot terminal at startup. This gives an otherwise
+empty tiling workspace an obvious first action without depending on the VM
+console forwarding the host's Super key. It does not run a PenSUSE command,
+select a workbook, or initiate network activity.
 
 Opening the desktop or bar must not open a workbook or perform network
 activity. Workbook widgets may display local state only after the operator has

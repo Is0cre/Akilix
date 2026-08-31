@@ -34,5 +34,7 @@ in both BIOS and UEFI modes before the image is published.
 The next development build includes the minimal Sway session from the approved
 `X11:Wayland` OBS source. Account auto-login is intentionally disabled. Sway
 starts after the live operator logs in on tty1; exiting or failing Sway returns
-to the console. SSH and secondary-console logins remain text-only. Exact OBS
-RPM identities are recorded in `repositories/desktop-sway-lock.json`.
+to the console. The session opens one Foot terminal as its visible starting
+point; `Ctrl+Alt+T` remains available when a VM or host compositor intercepts
+the Super key. SSH and secondary-console logins remain text-only. Exact OBS RPM
+identities are recorded in `repositories/desktop-sway-lock.json`.
