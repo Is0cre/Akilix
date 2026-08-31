@@ -50,6 +50,9 @@ func run(args []string, stdout, stderr io.Writer) int {
 	if args[0] == "acquire" {
 		return runAcquire(args[1:], stdout, stderr)
 	}
+	if args[0] == "device" {
+		return runDevice(args[1:], stdout, stderr)
+	}
 	if args[0] == "scope" {
 		return runScope(args[1:], stdout, stderr)
 	}
@@ -88,7 +91,7 @@ func run(args []string, stdout, stderr io.Writer) int {
 		return runTUISession(bufio.NewScanner(os.Stdin), effectiveWorkbookRoot(), args[1], len(args) != 3, stdout, stderr)
 	}
 	if args[0] != "version" {
-		fmt.Fprintln(stderr, "usage: akilix version [--json] | workbook ... | scope ... | evidence ... | acquire ... | run ... | container ... | bar ...")
+		fmt.Fprintln(stderr, "usage: akilix version [--json] | workbook ... | scope ... | evidence ... | acquire ... | device ... | run ... | container ... | bar ...")
 		return 2
 	}
 	info := version.Current()
@@ -107,6 +110,96 @@ func run(args []string, stdout, stderr io.Writer) int {
 	}
 	fmt.Fprintf(stdout, "%s %s\nBase: %s\nArchitecture: %s\n", info.Name, info.Version, info.Base, info.Architecture)
 	return 0
+}
+
+func runDevice(args []string, stdout, stderr io.Writer) int {
+	usage := "usage: akilix device trust add DEVICE [LABEL] | device trust list [--json] | device trust remove TRUST_ID"
+	if len(args) < 2 || args[0] != "trust" {
+		fmt.Fprintln(stderr, usage)
+		return 2
+	}
+	path := filepath.Join(effectiveStateDir(), "devices", "trusted.json")
+	registry, err := acquire.LoadTrust(path)
+	if err != nil {
+		fmt.Fprintln(stderr, err)
+		return 1
+	}
+	switch args[1] {
+	case "list":
+		if len(args) > 3 || len(args) == 3 && args[2] != "--json" {
+			fmt.Fprintln(stderr, usage)
+			return 2
+		}
+		if len(args) == 3 {
+			data, err := json.MarshalIndent(registry, "", "  ")
+			if err != nil {
+				fmt.Fprintln(stderr, err)
+				return 1
+			}
+			fmt.Fprintln(stdout, string(data))
+			return 0
+		}
+		if len(registry.Entries) == 0 {
+			fmt.Fprintln(stdout, "No trusted devices")
+			return 0
+		}
+		for _, entry := range registry.Entries {
+			fmt.Fprintf(stdout, "%s  %-12s %-20s %s %s\n", entry.ID, entry.Kind, entry.Label, entry.Vendor, entry.Model)
+		}
+		return 0
+	case "add":
+		if len(args) != 3 && len(args) != 4 {
+			fmt.Fprintln(stderr, usage)
+			return 2
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		report, err := acquire.Inspect(ctx, acquire.ExecRunner{}, time.Now().UTC())
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		device, err := acquire.FindWholeDisk(report, args[2])
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		label := ""
+		if len(args) == 4 {
+			label = args[3]
+		}
+		entry, err := registry.Add(device, label, time.Now().UTC())
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		if err := acquire.SaveTrust(path, registry); err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		fmt.Fprintf(stdout, "trusted %s as %s\n", device.Path, entry.ID)
+		fmt.Fprintln(stdout, "Trust does not make storage writable or disable acquisition protection.")
+		return 0
+	case "remove":
+		if len(args) != 3 {
+			fmt.Fprintln(stderr, usage)
+			return 2
+		}
+		entry, err := registry.Remove(args[2], time.Now().UTC())
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		if err := acquire.SaveTrust(path, registry); err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		fmt.Fprintf(stdout, "removed trust for %s (%s)\n", entry.ID, entry.Label)
+		return 0
+	default:
+		fmt.Fprintln(stderr, usage)
+		return 2
+	}
 }
 
 func runAcquire(args []string, stdout, stderr io.Writer) int {
@@ -158,6 +251,12 @@ func runAcquire(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stderr, err)
 		return 1
 	}
+	registry, err := acquire.LoadTrust(filepath.Join(effectiveStateDir(), "devices", "trusted.json"))
+	if err != nil {
+		fmt.Fprintln(stderr, err)
+		return 1
+	}
+	acquire.ApplyTrust(&report, registry)
 	if args[0] == "record" {
 		record, path, err := acquire.RecordInspection(workbookRoot, metadata.ID, report, now)
 		if err != nil {
@@ -241,7 +340,11 @@ func runAcquire(args []string, stdout, stderr io.Writer) int {
 		if device.SystemDisk {
 			role = "SYSTEM"
 		}
-		fmt.Fprintf(stdout, "%s  %-14s %8s  RO=%-3t RM=%-3t %-5s %s %s\n", role, device.Path, humanBytes(device.SizeBytes), device.ReadOnly, device.Removable, device.Transport, device.Vendor, device.Model)
+		trust := "UNKNOWN"
+		if device.Trusted {
+			trust = "TRUSTED:" + device.TrustID
+		}
+		fmt.Fprintf(stdout, "%s  %-14s %8s  RO=%-3t RM=%-3t %-5s %s %s  %s\n", role, device.Path, humanBytes(device.SizeBytes), device.ReadOnly, device.Removable, device.Transport, device.Vendor, device.Model, trust)
 		fmt.Fprintf(stdout, "        serial=%s wwn=%s mounted=%t", emptyDash(device.Serial), emptyDash(device.WWN), device.Mounted)
 		if len(device.Mountpoints) != 0 {
 			fmt.Fprintf(stdout, " at %s", strings.Join(device.Mountpoints, ","))
@@ -1526,6 +1629,15 @@ func effectiveWorkbookRoot() string {
 	}
 	_, state := config.UserPaths()
 	return filepath.Join(state, "workbooks")
+}
+
+func effectiveStateDir() string {
+	settings, err := config.Effective(os.Getenv, func(path string) error { _, err := os.Stat(path); return err })
+	if err == nil {
+		return settings.StateDir
+	}
+	_, state := config.UserPaths()
+	return state
 }
 
 var timeNow = func() time.Time { return time.Now().UTC() }

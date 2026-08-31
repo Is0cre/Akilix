@@ -1,0 +1,42 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://akilix.dev/schemas/akilix.device-trust.v1.json",
+  "title": "Akilix trusted device registry",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "entries", "revocations"],
+  "properties": {
+    "schema": {"const": "akilix.device-trust.v1"},
+    "entries": {"type": "array", "items": {"$ref": "#/$defs/entry"}},
+    "revocations": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["entry", "revoked_at"],
+        "properties": {
+          "entry": {"$ref": "#/$defs/entry"},
+          "revoked_at": {"type": "string", "format": "date-time"}
+        }
+      }
+    }
+  },
+  "$defs": {
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "identity", "kind", "added_at"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^TD-[0-9a-f]{16}$"},
+        "identity": {"type": "string", "minLength": 1},
+        "kind": {"const": "block"},
+        "vendor": {"type": "string"},
+        "model": {"type": "string"},
+        "serial": {"type": "string"},
+        "wwn": {"type": "string"},
+        "label": {"type": "string"},
+        "added_at": {"type": "string", "format": "date-time"}
+      }
+    }
+  }
+}

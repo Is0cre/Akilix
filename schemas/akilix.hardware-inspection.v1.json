@@ -38,7 +38,7 @@
     },
     "device": {
       "type": "object",
-      "required": ["name", "kernel_name", "path", "size_bytes", "read_only", "removable", "system_disk", "acquisition_candidate", "mounted", "mountpoints", "partitions"],
+      "required": ["name", "kernel_name", "path", "size_bytes", "read_only", "removable", "trusted", "system_disk", "acquisition_candidate", "mounted", "mountpoints", "partitions"],
       "properties": {
         "name": {"type": "string", "minLength": 1},
         "kernel_name": {"type": "string", "minLength": 1},
@@ -51,6 +51,8 @@
         "model": {"type": "string"},
         "serial": {"type": "string"},
         "wwn": {"type": "string"},
+        "trusted": {"type": "boolean"},
+        "trust_id": {"type": "string", "pattern": "^TD-[0-9a-f]{16}$"},
         "system_disk": {"type": "boolean"},
         "acquisition_candidate": {"type": "boolean"},
         "mounted": {"type": "boolean"},

@@ -144,6 +144,8 @@ partitions without opening raw device nodes or changing device state:
     akilix acquire inspect --json
     akilix acquire record client-2026
     sudo --preserve-env=AKILIX_WORKBOOK_ROOT akilix acquire protect client-2026 /dev/sdb
+    akilix device trust add /dev/sdb "known lab disk"
+    akilix device trust list
 
 It reports capacity, transport, vendor/model/serial/WWN identifiers,
 filesystems, UUIDs, mount state, and current kernel read-only state. System
@@ -158,6 +160,12 @@ partition paths. It records a durable request before invoking `blockdev
 applied or failed event. Akilix never invokes `sudo` itself and provides no
 automatic write-enable command. Kernel software read-only state is an
 operational safeguard, not a hardware forensic write blocker.
+
+Trusted-device policy uses a stable WWN, or a serial combined with vendor and
+model, rather than transient `/dev` names. Devices without a sufficiently
+stable identity cannot be added. Trust entries and revocations are retained in
+the local state registry. Trust is descriptive policy only: it never makes
+storage writable, bypasses protection, or constitutes acquisition authority.
 
 ---
 

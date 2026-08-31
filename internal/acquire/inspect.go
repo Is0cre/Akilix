@@ -52,11 +52,25 @@ type Device struct {
 	Model                string      `json:"model,omitempty"`
 	Serial               string      `json:"serial,omitempty"`
 	WWN                  string      `json:"wwn,omitempty"`
+	Trusted              bool        `json:"trusted"`
+	TrustID              string      `json:"trust_id,omitempty"`
 	SystemDisk           bool        `json:"system_disk"`
 	AcquisitionCandidate bool        `json:"acquisition_candidate"`
 	Mounted              bool        `json:"mounted"`
 	Mountpoints          []string    `json:"mountpoints"`
 	Partitions           []Partition `json:"partitions"`
+}
+
+func ApplyTrust(report *Inspection, registry TrustRegistry) {
+	for i := range report.Devices {
+		entry, ok := registry.Match(report.Devices[i])
+		report.Devices[i].Trusted = ok
+		if ok {
+			report.Devices[i].TrustID = entry.ID
+		} else {
+			report.Devices[i].TrustID = ""
+		}
+	}
 }
 
 type Partition struct {

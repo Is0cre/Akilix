@@ -83,6 +83,17 @@ func TestRunRejectsUnknownCommand(t *testing.T) {
 	}
 }
 
+func TestDeviceTrustListStartsEmptyWithoutHardwareAccess(t *testing.T) {
+	t.Setenv("XDG_STATE_HOME", t.TempDir())
+	var out, errOut bytes.Buffer
+	if code := run([]string{"device", "trust", "list"}, &out, &errOut); code != 0 {
+		t.Fatalf("code=%d stderr=%q", code, errOut.String())
+	}
+	if !strings.Contains(out.String(), "No trusted devices") {
+		t.Fatalf("output=%q", out.String())
+	}
+}
+
 func TestBarOnceWithoutActiveWorkbookIsValidJSON(t *testing.T) {
 	t.Setenv("XDG_RUNTIME_DIR", t.TempDir())
 	var out, errOut bytes.Buffer
