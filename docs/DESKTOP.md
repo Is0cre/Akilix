@@ -108,9 +108,10 @@ cache and both artifact origins are overrideable for local mirrors. No unpinned
 installer or `latest` URL is executed during the image build.
 
 The image explicitly installs Noto Sans for desktop text, Noto Sans Mono for
-Foot, and Noto Sans Symbols 2 as a technical-symbol fallback. Font selection
-must not depend on whatever sparse fallback happens to enter the dependency
-closure. Exact font RPM identities are recorded in
+Foot, Noto Sans Symbols 2 as a technical-symbol fallback, and Noto Color Emoji
+for the command strip and terminal UI. Font selection must not depend on
+whatever sparse fallback happens to enter the dependency closure. Exact font
+RPM identities are recorded in
 `repositories/desktop-fonts-lock.json`.
 
 Opening the desktop or bar must not open a workbook or perform network
@@ -145,6 +146,8 @@ must not introduce hidden monitoring or automatic engagement actions.
 When attached to a terminal, the workbook TUI clears and redraws the dashboard
 after each completed action so its panels remain at stable screen positions.
 Redirected output and test writers do not receive terminal-control sequences.
+Actions are shown as an aligned vertical command palette with highlighted key
+badges and semantic colors, while retaining single-key operation.
 
 ## Image acceptance tests
 

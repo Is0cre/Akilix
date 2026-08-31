@@ -57,7 +57,7 @@ import json
 from pathlib import Path
 
 lock = json.loads(Path("repositories/desktop-fonts-lock.json").read_text())
-expected = {"google-noto-sans-fonts", "google-noto-sans-mono-fonts", "google-noto-sans-symbols2-fonts"}
+expected = {"google-noto-sans-fonts", "google-noto-sans-mono-fonts", "google-noto-sans-symbols2-fonts", "google-noto-coloremoji-fonts"}
 packages = lock.get("packages", [])
 if lock.get("schema") != "akilix.package-lock.v1" or lock.get("repository_id") != "m17n-fonts-leap-16":
     raise SystemExit("desktop font lock has the wrong source identity")
@@ -149,11 +149,11 @@ if preferences.findtext("bootsplash-theme") != "akilix":
 if "splash" not in image_type.get("kernelcmdline", "").split():
     raise SystemExit("KIWI kernel command line does not activate Plymouth")
 
-fonts = {"google-noto-sans-fonts", "google-noto-sans-mono-fonts", "google-noto-sans-symbols2-fonts"}
+fonts = {"google-noto-sans-fonts", "google-noto-sans-mono-fonts", "google-noto-sans-symbols2-fonts", "google-noto-coloremoji-fonts"}
 if not fonts <= packages:
     raise SystemExit("KIWI image lacks the selected desktop font set")
 foot = (image / "root/etc/xdg/foot/foot.ini").read_text()
-if "font=Noto Sans Mono:size=11,Noto Sans Symbols 2:size=11" not in foot:
+if "font=Noto Sans Mono:size=11,Noto Sans Symbols 2:size=11,Noto Color Emoji:size=11" not in foot:
     raise SystemExit("Foot does not use the installed Noto font stack")
 sway = (image / "root/etc/sway/config").read_text()
 for setting in ("status_command /usr/bin/akilix bar stream", "focused_workspace #657a3e"):

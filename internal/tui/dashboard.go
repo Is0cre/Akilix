@@ -18,6 +18,32 @@ func ANSI(enabled bool) Palette {
 	return Palette{Blue: "\x1b[94m", Green: "\x1b[92m", Amber: "\x1b[93m", Red: "\x1b[91m", Purple: "\x1b[95m", Muted: "\x1b[90m", Reset: "\x1b[0m"}
 }
 
+func RenderActions(color bool) string {
+	p := ANSI(color)
+	type action struct {
+		key, label, detail, tone string
+	}
+	actions := []action{
+		{"A", "Add scope target", "authorize a target", p.Green},
+		{"X", "Add exclusion", "deny a target", p.Red},
+		{"N", "Network discovery", "Nmap host discovery", p.Blue},
+		{"P", "Port discovery", "Naabu port discovery", p.Purple},
+		{"L", "Open live log", "follow workbook activity", p.Amber},
+		{"Q", "Leave workbook", "return to shell", p.Muted},
+	}
+	var b strings.Builder
+	fmt.Fprintf(&b, "%s┌─ Actions ───────────────────────────────────────────────────┐%s\n", p.Blue, p.Reset)
+	for _, item := range actions {
+		key := " " + item.key + " "
+		if color {
+			key = "\x1b[30;47m " + item.key + " \x1b[0m"
+		}
+		b.WriteString(frameRow(fmt.Sprintf("%s  %s%-19s%s %s%s%s", key, item.tone, item.label, p.Reset, p.Muted, item.detail, p.Reset)))
+	}
+	fmt.Fprintf(&b, "%s└─────────────────────────────────────────────────────────────┘%s\n", p.Blue, p.Reset)
+	return b.String()
+}
+
 func Render(overview workbookview.Overview, config scope.Config, color bool) string {
 	p := ANSI(color)
 	stateColor := p.Green

@@ -6,6 +6,7 @@
   "repomd_revision": "1788123215",
   "primary_sha512": "5ac4277cfa98e85ae4c52f45a071d4335aaa66660d240fed67c8b35454a2c760f9fc30fa5dbdef29cde94bf5f10a7ceeb2d0f5828864022f805435f0e5ee2293",
   "packages": [
+    {"name":"google-noto-coloremoji-fonts","version":"20250916-lp160.13.1","sha512":"1ed28637a0b6f92cfbdd959713fd600a67f048cf859fbf74051ed1f5b25110003b205d1b2b1f9664b9da35453b9fae8df59173329a2364c6d0745e8074b44e02","location":"noarch/google-noto-coloremoji-fonts-20250916-lp160.13.1.noarch.rpm"},
     {"name":"google-noto-sans-fonts","version":"20260801-lp160.98.1","sha512":"ea886cb457f3be8d6eedcc90a3d5108db76e91dbad83f01f8b58a4c09880f668b6d2c5f8c9e85c990c2e161f1652e9d58ee8c1c343d579044d12fef12864038f","location":"noarch/google-noto-sans-fonts-20260801-lp160.98.1.noarch.rpm"},
     {"name":"google-noto-sans-mono-fonts","version":"20260801-lp160.98.1","sha512":"2779da755d2ccba9ce9c51ead671735a01ab6aec9e609e40af8d16abecd3f25aac16a33c0eb466ce6ca99ef70b0b1c8ffc8e898fbd85f6810ac426a21f969062","location":"noarch/google-noto-sans-mono-fonts-20260801-lp160.98.1.noarch.rpm"},
     {"name":"google-noto-sans-symbols2-fonts","version":"20260801-lp160.98.1","sha512":"71d115ffe0b23d63c802cb78cdeabe1a0f450a85d753e41fab4382f6d427422651028bc0ed2726ced3cdaf756727d5bf2ecd18d564e5e7e53e553a9b9f013ead","location":"noarch/google-noto-sans-symbols2-fonts-20260801-lp160.98.1.noarch.rpm"}

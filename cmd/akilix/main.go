@@ -154,7 +154,8 @@ func runTUISession(scanner *bufio.Scanner, root, selected string, color bool, st
 			return 1
 		}
 		fmt.Fprint(stdout, tuipkg.Render(overview, config, color))
-		fmt.Fprint(stdout, "[a] add scope  [x] add exclusion  [n] network discovery  [p] port discovery  [l] live log  [q] quit > ")
+		fmt.Fprint(stdout, tuipkg.RenderActions(color))
+		fmt.Fprint(stdout, "Select action > ")
 		if !scanner.Scan() {
 			return 0
 		}

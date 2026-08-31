@@ -19,3 +19,20 @@ func TestDashboardShowsPlaybookReadinessWithoutColor(t *testing.T) {
 		}
 	}
 }
+
+func TestActionsRenderAsAlignedListWithoutColor(t *testing.T) {
+	out := RenderActions(false)
+	for _, want := range []string{"Add scope target", "Add exclusion", "Network discovery", "Port discovery", "Open live log", "Leave workbook"} {
+		if !strings.Contains(out, want) {
+			t.Fatalf("actions missing %q: %q", want, out)
+		}
+	}
+	if strings.Contains(out, "\x1b[") || strings.Contains(out, "[a]") {
+		t.Fatalf("actions contain legacy or colored controls: %q", out)
+	}
+	for _, line := range strings.Split(strings.TrimSpace(out), "\n") {
+		if len([]rune(line)) != 63 {
+			t.Fatalf("unaligned action width %d: %q", len([]rune(line)), line)
+		}
+	}
+}

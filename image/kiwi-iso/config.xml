@@ -74,6 +74,7 @@
     <package name="google-noto-sans-fonts"/>
     <package name="google-noto-sans-mono-fonts"/>
     <package name="google-noto-sans-symbols2-fonts"/>
+    <package name="google-noto-coloremoji-fonts"/>
   </packages>
   <packages type="bootstrap">
     <package name="bash"/>
