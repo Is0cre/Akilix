@@ -1,0 +1,15 @@
+schema: akilix.profile.v1
+id: WIRELESS
+name: Wireless Observation
+description: Explicit monitor-mode control, passive radio inspection, and packet capture.
+status: planned
+rpm:
+  - iw
+  - wireless-regdb
+  - tcpdump
+  - wavemon
+  - horst
+  - wireshark
+  - wireshark-ui-qt
+containers:
+  - akilix-wireless-analysis

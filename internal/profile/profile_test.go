@@ -45,7 +45,7 @@ func TestShippedProfileCatalog(t *testing.T) {
 	want := map[string]bool{
 		"CORE": true, "FORENSICS": true, "INCIDENT-RESPONSE": true,
 		"NETWORK": true, "OPERATOR": true, "RECON": true,
-		"REVERSE": true, "WEB": true,
+		"REVERSE": true, "WEB": true, "WIRELESS": true,
 	}
 	for _, item := range items {
 		delete(want, item.ID)

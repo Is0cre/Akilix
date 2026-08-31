@@ -76,6 +76,13 @@ Bluetooth adapters, begin discovery, become discoverable, or start pairing.
 Discoverable and pairable modes have 180-second limits when the operator
 enables them. The Blueman tray applet is not autostarted.
 
+The image includes `iw`, regulatory data, tcpdump, wavemon, horst, and
+Wireshark for explicit wireless observation. Akilix does not automatically put
+an interface into monitor mode, change its channel or regulatory domain, or
+start packet capture. Those actions affect host networking and require an
+operator-selected workflow and any necessary explicit elevation. Monitor-mode
+support depends on the physical adapter, driver, and firmware.
+
 ## Default interaction model
 
 The primary modifier should be the Super key. Initial bindings should include:

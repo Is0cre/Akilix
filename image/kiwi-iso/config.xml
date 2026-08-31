@@ -75,6 +75,15 @@
     <package name="traceroute"/>
     <package name="mtr"/>
     <package name="whois"/>
+    <package name="iw"/>
+    <package name="wireless-regdb"/>
+    <package name="wireless-tools"/>
+    <package name="tcpdump"/>
+    <package name="ethtool"/>
+    <package name="wavemon"/>
+    <package name="horst"/>
+    <package name="wireshark"/>
+    <package name="wireshark-ui-qt"/>
     <package name="bluez"/>
     <package name="bluez-obexd"/>
     <package name="bluez-zsh-completion"/>

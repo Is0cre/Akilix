@@ -174,6 +174,12 @@ bluetooth = {
 }
 if not bluetooth <= packages:
     raise SystemExit("KIWI image lacks the Bluetooth and audio stack")
+wireless = {
+    "iw", "wireless-regdb", "wireless-tools", "tcpdump", "ethtool",
+    "wavemon", "horst", "wireshark", "wireshark-ui-qt",
+}
+if not wireless <= packages:
+    raise SystemExit("KIWI image lacks the passive wireless toolkit")
 vimrc = (image / "root/etc/vimrc").read_text()
 for setting in ("syntax enable", "filetype plugin indent on", "set number", "set swapfile"):
     if setting not in vimrc:
