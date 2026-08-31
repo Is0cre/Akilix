@@ -8,6 +8,12 @@
 : ${VISUAL:=$EDITOR}
 export EDITOR VISUAL
 
+# nnn stays local and uses the configured editor for text and internal edits.
+# Type-to-navigate keeps large evidence trees quick to traverse.
+: ${NNN_OPTS:=eEn}
+: ${NNN_COLORS:=2341}
+export NNN_OPTS NNN_COLORS
+
 # Load packaged completion functions, including Akilix. compinit only indexes
 # functions already installed locally and caches the index in the user's home.
 fpath=(/usr/share/zsh/site-functions $fpath)

@@ -40,6 +40,9 @@ bindsym $mod+d exec $menu
 bindsym Ctrl+Alt+t exec $term
 bindsym Alt+F2 exec $menu
 bindsym $mod+Shift+n exec featherpad
+bindsym $mod+Shift+f exec pcmanfm-qt
+bindsym $mod+Shift+b exec foot --title "Akilix System Monitor" btop
+bindsym $mod+Shift+o exec foot --title "Akilix File Navigator" nnn
 bindsym $mod+Shift+q kill
 bindsym $mod+f fullscreen toggle
 bindsym $mod+Shift+space floating toggle

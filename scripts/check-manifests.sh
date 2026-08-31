@@ -155,6 +155,9 @@ if not fonts <= packages:
 editors = {"vim", "vim-data", "nano", "featherpad"}
 if not editors <= packages:
     raise SystemExit("KIWI image lacks the core editor set")
+operator_tools = {"pcmanfm-qt", "nnn", "btop", "ark", "xdg-utils"}
+if not operator_tools <= packages:
+    raise SystemExit("KIWI image lacks the core operator utility set")
 vimrc = (image / "root/etc/vimrc").read_text()
 for setting in ("syntax enable", "filetype plugin indent on", "set number", "set swapfile"):
     if setting not in vimrc:
@@ -169,14 +172,14 @@ if "font=Noto Sans Mono:size=11,Noto Sans Symbols 2:size=11,Noto Color Emoji:siz
 if "alpha=0.78" not in foot:
     raise SystemExit("Foot does not expose the Akilix wallpaper at the selected opacity")
 sway = (image / "root/etc/sway/config").read_text()
-for setting in ("status_command /usr/bin/akilix bar stream", "focused_workspace #657a3e", "bindsym $mod+Shift+n exec featherpad"):
+for setting in ("status_command /usr/bin/akilix bar stream", "focused_workspace #657a3e", "bindsym $mod+Shift+n exec featherpad", "bindsym $mod+Shift+f exec pcmanfm-qt", 'foot --title "Akilix System Monitor" btop', 'foot --title "Akilix File Navigator" nnn'):
     if setting not in sway:
         raise SystemExit(f"Sway native command strip lacks {setting}")
 if "exec waybar" in sway or "waybar" in packages:
     raise SystemExit("legacy Waybar integration is still active")
 
 zshrc = (image / "root/etc/zsh.zshrc.local").read_text()
-for setting in ("HISTSIZE=100000", "SAVEHIST=75000", "EXTENDED_HISTORY", "HIST_IGNORE_SPACE", "SHARE_HISTORY"):
+for setting in ("HISTSIZE=100000", "SAVEHIST=75000", "EXTENDED_HISTORY", "HIST_IGNORE_SPACE", "SHARE_HISTORY", "NNN_OPTS:=eEn"):
     if setting not in zshrc:
         raise SystemExit(f"Zsh baseline lacks {setting}")
 for setting in ("/usr/share/zsh/site-functions", "autoload -Uz compinit", "compinit -d", "compdef _akilix akilix"):
@@ -185,6 +188,14 @@ for setting in ("/usr/share/zsh/site-functions", "autoload -Uz compinit", "compi
 skel_zshrc = image / "root/etc/skel/.zshrc"
 if not skel_zshrc.is_file() or "bindkey -e" not in skel_zshrc.read_text():
     raise SystemExit("image lacks the default per-user Zsh configuration")
+pcmanfm = (image / "root/etc/xdg/pcmanfm-qt/default/settings.conf").read_text()
+for setting in ("UseTrash=true", "ConfirmDelete=true", "MountOnStartup=false", "MountRemovable=false", "AutoRun=false"):
+    if setting not in pcmanfm:
+        raise SystemExit(f"PCManFM-Qt baseline lacks {setting}")
+btop = (image / "root/etc/skel/.config/btop/btop.conf").read_text()
+for setting in ('theme_background = false', 'vim_keys = true', 'update_ms = 1000'):
+    if setting not in btop:
+        raise SystemExit(f"btop baseline lacks {setting}")
 PY
 
 zsh -n image/kiwi-iso/root/etc/zsh.zshrc.local

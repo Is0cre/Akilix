@@ -45,6 +45,10 @@ comfortable workstation:
   status stream;
 - Fuzzel or an equivalently small application launcher;
 - FeatherPad as a lightweight graphical text editor (`Super+Shift+N`);
+- PCManFM-Qt as a lightweight graphical file manager (`Super+Shift+F`), with
+  removable-media automount and autorun disabled;
+- `nnn` as the terminal file navigator (`Super+Shift+O`);
+- `btop` as the on-demand system and network monitor (`Super+Shift+B`);
 - Mako for local notifications;
 - wl-clipboard;
 - Grim and Slurp for explicit operator-requested screenshots;
@@ -74,6 +78,9 @@ The primary modifier should be the Super key. Initial bindings should include:
 - `Super+D` — launcher;
 - `Alt+F2` — launcher fallback;
 - `Super+Shift+N` — FeatherPad;
+- `Super+Shift+F` — PCManFM-Qt;
+- `Super+Shift+O` — `nnn` in Foot;
+- `Super+Shift+B` — `btop` in Foot;
 - `Super+Shift+Q` — close focused window;
 - `Super+1` through `Super+9` — select workspace;
 - `Super+Shift+1` through `Super+Shift+9` — move a window;

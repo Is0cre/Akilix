@@ -44,6 +44,11 @@
     <package name="vim-data"/>
     <package name="nano"/>
     <package name="featherpad"/>
+    <package name="pcmanfm-qt"/>
+    <package name="nnn"/>
+    <package name="btop"/>
+    <package name="ark"/>
+    <package name="xdg-utils"/>
     <package name="git"/>
     <package name="iproute2"/>
     <package name="wicked"/>

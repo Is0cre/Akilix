@@ -32,3 +32,8 @@ search feedback, completion menus, mouse support, and Vim's crash-recovery swap
 files. `/etc/nanorc` enables line numbers, indentation, soft wrapping, status
 feedback, mouse support, and the packaged syntax definitions. Personal
 `~/.vimrc` and `~/.nanorc` files remain available for overrides.
+
+The operator shell also includes `nnn` for fast terminal file navigation and
+`btop` for on-demand process, disk, and network visibility. `nnn` defaults to
+type-to-navigate and sends text edits to `$VISUAL`/`$EDITOR`. Neither tool is
+started in the background.
