@@ -112,3 +112,18 @@ func TestLoggingStatusIsExplicitAndJSONReadable(t *testing.T) {
 		t.Fatalf("unexpected logging policy: %+v", policy)
 	}
 }
+
+func TestRepositoryListExposesCandidateTrustState(t *testing.T) {
+	t.Setenv("PENSUSE_REPOSITORY_MANIFEST", "../../repositories/repositories.json")
+	var out, errOut bytes.Buffer
+	if code := run([]string{"repository", "list", "--json"}, &out, &errOut); code != 0 {
+		t.Fatalf("repository list: %d %s", code, errOut.String())
+	}
+	var items []map[string]interface{}
+	if err := json.Unmarshal(out.Bytes(), &items); err != nil {
+		t.Fatal(err)
+	}
+	if len(items) != 2 || items[1]["status"] != "candidate" || items[1]["image_enabled"] != false {
+		t.Fatalf("unexpected repository trust state: %+v", items)
+	}
+}

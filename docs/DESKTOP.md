@@ -25,6 +25,14 @@ release image, PenSUSE must record the repository URL and signing key, resolve
 exact RPM versions, and produce an offline-auditable package manifest. A local
 mirror or PenSUSE OBS project is preferred for reproducible release builds.
 
+The repository identity is recorded as a disabled candidate in
+`repositories/repositories.json`. Inspect it locally with:
+
+    pensuse repository show x11-wayland-leap-16
+
+This inspection performs no network access and does not add or enable the
+repository.
+
 ## Minimal session
 
 The initial graphical session should contain only enough software to provide a

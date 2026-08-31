@@ -17,6 +17,7 @@ import (
 	"github.com/pensuse/pensuse/internal/invocation"
 	"github.com/pensuse/pensuse/internal/logpolicy"
 	profilepkg "github.com/pensuse/pensuse/internal/profile"
+	repositorypkg "github.com/pensuse/pensuse/internal/repository"
 	"github.com/pensuse/pensuse/internal/scope"
 	"github.com/pensuse/pensuse/internal/version"
 	"github.com/pensuse/pensuse/internal/workbook"
@@ -52,6 +53,9 @@ func run(args []string, stdout, stderr io.Writer) int {
 	if args[0] == "profile" {
 		return runProfile(args[1:], stdout, stderr)
 	}
+	if args[0] == "repository" {
+		return runRepository(args[1:], stdout, stderr)
+	}
 	if args[0] == "config" {
 		return runConfig(args[1:], stdout, stderr)
 	}
@@ -77,6 +81,64 @@ func run(args []string, stdout, stderr io.Writer) int {
 		return 2
 	}
 	fmt.Fprintf(stdout, "%s %s\nBase: %s\nArchitecture: %s\n", info.Name, info.Version, info.Base, info.Architecture)
+	return 0
+}
+
+func runRepository(args []string, stdout, stderr io.Writer) int {
+	if len(args) < 1 || args[0] != "list" && args[0] != "show" {
+		fmt.Fprintln(stderr, "usage: pensuse repository list [--json] | repository show ID [--json]")
+		return 2
+	}
+	path := os.Getenv("PENSUSE_REPOSITORY_MANIFEST")
+	if path == "" {
+		path = "/usr/share/pensuse/repositories.json"
+		if _, err := os.Stat("repositories/repositories.json"); err == nil {
+			path = "repositories/repositories.json"
+		}
+	}
+	set, err := repositorypkg.Load(path)
+	if err != nil {
+		fmt.Fprintln(stderr, err)
+		return 1
+	}
+	if args[0] == "list" {
+		if len(args) != 1 && !(len(args) == 2 && args[1] == "--json") {
+			fmt.Fprintln(stderr, "usage: pensuse repository list [--json]")
+			return 2
+		}
+		if len(args) == 2 {
+			data, err := json.MarshalIndent(set.Repositories, "", "  ")
+			if err != nil {
+				fmt.Fprintln(stderr, err)
+				return 1
+			}
+			fmt.Fprintln(stdout, string(data))
+			return 0
+		}
+		for _, item := range set.Repositories {
+			fmt.Fprintf(stdout, "%s\t%s\t%s\tenabled=%t\n", item.ID, item.Status, item.Tier, item.ImageEnabled)
+		}
+		return 0
+	}
+	if len(args) != 2 && !(len(args) == 3 && args[2] == "--json") {
+		fmt.Fprintln(stderr, "usage: pensuse repository show ID [--json]")
+		return 2
+	}
+	item, err := set.Find(args[1])
+	if err != nil {
+		fmt.Fprintln(stderr, err)
+		return 1
+	}
+	if len(args) == 3 {
+		data, err := json.MarshalIndent(item, "", "  ")
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		fmt.Fprintln(stdout, string(data))
+		return 0
+	}
+	fmt.Fprintf(stdout, "%s\nID: %s\nPurpose: %s\nTier: %s\nStatus: %s\nImage enabled: %t\nURL: %s\nSigning key: %s\n", item.Name, item.ID, item.Purpose, item.Tier, item.Status, item.ImageEnabled, item.BaseURL, item.KeyFingerprint)
 	return 0
 }
 

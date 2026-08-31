@@ -20,6 +20,7 @@ go build -trimpath -buildvcs=false -o pensuse ./cmd/pensuse
 install -Dpm0755 pensuse %{buildroot}%{_bindir}/pensuse
 install -d %{buildroot}%{_datadir}/pensuse/profiles
 install -m0644 profiles/*.yaml %{buildroot}%{_datadir}/pensuse/profiles/
+install -Dpm0644 repositories/repositories.json %{buildroot}%{_datadir}/pensuse/repositories.json
 install -d %{buildroot}%{_datadir}/zsh/site-functions %{buildroot}%{_datadir}/bash-completion/completions
 ./pensuse completion zsh > %{buildroot}%{_datadir}/zsh/site-functions/_pensuse
 ./pensuse completion bash > %{buildroot}%{_datadir}/bash-completion/completions/pensuse
@@ -27,6 +28,7 @@ install -d %{buildroot}%{_datadir}/zsh/site-functions %{buildroot}%{_datadir}/ba
 %files
 %{_bindir}/pensuse
 %{_datadir}/pensuse/profiles/*.yaml
+%{_datadir}/pensuse/repositories.json
 %{_datadir}/zsh/site-functions/_pensuse
 %{_datadir}/bash-completion/completions/pensuse
 

@@ -11,7 +11,8 @@ files=$(rpm -qpl "$package")
 for expected in \
     /usr/bin/pensuse \
     /usr/share/zsh/site-functions/_pensuse \
-    /usr/share/bash-completion/completions/pensuse
+    /usr/share/bash-completion/completions/pensuse \
+    /usr/share/pensuse/repositories.json
 do
     printf '%s\n' "$files" | grep -Fx "$expected" >/dev/null || {
         echo "RPM is missing $expected" >&2

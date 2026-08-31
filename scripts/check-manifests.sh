@@ -16,6 +16,21 @@ if [ ! -x "$cli" ]; then
 	cli="go run ./cmd/pensuse"
 fi
 
+repositories_json=$($cli repository list --json)
+REPOSITORIES_JSON="$repositories_json" python3 - <<'PY'
+import json
+import os
+
+items = json.loads(os.environ["REPOSITORIES_JSON"])
+if not isinstance(items, list) or not items:
+    raise SystemExit("repository list must be a non-empty JSON array")
+for item in items:
+    if not item.get("id") or not item.get("key_fingerprint"):
+        raise SystemExit("repository entry lacks identity or signing key")
+    if item.get("image_enabled") and item.get("status") != "approved":
+        raise SystemExit("image-enabled repository is not approved")
+PY
+
 profile_dir=${PENSUSE_PROFILE_DIR:-profiles}
 profiles_json=$(PENSUSE_PROFILE_DIR="$profile_dir" $cli profile list --json)
 PROFILE_JSON="$profiles_json" python3 - <<'PY'
@@ -62,6 +77,7 @@ PY
 done
 
 printf '%s\n' "$profiles_json" | python3 -c 'import json, sys; json.load(sys.stdin)' >/dev/null
-printf 'manifest check: %s schema(s), %s profile(s)\n' \
+printf 'manifest check: %s schema(s), %s profile(s), %s repository source(s)\n' \
 	"$(find schemas -maxdepth 1 -type f -name '*.json' | wc -l)" \
-	"$(printf '%s\n' "$profiles_json" | python3 -c 'import json,sys; print(len(json.load(sys.stdin)))')"
+	"$(printf '%s\n' "$profiles_json" | python3 -c 'import json,sys; print(len(json.load(sys.stdin)))')" \
+	"$(printf '%s\n' "$repositories_json" | python3 -c 'import json,sys; print(len(json.load(sys.stdin)))')"
