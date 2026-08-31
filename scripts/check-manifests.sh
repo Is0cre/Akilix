@@ -40,6 +40,22 @@ python3 - <<'PY'
 import json
 from pathlib import Path
 
+lock = json.loads(Path("repositories/filesystems-zfs-lock.json").read_text())
+expected = {"zfs", "zfs-kmp-default", "zfs-ueficert"}
+packages = lock.get("packages", [])
+if lock.get("schema") != "akilix.package-lock.v1" or lock.get("repository_id") != "filesystems-leap-16":
+    raise SystemExit("ZFS package lock has the wrong source identity")
+if {item.get("name") for item in packages} != expected:
+    raise SystemExit("ZFS package lock is incomplete")
+for item in packages:
+    if len(item.get("sha512", "")) != 128 or not item.get("location", "").startswith("x86_64/"):
+        raise SystemExit("ZFS package lock contains invalid RPM identity")
+PY
+
+python3 - <<'PY'
+import json
+from pathlib import Path
+
 lock = json.loads(Path("repositories/security-tools-lock.json").read_text())
 expected = {"aircrack-ng", "hydra"}
 packages = lock.get("packages", [])
@@ -160,6 +176,8 @@ if repositories.get("Akilix-M17N-Fonts-Leap-16") != "https://download.opensuse.o
     raise SystemExit("KIWI image lacks the audited M17N:fonts source")
 if repositories.get("Akilix-Security-Leap-16") != "https://download.opensuse.org/repositories/security/16.0/":
     raise SystemExit("KIWI image lacks the audited security tools source")
+if repositories.get("Akilix-Filesystems-Leap-16") != "https://download.opensuse.org/repositories/filesystems/16.0/":
+    raise SystemExit("KIWI image lacks the audited filesystems source")
 plymouth = {"plymouth", "plymouth-branding-upstream", "plymouth-plugin-script", "plymouth-dracut"}
 if not plymouth <= packages:
     raise SystemExit("KIWI image lacks the complete Plymouth/initrd package set")
@@ -187,6 +205,16 @@ cli_tools = {
 }
 if not cli_tools <= packages:
     raise SystemExit("KIWI image lacks the curated command-line utility set")
+storage = {"ntfs-3g", "cifs-utils", "samba-client", "samba", "zfs", "zfs-kmp-default", "zfs-ueficert"}
+if not storage <= packages:
+    raise SystemExit("KIWI image lacks the storage interoperability set")
+storage_preset = (image / "root/etc/systemd/system-preset/60-akilix-storage.preset").read_text()
+for service in ("smb.service", "nmb.service", "winbind.service", "zfs-import-cache.service", "zfs-import-scan.service", "zfs-mount.service", "zfs-share.service", "zfs-zed.service"):
+    if f"disable {service}" not in storage_preset:
+        raise SystemExit(f"storage service is not disabled by default: {service}")
+motd = (image / "root/etc/motd").read_text()
+if "Security work with provenance." not in motd or "hardware forensic write blocker" not in motd:
+    raise SystemExit("Akilix MOTD lacks its identity or acquisition warning")
 bluetooth = {
     "bluez", "bluez-deprecated", "bluez-firmware", "bluez-obexd", "bluez-zsh-completion",
     "kernel-firmware-bluetooth", "blueman", "urfkill", "pipewire",

@@ -36,6 +36,9 @@
   <repository type="rpm-md" alias="Akilix-Security-Leap-16">
     <source path="https://download.opensuse.org/repositories/security/16.0/"/>
   </repository>
+  <repository type="rpm-md" alias="Akilix-Filesystems-Leap-16">
+    <source path="https://download.opensuse.org/repositories/filesystems/16.0/"/>
+  </repository>
   <packages type="image">
     <package name="systemd"/>
     <package name="btrfsprogs"/>
@@ -70,6 +73,13 @@
     <package name="usbutils"/>
     <package name="smartmontools"/>
     <package name="nvme-cli"/>
+    <package name="ntfs-3g"/>
+    <package name="cifs-utils"/>
+    <package name="samba-client"/>
+    <package name="samba"/>
+    <package name="zfs"/>
+    <package name="zfs-kmp-default"/>
+    <package name="zfs-ueficert"/>
     <package name="procps"/>
     <package name="psmisc"/>
     <package name="lsof"/>

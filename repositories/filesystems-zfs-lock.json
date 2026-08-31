@@ -1,0 +1,28 @@
+{
+  "schema": "akilix.package-lock.v1",
+  "repository_id": "filesystems-leap-16",
+  "generated_at": "2026-08-31T00:00:00Z",
+  "packages": [
+    {
+      "name": "zfs",
+      "version": "2.4.4-lp160.1.1",
+      "arch": "x86_64",
+      "sha512": "f922b69c22c4e4ac52c0558e9b4e49d885b530a1c8412392eef7105873b99fa54f749f1d7dfc3519e3a060563619268b3e1895db648966fe2f73a87933ebe654",
+      "location": "x86_64/zfs-2.4.4-lp160.1.1.x86_64.rpm"
+    },
+    {
+      "name": "zfs-kmp-default",
+      "version": "2.4.4_k6.12.0_160000.37-lp160.1.4",
+      "arch": "x86_64",
+      "sha512": "9fd14b438f21fdc4ff699e6efdaa2dddd18fd6b41c79941af14941e08e653f62db54a4472ce51afb3650816a93606cad0c4ddfba807b1acae6c9e4b196096a33",
+      "location": "x86_64/zfs-kmp-default-2.4.4_k6.12.0_160000.37-lp160.1.4.x86_64.rpm"
+    },
+    {
+      "name": "zfs-ueficert",
+      "version": "2.4.4-lp160.1.4",
+      "arch": "x86_64",
+      "sha512": "2448ee49a43072af46bbda776b31be47fb7da6b6ad10578e93f6a06b5c897c68527f1e77b142f1846e726e3be8528b326d538a068e409362133bceb45a584373",
+      "location": "x86_64/zfs-ueficert-2.4.4-lp160.1.4.x86_64.rpm"
+    }
+  ]
+}

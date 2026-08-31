@@ -55,6 +55,17 @@
       "key_fingerprint": "F9FA0223B56B116C363737EF5DA57BDD6DD785CA",
       "image_enabled": true,
       "status": "approved"
+    },
+    {
+      "id": "filesystems-leap-16",
+      "name": "openSUSE OBS Filesystems for Leap 16.0",
+      "purpose": "filesystem",
+      "tier": "obs",
+      "base_url": "https://download.opensuse.org/repositories/filesystems/16.0/",
+      "key_url": "https://download.opensuse.org/repositories/filesystems/16.0/repodata/repomd.xml.key",
+      "key_fingerprint": "B1FB53748720472205FA601998C97FE7324E6311",
+      "image_enabled": true,
+      "status": "approved"
     }
   ]
 }

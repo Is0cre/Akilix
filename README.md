@@ -177,6 +177,10 @@ diagnostic command touches the selected disk. It captures structured SMART or
 NVMe identity/health output, exact arguments and exit status without mounting
 or modifying the target. Akilix never invokes privilege elevation itself.
 
+NTFS, SMB client/server, and experimental OpenZFS interoperability are shipped
+for explicit operator workflows. Samba serving and all ZFS automatic
+import/mount/share services remain disabled. See [storage interoperability](docs/STORAGE.md).
+
 ---
 
 # Scope awareness
