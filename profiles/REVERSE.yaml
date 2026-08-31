@@ -4,6 +4,9 @@ name: Reverse Engineering
 description: Binary inspection, disassembly, debugging, and format analysis.
 status: planned
 rpm:
+  - binutils
   - radare2
+  - binwalk
+  - yara
 containers:
   - akilix-reverse

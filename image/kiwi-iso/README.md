@@ -56,6 +56,13 @@ identities are recorded in `repositories/security-tools-lock.json`. Kismet is
 not present for x86_64 at that revision and is intentionally omitted instead of
 leaving an unresolvable KIWI package request.
 
+Ghidra is the documented exception to RPM-only application delivery because no
+Leap 16 package repository currently publishes it. `scripts/stage-ghidra.sh`
+downloads the official 12.1 archive into the reusable build cache and verifies
+SHA-256 `aa5cbcbbf48f41ca185fce900e19592f1ade4cd5994eb6e0ede468dac8a6f302`
+before staging `/opt/ghidra`. Set `AKILIX_GHIDRA_MIRROR` to an internal mirror
+or pre-populate `AKILIX_DOWNLOAD_CACHE` for an offline build.
+
 The operator account uses Zsh with the documented Akilix system baseline,
 durable extended history, and generated CLI completion. See `docs/SHELL.md`.
 

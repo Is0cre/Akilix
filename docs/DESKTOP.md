@@ -90,6 +90,16 @@ invocations but has no automatic action in the workbook TUI. Kismet is not
 published for x86_64 by that repository at the pinned revision and is therefore
 not claimed or requested by the image.
 
+Bluetooth diagnostics also include the deprecated BlueZ compatibility tools
+for older adapters and protocols plus the supplementary BlueZ firmware set.
+They are operator-invoked; no test utility or background scanner is enabled.
+
+The reverse-engineering baseline includes binutils, Radare2, Binwalk, YARA,
+Sleuth Kit, EWF tools, TestDisk, and ExifTool. Ghidra 12.1 is staged from the
+official release archive with its published SHA-256 digest and runs on Leap's
+OpenJDK 21. It is available as `ghidra` and through Fuzzel, but is never started
+automatically.
+
 ## Default interaction model
 
 The primary modifier should be the Super key. Initial bindings should include:

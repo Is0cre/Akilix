@@ -17,6 +17,9 @@
 /image/kiwi-iso/root/usr/share/licenses/akilix-branding/LICENSE
 /image/kiwi-iso/root/usr/bin/weathr
 /image/kiwi-iso/root/usr/share/licenses/weathr/LICENSE
+/image/kiwi-iso/root/opt/ghidra/
+/image/kiwi-iso/root/usr/bin/ghidra
+/image/kiwi-iso/root/usr/share/applications/ghidra.desktop
 
 # Go caches and local workspace state
 /.cache/

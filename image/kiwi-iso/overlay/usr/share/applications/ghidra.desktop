@@ -1,0 +1,8 @@
+[Desktop Entry]
+Type=Application
+Name=Ghidra
+Comment=Software reverse-engineering framework
+Exec=/usr/bin/ghidra
+Terminal=false
+Categories=Development;Debugger;
+StartupNotify=true

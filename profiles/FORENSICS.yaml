@@ -8,5 +8,9 @@ rpm:
   - smartmontools
   - nvme-cli
   - exiftool
+  - binwalk
+  - libewf-tools
+  - testdisk
+  - yara
 containers:
   - akilix-forensics

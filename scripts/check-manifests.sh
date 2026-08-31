@@ -188,13 +188,19 @@ cli_tools = {
 if not cli_tools <= packages:
     raise SystemExit("KIWI image lacks the curated command-line utility set")
 bluetooth = {
-    "bluez", "bluez-obexd", "bluez-zsh-completion",
+    "bluez", "bluez-deprecated", "bluez-firmware", "bluez-obexd", "bluez-zsh-completion",
     "kernel-firmware-bluetooth", "blueman", "urfkill", "pipewire",
     "pipewire-alsa", "pipewire-pulseaudio", "pipewire-spa-plugins-0_2",
     "wireplumber",
 }
 if not bluetooth <= packages:
     raise SystemExit("KIWI image lacks the Bluetooth and audio stack")
+reverse_forensics = {
+    "java-21-openjdk", "binutils", "radare2", "radare2-zsh-completion",
+    "binwalk", "sleuthkit", "libewf-tools", "yara", "testdisk", "exiftool",
+}
+if not reverse_forensics <= packages:
+    raise SystemExit("KIWI image lacks the reverse-engineering and forensic toolkit")
 wireless = {
     "iw", "wireless-regdb", "wireless-tools", "tcpdump", "ethtool",
     "wavemon", "horst", "wireshark", "wireshark-ui-qt", "aircrack-ng",
@@ -252,6 +258,12 @@ for setting in ("DiscoverableTimeout = 180", "PairableTimeout = 180", "AlwaysPai
 bluetooth_preset = (image / "root/etc/systemd/system-preset/80-akilix-bluetooth.preset").read_text()
 if "enable bluetooth.service" not in bluetooth_preset:
     raise SystemExit("Bluetooth service is not explicitly preset")
+ghidra_stage = Path("scripts/stage-ghidra.sh").read_text()
+for setting in ("version=12.1", "release_date=20260513", "aa5cbcbbf48f41ca185fce900e19592f1ade4cd5994eb6e0ede468dac8a6f302", "AKILIX_GHIDRA_MIRROR"):
+    if setting not in ghidra_stage:
+        raise SystemExit(f"Ghidra staging policy lacks {setting}")
+if not Path("image/kiwi-iso/overlay/usr/bin/ghidra").is_file():
+    raise SystemExit("image lacks the stable Ghidra launcher")
 PY
 
 zsh -n image/kiwi-iso/root/etc/zsh.zshrc.local

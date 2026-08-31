@@ -90,6 +90,8 @@
     <package name="aircrack-ng"/>
     <package name="hydra"/>
     <package name="bluez"/>
+    <package name="bluez-deprecated"/>
+    <package name="bluez-firmware"/>
     <package name="bluez-obexd"/>
     <package name="bluez-zsh-completion"/>
     <package name="kernel-firmware-bluetooth"/>
@@ -100,6 +102,16 @@
     <package name="pipewire-pulseaudio"/>
     <package name="pipewire-spa-plugins-0_2"/>
     <package name="wireplumber"/>
+    <package name="java-21-openjdk"/>
+    <package name="binutils"/>
+    <package name="radare2"/>
+    <package name="radare2-zsh-completion"/>
+    <package name="binwalk"/>
+    <package name="sleuthkit"/>
+    <package name="libewf-tools"/>
+    <package name="yara"/>
+    <package name="testdisk"/>
+    <package name="exiftool"/>
     <package name="git"/>
     <package name="iproute2"/>
     <package name="wicked"/>
