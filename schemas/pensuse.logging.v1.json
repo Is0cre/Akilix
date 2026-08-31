@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "PenSUSE Logging Policy v1",
+  "type": "object",
+  "required": [
+    "schema",
+    "command_metadata",
+    "command_arguments",
+    "container_metadata",
+    "evidence_hashing",
+    "stdout_capture",
+    "stderr_capture",
+    "generated_file_tracking",
+    "packet_metadata",
+    "terminal_recording"
+  ],
+  "properties": {
+    "schema": {"const": "pensuse.logging.v1"},
+    "command_metadata": {"type": "boolean"},
+    "command_arguments": {"type": "boolean"},
+    "container_metadata": {"type": "boolean"},
+    "evidence_hashing": {"type": "boolean"},
+    "stdout_capture": {"type": "boolean"},
+    "stderr_capture": {"type": "boolean"},
+    "generated_file_tracking": {"type": "boolean"},
+    "packet_metadata": {"type": "boolean"},
+    "terminal_recording": {"type": "boolean"}
+  },
+  "additionalProperties": false
+}

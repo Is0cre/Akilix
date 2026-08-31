@@ -25,6 +25,10 @@ func TestCreateOpenList(t *testing.T) {
 	if string(scopeData) != "version: 1\ninclude:\n  []\nexclude:\n  []\n" {
 		t.Fatalf("unexpected initial scope document: %q", scopeData)
 	}
+	loggingData, err := os.ReadFile(filepath.Join(root, "case-1", "logging.yaml"))
+	if err != nil || !bytes.Contains(loggingData, []byte("terminal_recording: false")) {
+		t.Fatalf("unexpected initial logging policy: %q %v", loggingData, err)
+	}
 	if _, err := Open(root, "../escape"); err == nil {
 		t.Fatal("path traversal accepted")
 	}

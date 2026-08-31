@@ -10,6 +10,8 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/pensuse/pensuse/internal/logpolicy"
 )
 
 const Schema = "pensuse.workbook.v1"
@@ -63,6 +65,13 @@ func Create(root, name string, now time.Time) (Metadata, error) {
 		return Metadata{}, err
 	}
 	if err := atomicWrite(filepath.Join(stage, "scope.yaml"), "version: 1\ninclude:\n  []\nexclude:\n  []\n", 0600); err != nil {
+		return Metadata{}, err
+	}
+	loggingPolicy, err := logpolicy.Render(logpolicy.Default())
+	if err != nil {
+		return Metadata{}, err
+	}
+	if err := atomicWrite(filepath.Join(stage, "logging.yaml"), loggingPolicy, 0600); err != nil {
 		return Metadata{}, err
 	}
 	if err := atomicWrite(filepath.Join(stage, "README.md"), "# "+name+"\n\nPenSUSE workbook.\n", 0600); err != nil {
@@ -184,7 +193,7 @@ func ValidateLayout(root, name string) error {
 		return err
 	}
 	dir := filepath.Join(root, name)
-	for _, file := range []string{"workbook.yaml", "scope.yaml", "README.md"} {
+	for _, file := range []string{"workbook.yaml", "scope.yaml", "logging.yaml", "README.md"} {
 		if err := requirePath(filepath.Join(dir, file), false); err != nil {
 			return err
 		}

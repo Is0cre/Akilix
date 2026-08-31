@@ -31,6 +31,7 @@ Renaming a workbook must never change its identity.
     client-2026/
     ├── workbook.yaml
     ├── scope.yaml
+    ├── logging.yaml
     ├── README.md
     ├── evidence/
     │   ├── original/

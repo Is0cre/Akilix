@@ -85,3 +85,30 @@ func TestScopeClosedWorkbookCannotMutateAndJSONListIsJSON(t *testing.T) {
 		t.Fatalf("unexpected scope: %+v", got)
 	}
 }
+
+func TestLoggingStatusIsExplicitAndJSONReadable(t *testing.T) {
+	root := t.TempDir()
+	t.Setenv("PENSUSE_WORKBOOK_ROOT", root)
+	if _, err := workbook.Create(root, "case-1", time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+	var out, errOut bytes.Buffer
+	if code := run([]string{"logging", "status", "case-1"}, &out, &errOut); code != 0 {
+		t.Fatalf("logging status: %d %s", code, errOut.String())
+	}
+	if !bytes.Contains(out.Bytes(), []byte("Terminal recording       disabled")) {
+		t.Fatalf("logging status omitted disabled sensitive feature: %q", out.String())
+	}
+	out.Reset()
+	errOut.Reset()
+	if code := run([]string{"logging", "status", "case-1", "--json"}, &out, &errOut); code != 0 {
+		t.Fatalf("logging JSON status: %d %s", code, errOut.String())
+	}
+	var policy map[string]interface{}
+	if err := json.Unmarshal(out.Bytes(), &policy); err != nil {
+		t.Fatalf("logging status was not JSON: %v", err)
+	}
+	if policy["terminal_recording"] != false || policy["command_metadata"] != true {
+		t.Fatalf("unexpected logging policy: %+v", policy)
+	}
+}

@@ -15,6 +15,7 @@ import (
 	containerpkg "github.com/pensuse/pensuse/internal/container"
 	"github.com/pensuse/pensuse/internal/evidence"
 	"github.com/pensuse/pensuse/internal/invocation"
+	"github.com/pensuse/pensuse/internal/logpolicy"
 	profilepkg "github.com/pensuse/pensuse/internal/profile"
 	"github.com/pensuse/pensuse/internal/scope"
 	"github.com/pensuse/pensuse/internal/version"
@@ -38,6 +39,9 @@ func run(args []string, stdout, stderr io.Writer) int {
 	}
 	if args[0] == "scope" {
 		return runScope(args[1:], stdout, stderr)
+	}
+	if args[0] == "logging" {
+		return runLogging(args[1:], stdout, stderr)
 	}
 	if args[0] == "run" {
 		return runCommand(args[1:], stdout, stderr)
@@ -74,6 +78,44 @@ func run(args []string, stdout, stderr io.Writer) int {
 	}
 	fmt.Fprintf(stdout, "%s %s\nBase: %s\nArchitecture: %s\n", info.Name, info.Version, info.Base, info.Architecture)
 	return 0
+}
+
+func runLogging(args []string, stdout, stderr io.Writer) int {
+	if len(args) != 2 && !(len(args) == 3 && args[2] == "--json") || len(args) > 0 && args[0] != "status" {
+		fmt.Fprintln(stderr, "usage: pensuse logging status WORKBOOK [--json]")
+		return 2
+	}
+	root := effectiveWorkbookRoot()
+	if _, err := workbook.Open(root, args[1]); err != nil {
+		fmt.Fprintln(stderr, err)
+		return 1
+	}
+	policy, err := logpolicy.Load(filepath.Join(root, args[1]))
+	if err != nil {
+		fmt.Fprintln(stderr, err)
+		return 1
+	}
+	if len(args) == 3 {
+		data, err := json.MarshalIndent(policy, "", "  ")
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		fmt.Fprintln(stdout, string(data))
+		return 0
+	}
+	fmt.Fprintf(stdout, "Command metadata         %s\nCommand arguments        %s\nContainer metadata       %s\nEvidence hashing         %s\nstdout capture           %s\nstderr capture           %s\nGenerated-file tracking  %s\nPacket metadata          %s\nTerminal recording       %s\n",
+		enabled(policy.CommandMetadata), enabled(policy.CommandArguments), enabled(policy.ContainerMetadata),
+		enabled(policy.EvidenceHashing), enabled(policy.StdoutCapture), enabled(policy.StderrCapture),
+		enabled(policy.GeneratedFileTracking), enabled(policy.PacketMetadata), enabled(policy.TerminalRecording))
+	return 0
+}
+
+func enabled(value bool) string {
+	if value {
+		return "enabled"
+	}
+	return "disabled"
 }
 
 func runConfig(args []string, stdout, stderr io.Writer) int {
@@ -661,6 +703,10 @@ func runWorkbook(args []string, stdout, stderr io.Writer) int {
 			return 1
 		}
 		if _, err := scope.Load(workbookRoot); err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		if _, err := logpolicy.Load(workbookRoot); err != nil {
 			fmt.Fprintln(stderr, err)
 			return 1
 		}
