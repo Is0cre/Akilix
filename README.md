@@ -135,6 +135,21 @@ A workbook may contain:
 - timeline events
 - report material
 
+## Passive hardware inspection
+
+The first forensic-acquisition command inventories whole disks and their
+partitions without opening raw device nodes or changing device state:
+
+    akilix acquire inspect
+    akilix acquire inspect --json
+
+It reports capacity, transport, vendor/model/serial/WWN identifiers,
+filesystems, UUIDs, mount state, and current kernel read-only state. System
+disks are identified conservatively through root and boot mount ancestry.
+`acquisition_candidate` means only that a disk was not identified as the
+running system disk; it is not authorization and does not prove the device is
+external. See [M4.md](M4.md).
+
 ---
 
 # Scope awareness

@@ -14,6 +14,7 @@ import (
 	"time"
 
 	tea "charm.land/bubbletea/v2"
+	"github.com/Is0cre/Akilix/internal/acquire"
 	"github.com/Is0cre/Akilix/internal/activity"
 	"github.com/Is0cre/Akilix/internal/completion"
 	"github.com/Is0cre/Akilix/internal/config"
@@ -45,6 +46,9 @@ func run(args []string, stdout, stderr io.Writer) int {
 	}
 	if args[0] == "evidence" {
 		return runEvidence(args[1:], stdout, stderr)
+	}
+	if args[0] == "acquire" {
+		return runAcquire(args[1:], stdout, stderr)
 	}
 	if args[0] == "scope" {
 		return runScope(args[1:], stdout, stderr)
@@ -84,7 +88,7 @@ func run(args []string, stdout, stderr io.Writer) int {
 		return runTUISession(bufio.NewScanner(os.Stdin), effectiveWorkbookRoot(), args[1], len(args) != 3, stdout, stderr)
 	}
 	if args[0] != "version" {
-		fmt.Fprintln(stderr, "usage: akilix version [--json] | workbook ... | scope ... | evidence ... | run ... | container ... | bar ...")
+		fmt.Fprintln(stderr, "usage: akilix version [--json] | workbook ... | scope ... | evidence ... | acquire ... | run ... | container ... | bar ...")
 		return 2
 	}
 	info := version.Current()
@@ -103,6 +107,77 @@ func run(args []string, stdout, stderr io.Writer) int {
 	}
 	fmt.Fprintf(stdout, "%s %s\nBase: %s\nArchitecture: %s\n", info.Name, info.Version, info.Base, info.Architecture)
 	return 0
+}
+
+func runAcquire(args []string, stdout, stderr io.Writer) int {
+	if len(args) < 1 || args[0] != "inspect" || len(args) > 2 || len(args) == 2 && args[1] != "--json" {
+		fmt.Fprintln(stderr, "usage: akilix acquire inspect [--json]")
+		return 2
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	report, err := acquire.Inspect(ctx, acquire.ExecRunner{}, time.Now())
+	if err != nil {
+		fmt.Fprintln(stderr, err)
+		return 1
+	}
+	if len(args) == 2 {
+		data, err := json.MarshalIndent(report, "", "  ")
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		fmt.Fprintln(stdout, string(data))
+		return 0
+	}
+	fmt.Fprintln(stdout, "Passive hardware inspection — no device state changed")
+	if len(report.Devices) == 0 {
+		fmt.Fprintln(stdout, "No whole-disk block devices found")
+		return 0
+	}
+	for _, device := range report.Devices {
+		role := "CANDIDATE"
+		if device.SystemDisk {
+			role = "SYSTEM"
+		}
+		fmt.Fprintf(stdout, "%s  %-14s %8s  RO=%-3t RM=%-3t %-5s %s %s\n", role, device.Path, humanBytes(device.SizeBytes), device.ReadOnly, device.Removable, device.Transport, device.Vendor, device.Model)
+		fmt.Fprintf(stdout, "        serial=%s wwn=%s mounted=%t", emptyDash(device.Serial), emptyDash(device.WWN), device.Mounted)
+		if len(device.Mountpoints) != 0 {
+			fmt.Fprintf(stdout, " at %s", strings.Join(device.Mountpoints, ","))
+		}
+		fmt.Fprintln(stdout)
+		for _, partition := range device.Partitions {
+			fmt.Fprintf(stdout, "        PART %-14s %8s  %-8s uuid=%s mounted=%t", partition.Path, humanBytes(partition.SizeBytes), emptyDash(partition.Filesystem), emptyDash(partition.UUID), partition.Mounted)
+			if len(partition.Mountpoints) != 0 {
+				fmt.Fprintf(stdout, " at %s", strings.Join(partition.Mountpoints, ","))
+			}
+			fmt.Fprintln(stdout)
+		}
+	}
+	return 0
+}
+
+func humanBytes(size uint64) string {
+	const unit = uint64(1024)
+	if size < unit {
+		return fmt.Sprintf("%dB", size)
+	}
+	value := float64(size)
+	units := []string{"KiB", "MiB", "GiB", "TiB", "PiB"}
+	for _, suffix := range units {
+		value /= 1024
+		if value < 1024 || suffix == units[len(units)-1] {
+			return fmt.Sprintf("%.1f%s", value, suffix)
+		}
+	}
+	return fmt.Sprintf("%dB", size)
+}
+
+func emptyDash(value string) string {
+	if value == "" {
+		return "-"
+	}
+	return value
 }
 
 func runTUIHome(stdin io.Reader, stdout, stderr io.Writer) int {

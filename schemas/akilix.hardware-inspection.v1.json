@@ -1,0 +1,63 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://akilix.dev/schemas/akilix.hardware-inspection.v1.json",
+  "title": "Akilix passive hardware inspection",
+  "type": "object",
+  "required": ["schema", "generated_at", "passive", "source", "devices"],
+  "properties": {
+    "schema": {"const": "akilix.hardware-inspection.v1"},
+    "generated_at": {"type": "string", "format": "date-time"},
+    "passive": {"const": true},
+    "source": {"const": "lsblk-json"},
+    "devices": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/device"}
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "mountpoints": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true
+    },
+    "partition": {
+      "type": "object",
+      "required": ["name", "path", "size_bytes", "read_only", "mounted", "mountpoints"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "path": {"type": "string", "pattern": "^/dev/"},
+        "size_bytes": {"type": "integer", "minimum": 0},
+        "read_only": {"type": "boolean"},
+        "filesystem": {"type": "string"},
+        "uuid": {"type": "string"},
+        "mounted": {"type": "boolean"},
+        "mountpoints": {"$ref": "#/$defs/mountpoints"}
+      },
+      "additionalProperties": false
+    },
+    "device": {
+      "type": "object",
+      "required": ["name", "kernel_name", "path", "size_bytes", "read_only", "removable", "system_disk", "acquisition_candidate", "mounted", "mountpoints", "partitions"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "kernel_name": {"type": "string", "minLength": 1},
+        "path": {"type": "string", "pattern": "^/dev/"},
+        "size_bytes": {"type": "integer", "minimum": 0},
+        "read_only": {"type": "boolean"},
+        "removable": {"type": "boolean"},
+        "transport": {"type": "string"},
+        "vendor": {"type": "string"},
+        "model": {"type": "string"},
+        "serial": {"type": "string"},
+        "wwn": {"type": "string"},
+        "system_disk": {"type": "boolean"},
+        "acquisition_candidate": {"type": "boolean"},
+        "mounted": {"type": "boolean"},
+        "mountpoints": {"$ref": "#/$defs/mountpoints"},
+        "partitions": {"type": "array", "items": {"$ref": "#/$defs/partition"}}
+      },
+      "additionalProperties": false
+    }
+  }
+}

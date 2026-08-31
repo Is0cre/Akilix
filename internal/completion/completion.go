@@ -47,6 +47,7 @@ _akilix() {
       'scope[Manage scope]' \
       'logging[Inspect workbook logging policy]' \
       'evidence[Manage evidence]' \
+      'acquire[Inspect and acquire physical evidence]' \
       'run[Execute and inspect invocations]' \
       'container[Inspect container images]' \
       'tui[Open workbook operator workspace]' \
@@ -61,6 +62,7 @@ _akilix() {
         scope) _values 'scope command' add remove exclude list check ;;
         logging) _values 'logging command' status ;;
         evidence) _values 'evidence command' import list verify ;;
+        acquire) _values 'acquisition command' inspect ;;
         run) _message 'use: akilix run WORKBOOK -- COMMAND [ARGS...]' ;;
         container) _values 'container command' doctor inspect run ;;
         profile) _values 'profile command' list show plan ;;
@@ -77,7 +79,7 @@ _akilix "$@"
 const Bash = `_akilix_complete() {
   local cur prev
   cur="${COMP_WORDS[COMP_CWORD]}"; prev="${COMP_WORDS[COMP_CWORD-1]}"
-  if [[ ${COMP_CWORD} -eq 1 ]]; then COMPREPLY=($(compgen -W 'version workbook scope logging evidence run container tui profile repository config bar completion' -- "$cur")); return; fi
+  if [[ ${COMP_CWORD} -eq 1 ]]; then COMPREPLY=($(compgen -W 'version workbook scope logging evidence acquire run container tui profile repository config bar completion' -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == workbook && ${COMP_CWORD} -eq 2 ]]; then COMPREPLY=($(compgen -W 'create list open overview follow path status close reopen rename validate' -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == workbook && ${COMP_CWORD} -ge 3 ]]; then local workbooks; workbooks="$(akilix workbook list 2>/dev/null | awk '{print $1}')"; COMPREPLY=($(compgen -W "$workbooks" -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == evidence && ${COMP_WORDS[2]} == verify && ${COMP_CWORD} -ge 4 ]]; then local ids; ids="$(akilix evidence list "${COMP_WORDS[3]}" 2>/dev/null | awk '{print $1}')"; COMPREPLY=($(compgen -W "$ids" -- "$cur")); return; fi
@@ -88,6 +90,7 @@ const Bash = `_akilix_complete() {
   if [[ ${COMP_WORDS[1]} == scope ]]; then COMPREPLY=($(compgen -W 'add remove exclude list check' -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == logging ]]; then COMPREPLY=($(compgen -W 'status' -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == evidence ]]; then COMPREPLY=($(compgen -W 'import list verify' -- "$cur")); return; fi
+  if [[ ${COMP_WORDS[1]} == acquire ]]; then COMPREPLY=($(compgen -W 'inspect --json' -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == container ]]; then COMPREPLY=($(compgen -W 'doctor inspect run' -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == profile ]]; then COMPREPLY=($(compgen -W 'list show plan' -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == repository ]]; then COMPREPLY=($(compgen -W 'list show' -- "$cur")); return; fi
