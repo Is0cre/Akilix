@@ -67,7 +67,8 @@ Renaming a workbook must never change its identity.
     │   ├── wireless/
     │   └── memory/
     ├── hardware/
-    │   └── inspections/
+    │   ├── inspections/
+    │   └── protections/
     ├── tool-output/
     ├── notes/
     ├── findings/

@@ -143,6 +143,7 @@ partitions without opening raw device nodes or changing device state:
     akilix acquire inspect
     akilix acquire inspect --json
     akilix acquire record client-2026
+    sudo --preserve-env=AKILIX_WORKBOOK_ROOT akilix acquire protect client-2026 /dev/sdb
 
 It reports capacity, transport, vendor/model/serial/WWN identifiers,
 filesystems, UUIDs, mount state, and current kernel read-only state. System
@@ -150,6 +151,13 @@ disks are identified conservatively through root and boot mount ancestry.
 `acquisition_candidate` means only that a disk was not identified as the
 running system disk; it is not authorization and does not prove the device is
 external. See [M4.md](M4.md).
+
+The explicit `protect` operation refuses system disks, mounted disks, and
+partition paths. It records a durable request before invoking `blockdev
+--setro`, verifies the resulting kernel state, and then records an immutable
+applied or failed event. Akilix never invokes `sudo` itself and provides no
+automatic write-enable command. Kernel software read-only state is an
+operational safeguard, not a hardware forensic write blocker.
 
 ---
 

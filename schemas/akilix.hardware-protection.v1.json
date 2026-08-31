@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://akilix.invalid/schemas/akilix.hardware-protection.v1.json",
+  "title": "Akilix hardware protection event v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "record_id", "operation_id", "workbook_id", "phase", "recorded_at", "device", "kernel_forced_ro", "record_status"],
+  "properties": {
+    "schema": {"const": "akilix.hardware-protection.v1"},
+    "record_id": {"type": "string", "format": "uuid"},
+    "operation_id": {"type": "string", "format": "uuid"},
+    "workbook_id": {"type": "string", "format": "uuid"},
+    "phase": {"enum": ["REQUESTED", "APPLIED", "FAILED"]},
+    "recorded_at": {"type": "string", "format": "date-time"},
+    "device": {"type": "object"},
+    "kernel_forced_ro": {"type": "boolean"},
+    "already_read_only": {"type": "boolean"},
+    "error": {"type": "string"},
+    "record_status": {"const": "complete"}
+  }
+}

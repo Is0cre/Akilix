@@ -110,8 +110,8 @@ func run(args []string, stdout, stderr io.Writer) int {
 }
 
 func runAcquire(args []string, stdout, stderr io.Writer) int {
-	if len(args) < 1 || args[0] != "inspect" && args[0] != "record" {
-		fmt.Fprintln(stderr, "usage: akilix acquire inspect [--json] | acquire record WORKBOOK [--json]")
+	if len(args) < 1 || args[0] != "inspect" && args[0] != "record" && args[0] != "protect" {
+		fmt.Fprintln(stderr, "usage: akilix acquire inspect [--json] | acquire record WORKBOOK [--json] | acquire protect WORKBOOK DEVICE [--json]")
 		return 2
 	}
 	jsonOutput := false
@@ -121,16 +121,22 @@ func runAcquire(args []string, stdout, stderr io.Writer) int {
 			return 2
 		}
 		jsonOutput = len(args) == 2
-	} else {
+	} else if args[0] == "record" {
 		if len(args) != 2 && !(len(args) == 3 && args[2] == "--json") {
 			fmt.Fprintln(stderr, "usage: akilix acquire record WORKBOOK [--json]")
 			return 2
 		}
 		jsonOutput = len(args) == 3
+	} else {
+		if len(args) != 3 && !(len(args) == 4 && args[3] == "--json") {
+			fmt.Fprintln(stderr, "usage: akilix acquire protect WORKBOOK DEVICE [--json]")
+			return 2
+		}
+		jsonOutput = len(args) == 4
 	}
 	var metadata workbook.Metadata
 	var workbookRoot string
-	if args[0] == "record" {
+	if args[0] == "record" || args[0] == "protect" {
 		root := effectiveWorkbookRoot()
 		var err error
 		metadata, err = workbook.Open(root, args[1])
@@ -168,6 +174,52 @@ func runAcquire(args []string, stdout, stderr io.Writer) int {
 			return 0
 		}
 		fmt.Fprintf(stdout, "recorded passive hardware inventory %s\n%s\n", record.ID, path)
+		return 0
+	}
+	if args[0] == "protect" {
+		device, err := acquire.Candidate(report, args[2])
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		operationID, err := acquire.NewOperationID(now)
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		if _, _, err := acquire.RecordProtectionEvent(workbookRoot, metadata.ID, operationID, "REQUESTED", device, acquire.ProtectionResult{}, nil, now); err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		result, protectErr := acquire.SetReadOnly(ctx, acquire.ExecRunner{}, device)
+		phase := "APPLIED"
+		if protectErr != nil {
+			phase = "FAILED"
+		}
+		record, path, recordErr := acquire.RecordProtectionEvent(workbookRoot, metadata.ID, operationID, phase, device, result, protectErr, time.Now().UTC())
+		if protectErr != nil {
+			if recordErr != nil {
+				fmt.Fprintf(stderr, "%v; additionally failed to record failure: %v\n", protectErr, recordErr)
+			} else {
+				fmt.Fprintln(stderr, protectErr)
+			}
+			return 1
+		}
+		if recordErr != nil {
+			fmt.Fprintf(stderr, "kernel read-only state verified, but completion provenance failed: %v\n", recordErr)
+			return 1
+		}
+		if jsonOutput {
+			data, err := json.MarshalIndent(record, "", "  ")
+			if err != nil {
+				fmt.Fprintln(stderr, err)
+				return 1
+			}
+			fmt.Fprintln(stdout, string(data))
+			return 0
+		}
+		fmt.Fprintf(stdout, "kernel read-only state verified for %s\noperation %s\n%s\n", device.Path, operationID, path)
+		fmt.Fprintln(stdout, "Software read-only protection is not a hardware forensic write blocker.")
 		return 0
 	}
 	if jsonOutput {
