@@ -1,0 +1,29 @@
+title-text: "PenSUSE Live"
+title-color: "#e8e6dd"
+title-font: "Unifont Regular 20"
+desktop-image: "background.png"
+desktop-color: "#0b1114"
+message-color: "#e8e6dd"
+message-bg-color: "#151a1d"
+terminal-box: "0 0 100% 100%"
+
++ boot_menu {
+  left = 6%
+  top = 20%
+  width = 52%
+  height = 56%
+  item_font = "Unifont Regular 16"
+  item_color = "#e8e6dd"
+  selected_item_color = "#8ead55"
+  item_height = 28
+  item_padding = 8
+  item_spacing = 4
+}
+
++ label {
+  text = "Security work with provenance."
+  left = 6%
+  top = 88%
+  color = "#4a5358"
+  font = "Unifont Regular 14"
+}

@@ -25,3 +25,8 @@ The image display name and console banner are branded through tracked KIWI
 inputs. Artwork requirements and the planned boot-theme integration are
 documented in `docs/BRANDING.md`. The current console-only M0 image does not
 install a desktop or Plymouth merely to display branding.
+
+`make kiwi-iso` validates the canonical branding kit and stages the PenSUSE
+GRUB background, theme, shared logo, and asset license into the KIWI overlay.
+The graphical boot menu retains GRUB's text-console fallback and must be tested
+in both BIOS and UEFI modes before the image is published.

@@ -1,7 +1,7 @@
 PREFIX ?= /usr
 VERSION ?= 0.0.1-m0
 
-.PHONY: build test check completion-check manifest-check install install-completion rpm rpm-check kiwi kiwi-iso kiwi-iso-prompt schema-check vm-check
+.PHONY: build test check branding-check branding-stage completion-check manifest-check install install-completion rpm rpm-check kiwi kiwi-iso kiwi-iso-prompt schema-check vm-check
 
 build:
 	go build -trimpath -buildvcs=false -o pensuse ./cmd/pensuse
@@ -12,6 +12,7 @@ test:
 check: test
 	go vet ./cmd/... ./internal/...
 	$(MAKE) schema-check
+	$(MAKE) branding-check
 	$(MAKE) build
 	$(MAKE) completion-check
 	$(MAKE) manifest-check
@@ -25,6 +26,14 @@ schema-check:
 
 manifest-check: build
 	sh scripts/check-manifests.sh
+
+branding-check:
+	python3 scripts/check-branding.py
+
+branding-stage: branding-check
+	install -Dm0644 branding/os/grub/background-1920x1080.png image/kiwi-iso/root/usr/share/grub2/themes/PenSUSE/background.png
+	install -Dm0644 branding/os/grub/logo.png image/kiwi-iso/root/usr/share/pensuse/branding/logo.png
+	install -Dm0644 branding/LICENSE image/kiwi-iso/root/usr/share/licenses/pensuse-branding/LICENSE
 
 vm-check:
 	sh scripts/check-m0-platform.sh
@@ -49,7 +58,7 @@ kiwi:
 	kiwi-ng system build --description image/kiwi --target-dir build/kiwi
 
 
-kiwi-iso: build
+kiwi-iso: build branding-stage
 	: "$${PENSUSE_LIVE_PASSWORD:?Set PENSUSE_LIVE_PASSWORD for the live operator account}"
 	install -Dm0755 pensuse image/kiwi-iso/root/usr/bin/pensuse
 	install -Dm0755 scripts/check-m0-platform.sh image/kiwi-iso/root/usr/bin/pensuse-m0-check

@@ -1,7 +1,8 @@
-# Artwork drop location
+# Legacy artwork drop location
 
-Approved PenSUSE artwork goes here using the canonical filenames documented in
-`docs/BRANDING.md`.
+The complete approved branding kit now lives in the parent `branding/` tree.
+Canonical source artwork is under `branding/source/` and image-specific assets
+are under `branding/os/`. Do not add a second copy here.
 
 Do not commit generated ISO images, private working files, unlicensed fonts, or
 assets with unclear redistribution rights.

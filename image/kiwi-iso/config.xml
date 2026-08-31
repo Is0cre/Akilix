@@ -11,6 +11,7 @@
     <packagemanager>zypper</packagemanager>
     <locale>en_US</locale>
     <keytable>us</keytable>
+    <bootloader-theme>PenSUSE</bootloader-theme>
   </preferences>
   <!-- The password placeholder is replaced only in a local build config. -->
   <users>

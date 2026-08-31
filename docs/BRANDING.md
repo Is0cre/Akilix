@@ -21,29 +21,29 @@ must not silently add those subsystems or introduce new services.
 
 ## Canonical artwork inputs
 
-Place approved artwork under `branding/assets/` using these names:
+Approved artwork is stored under `branding/`. The canonical and OS-facing
+inputs are:
 
-- `pensuse-logo.svg` — canonical vector logo, with a transparent background;
-- `pensuse-logo-512.png` — 512×512 transparent raster fallback;
-- `pensuse-mark-64.png` — simplified 64×64 transparent mark;
-- `boot-background-1920x1080.png` — 16:9 bootloader background;
-- `wallpaper-3840x2160.png` — future desktop wallpaper, not installed in M0.
+- `source/pensuse-master.png` — canonical full raster artwork;
+- `source/pensuse-mark-master.png` — canonical compact raster artwork;
+- `source/pensuse-wordmark.svg` — editable wordmark;
+- `os/grub/background-1920x1080.png` — 16:9 bootloader background;
+- `os/grub/logo.png` — compact bootloader mark;
+- `os/wallpaper/pensuse-3840x2160.png` — future desktop wallpaper.
 
-SVG files must not contain scripts, remote references, embedded fonts, or
-external linked resources. PNG files should be stripped of unnecessary
-metadata. Keep source artwork and its license/provenance record beside the
-assets. Do not derive branding from trademarks that PenSUSE is not authorized
-to redistribute.
+SVG files must not contain scripts, remote references, embedded fonts, or data
+URIs. Relative references must remain inside `branding/`. Keep source artwork
+and its license/provenance record beside the assets. Do not derive branding
+from trademarks that PenSUSE is not authorized to redistribute.
 
 ## Planned integration order
 
 1. Validate and record the approved logo provenance and license.
 2. Install shared artwork under `/usr/share/pensuse/branding/`.
-3. Add a KIWI/GRUB theme using a pinned background and readable text fallback.
-4. Test BIOS, UEFI, serial-console, and text-only boot paths.
-5. Add Plymouth only if boot testing justifies the extra package and initrd
+3. Test the KIWI/GRUB theme in BIOS, UEFI, serial-console, and text-only paths.
+4. Add Plymouth only if boot testing justifies the extra package and initrd
    behavior.
-6. Integrate wallpaper and desktop identity only after a desktop environment is
+5. Integrate wallpaper and desktop identity only after a desktop environment is
    selected explicitly.
 
 The boot menu must remain usable if graphical assets fail to load. Branding

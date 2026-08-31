@@ -1,0 +1,8 @@
+PenSUSE palette
+Graphite       #151A1D
+Deep Graphite  #0B1114
+Bone           #E8E6DD
+Monitor Green  #657A3E
+Leaf Green     #8EAD55
+Signal Amber   #C68A2B
+Slate          #4A5358

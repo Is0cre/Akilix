@@ -7,6 +7,9 @@
 /image/kiwi-iso/config.generated.xml
 /image/kiwi-iso/root/usr/share/zsh/site-functions/_pensuse
 /image/kiwi-iso/root/usr/share/bash-completion/completions/pensuse
+/image/kiwi-iso/root/usr/share/grub2/themes/PenSUSE/background.png
+/image/kiwi-iso/root/usr/share/pensuse/branding/logo.png
+/image/kiwi-iso/root/usr/share/licenses/pensuse-branding/LICENSE
 
 # Go caches and local workspace state
 /.cache/
@@ -15,3 +18,5 @@
 # Editor and OS files
 .DS_Store
 *.swp
+*.pyc
+__pycache__/
