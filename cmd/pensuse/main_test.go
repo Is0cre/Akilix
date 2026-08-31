@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -34,6 +35,23 @@ func TestRunVersion(t *testing.T) {
 	}
 	if out.String() == "" || errOut.Len() != 0 {
 		t.Fatalf("unexpected output: stdout=%q stderr=%q", out.String(), errOut.String())
+	}
+}
+
+func TestTUIHomeSelectsWorkbookWithoutSideEffects(t *testing.T) {
+	root := t.TempDir()
+	t.Setenv("PENSUSE_WORKBOOK_ROOT", root)
+	for _, name := range []string{"alpha", "beta"} {
+		if _, err := workbook.Create(root, name, time.Now().UTC()); err != nil {
+			t.Fatal(err)
+		}
+	}
+	var out, errOut bytes.Buffer
+	if code := runTUIHome(strings.NewReader("2\n"), &out, &errOut); code != 0 {
+		t.Fatalf("code=%d stderr=%s", code, errOut.String())
+	}
+	if !strings.Contains(out.String(), "beta") || !strings.Contains(out.String(), "Select workbook") {
+		t.Fatalf("selector output: %q", out.String())
 	}
 }
 

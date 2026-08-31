@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -31,8 +32,7 @@ func main() {
 
 func run(args []string, stdout, stderr io.Writer) int {
 	if len(args) == 0 {
-		fmt.Fprintln(stderr, "usage: pensuse version [--json] | workbook ... | scope ... | evidence ... | run ... | container ...")
-		return 2
+		return runTUIHome(os.Stdin, stdout, stderr)
 	}
 	if args[0] == "workbook" {
 		return runWorkbook(args[1:], stdout, stderr)
@@ -65,8 +65,11 @@ func run(args []string, stdout, stderr io.Writer) int {
 		return runCompletion(args[1:], stdout, stderr)
 	}
 	if args[0] == "tui" {
-		if len(args) < 2 || len(args) > 3 || len(args) == 3 && args[2] != "--no-color" {
-			fmt.Fprintln(stderr, "usage: pensuse tui WORKBOOK [--no-color]")
+		if len(args) == 1 {
+			return runTUIHome(os.Stdin, stdout, stderr)
+		}
+		if len(args) > 3 || len(args) == 3 && args[2] != "--no-color" {
+			fmt.Fprintln(stderr, "usage: pensuse tui [WORKBOOK] [--no-color]")
 			return 2
 		}
 		root := effectiveWorkbookRoot()
@@ -102,6 +105,45 @@ func run(args []string, stdout, stderr io.Writer) int {
 		return 2
 	}
 	fmt.Fprintf(stdout, "%s %s\nBase: %s\nArchitecture: %s\n", info.Name, info.Version, info.Base, info.Architecture)
+	return 0
+}
+
+func runTUIHome(stdin io.Reader, stdout, stderr io.Writer) int {
+	root := effectiveWorkbookRoot()
+	items, err := workbook.List(root)
+	if err != nil {
+		fmt.Fprintln(stderr, err)
+		return 1
+	}
+	if len(items) == 0 {
+		fmt.Fprintln(stdout, "PenSUSE has no workbooks yet.\n\nCreate one with:\n  pensuse workbook create NAME")
+		return 0
+	}
+	selected := items[0].Name
+	if len(items) > 1 {
+		fmt.Fprintln(stdout, "PenSUSE workbooks")
+		for i, item := range items {
+			fmt.Fprintf(stdout, "  %d  %-24s %s\n", i+1, item.Name, strings.ToUpper(item.Status))
+		}
+		fmt.Fprint(stdout, "Select workbook: ")
+		var choice int
+		if _, err := fmt.Fscan(bufio.NewReader(stdin), &choice); err != nil || choice < 1 || choice > len(items) {
+			fmt.Fprintln(stderr, "workbook selection cancelled")
+			return 1
+		}
+		selected = items[choice-1].Name
+	}
+	overview, err := workbookview.Build(root, selected)
+	if err != nil {
+		fmt.Fprintln(stderr, err)
+		return 1
+	}
+	config, err := scope.Load(filepath.Join(root, selected))
+	if err != nil {
+		fmt.Fprintln(stderr, err)
+		return 1
+	}
+	fmt.Fprint(stdout, tuipkg.Render(overview, config, os.Getenv("NO_COLOR") == ""))
 	return 0
 }
 
