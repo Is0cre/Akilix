@@ -20,3 +20,8 @@ before KIWI runs. The result is written under `build/kiwi-iso/`. Verify the
 generated checksum before copying the ISO to Ventoy media. A Ventoy boot test
 must verify that the system reaches the expected target, does not start PenSUSE
 listeners, and preserves the documented passive-opening behavior.
+
+The image display name and console banner are branded through tracked KIWI
+inputs. Artwork requirements and the planned boot-theme integration are
+documented in `docs/BRANDING.md`. The current console-only M0 image does not
+install a desktop or Plymouth merely to display branding.
