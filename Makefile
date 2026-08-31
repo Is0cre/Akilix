@@ -1,7 +1,7 @@
 PREFIX ?= /usr
 VERSION ?= 0.0.1-m0
 
-.PHONY: build test check branding-check branding-stage weathr-stage ghidra-stage completion-check manifest-check install install-completion rpm rpm-check kiwi kiwi-iso kiwi-iso-prompt schema-check vm-check
+.PHONY: build test check branding-check branding-stage weathr-stage ghidra-stage usb-ids-stage completion-check manifest-check install install-completion rpm rpm-check kiwi kiwi-iso kiwi-iso-prompt schema-check vm-check
 
 build:
 	go build -trimpath -buildvcs=false -o akilix ./cmd/akilix
@@ -43,6 +43,9 @@ weathr-stage:
 ghidra-stage:
 	sh scripts/stage-ghidra.sh
 
+usb-ids-stage:
+	sh scripts/stage-usb-ids.sh
+
 vm-check:
 	sh scripts/check-m0-platform.sh
 
@@ -67,7 +70,7 @@ kiwi:
 	kiwi-ng system build --description image/kiwi --target-dir build/kiwi
 
 
-kiwi-iso: build branding-stage weathr-stage ghidra-stage
+kiwi-iso: build branding-stage weathr-stage ghidra-stage usb-ids-stage
 	: "$${AKILIX_LIVE_PASSWORD:?Set AKILIX_LIVE_PASSWORD for the live operator account}"
 	@if [ -e build/kiwi-iso ]; then \
 		archive="build/kiwi-iso.previous-$$(date -u +%Y%m%dT%H%M%SZ)"; \

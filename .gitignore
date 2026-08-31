@@ -20,6 +20,8 @@
 /image/kiwi-iso/root/opt/ghidra/
 /image/kiwi-iso/root/usr/bin/ghidra
 /image/kiwi-iso/root/usr/share/applications/ghidra.desktop
+/image/kiwi-iso/root/usr/share/hwdata/usb.ids
+/image/kiwi-iso/root/usr/share/licenses/akilix-usb-ids/NOTICE.md
 
 # Go caches and local workspace state
 /.cache/

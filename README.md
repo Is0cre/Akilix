@@ -166,6 +166,8 @@ model, rather than transient `/dev` names. Devices without a sufficiently
 stable identity cannot be added. Trust entries and revocations are retained in
 the local state registry. Trust is descriptive policy only: it never makes
 storage writable, bypasses protection, or constitutes acquisition authority.
+The ISO also stages a checksum-pinned `usb.ids` snapshot for offline friendly
+names; those unauthenticated VID/PID labels are never treated as identity.
 
 ---
 
