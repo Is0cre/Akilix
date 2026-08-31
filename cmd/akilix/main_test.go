@@ -94,6 +94,21 @@ func TestDeviceTrustListStartsEmptyWithoutHardwareAccess(t *testing.T) {
 	}
 }
 
+func TestGreeterPreflightRendersRedactedCard(t *testing.T) {
+	var out, errOut bytes.Buffer
+	if code := run([]string{"greeter", "preflight", "--no-color"}, &out, &errOut); code != 0 {
+		t.Fatalf("code=%d stderr=%q", code, errOut.String())
+	}
+	for _, marker := range []string{"AKILIX", "SYSTEM PRE-FLIGHT AUDIT", "Available after authentication"} {
+		if !strings.Contains(out.String(), marker) {
+			t.Fatalf("preflight lacks %q: %s", marker, out.String())
+		}
+	}
+	if strings.Contains(out.String(), "/dev/") {
+		t.Fatalf("pre-auth output exposed a device path: %s", out.String())
+	}
+}
+
 func TestBarOnceWithoutActiveWorkbookIsValidJSON(t *testing.T) {
 	t.Setenv("XDG_RUNTIME_DIR", t.TempDir())
 	var out, errOut bytes.Buffer

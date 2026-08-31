@@ -20,6 +20,7 @@ import (
 	"github.com/Is0cre/Akilix/internal/config"
 	containerpkg "github.com/Is0cre/Akilix/internal/container"
 	"github.com/Is0cre/Akilix/internal/evidence"
+	greeterpkg "github.com/Is0cre/Akilix/internal/greeter"
 	"github.com/Is0cre/Akilix/internal/invocation"
 	"github.com/Is0cre/Akilix/internal/logpolicy"
 	playbookpkg "github.com/Is0cre/Akilix/internal/playbook"
@@ -80,6 +81,9 @@ func run(args []string, stdout, stderr io.Writer) int {
 	if args[0] == "bar" {
 		return runBar(args[1:], stdout, stderr)
 	}
+	if args[0] == "greeter" {
+		return runGreeter(args[1:], stdout, stderr)
+	}
 	if args[0] == "tui" {
 		if len(args) == 1 {
 			return runTUIHome(os.Stdin, stdout, stderr)
@@ -91,7 +95,7 @@ func run(args []string, stdout, stderr io.Writer) int {
 		return runTUISession(bufio.NewScanner(os.Stdin), effectiveWorkbookRoot(), args[1], len(args) != 3, stdout, stderr)
 	}
 	if args[0] != "version" {
-		fmt.Fprintln(stderr, "usage: akilix version [--json] | workbook ... | scope ... | evidence ... | acquire ... | device ... | run ... | container ... | bar ...")
+		fmt.Fprintln(stderr, "usage: akilix version [--json] | workbook ... | scope ... | evidence ... | acquire ... | device ... | run ... | container ... | bar ... | greeter ...")
 		return 2
 	}
 	info := version.Current()
@@ -109,6 +113,25 @@ func run(args []string, stdout, stderr io.Writer) int {
 		return 2
 	}
 	fmt.Fprintf(stdout, "%s %s\nBase: %s\nArchitecture: %s\n", info.Name, info.Version, info.Base, info.Architecture)
+	return 0
+}
+
+func runGreeter(args []string, stdout, stderr io.Writer) int {
+	if len(args) < 1 || args[0] != "preflight" || len(args) > 2 || len(args) == 2 && args[1] != "--no-color" && args[1] != "--json" {
+		fmt.Fprintln(stderr, "usage: akilix greeter preflight [--no-color|--json]")
+		return 2
+	}
+	snapshot := greeterpkg.Inspect("/")
+	if len(args) == 2 && args[1] == "--json" {
+		data, err := json.MarshalIndent(snapshot, "", "  ")
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		fmt.Fprintln(stdout, string(data))
+		return 0
+	}
+	fmt.Fprintln(stdout, greeterpkg.Render(snapshot, len(args) != 2))
 	return 0
 }
 

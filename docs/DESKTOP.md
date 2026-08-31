@@ -68,6 +68,22 @@ session selector, and explicit power menu are provided by pinned `tuigreet`
 0.9.1 options. F2 opens sessions, F10 opens power actions, and F12 opens the
 authenticated command selector.
 
+The native `akilix greeter preflight` model is the audited first step toward a
+Go greetd client. Its Lipgloss card joins branding and host readiness into two
+columns. Before authentication it may read SELinux state, Podman/rootless
+configuration, and coarse removable block-media state directly from local
+files and sysfs. It does not execute scanners, inspect filesystem contents,
+show device paths, enumerate workbook names, or contact the network. Workbook
+state is shown only as "Available after authentication".
+
+`tuigreet` remains the active credential client until the native client fully
+implements greetd's length-prefixed JSON protocol and arbitrary PAM message
+sequence. Username/password must not be hard-coded because PAM may request
+TOTP or other prompts. Workbook selection and initialization remain post-auth
+inside the Akilix workspace, where ownership and case-name confidentiality are
+defined. A future signed-ledger claim requires a real signing/key-management
+design and must not be simulated by greeter text.
+
 No component may silently start scans, listeners, packet capture, terminal
 recording, telemetry, cloud synchronization, or workbook uploads.
 

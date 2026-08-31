@@ -56,6 +56,7 @@ _akilix() {
       'repository[Inspect repository trust metadata]' \
       'config[Inspect effective configuration]' \
       'bar[Stream native Sway status]' \
+	  'greeter[Inspect login pre-flight state]' \
       'completion[Generate shell completion]' ;;
     argument)
       case $words[2] in
@@ -70,7 +71,8 @@ _akilix() {
         profile) _values 'profile command' list show plan ;;
         repository) _values 'repository command' list show ;;
         config) _values 'config command' show path ;;
-        bar) _values 'bar command' once stream ;;
+		bar) _values 'bar command' once stream ;;
+		greeter) _values 'greeter command' preflight --no-color --json ;;
         completion) _values 'shell' zsh bash ;;
       esac ;;
   esac
@@ -81,7 +83,7 @@ _akilix "$@"
 const Bash = `_akilix_complete() {
   local cur prev
   cur="${COMP_WORDS[COMP_CWORD]}"; prev="${COMP_WORDS[COMP_CWORD-1]}"
-  if [[ ${COMP_CWORD} -eq 1 ]]; then COMPREPLY=($(compgen -W 'version workbook scope logging evidence acquire device run container tui profile repository config bar completion' -- "$cur")); return; fi
+  if [[ ${COMP_CWORD} -eq 1 ]]; then COMPREPLY=($(compgen -W 'version workbook scope logging evidence acquire device run container tui profile repository config bar greeter completion' -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == workbook && ${COMP_CWORD} -eq 2 ]]; then COMPREPLY=($(compgen -W 'create list open overview follow path status close reopen rename validate' -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == workbook && ${COMP_CWORD} -ge 3 ]]; then local workbooks; workbooks="$(akilix workbook list 2>/dev/null | awk '{print $1}')"; COMPREPLY=($(compgen -W "$workbooks" -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == evidence && ${COMP_WORDS[2]} == verify && ${COMP_CWORD} -ge 4 ]]; then local ids; ids="$(akilix evidence list "${COMP_WORDS[3]}" 2>/dev/null | awk '{print $1}')"; COMPREPLY=($(compgen -W "$ids" -- "$cur")); return; fi
@@ -99,6 +101,7 @@ const Bash = `_akilix_complete() {
   if [[ ${COMP_WORDS[1]} == repository ]]; then COMPREPLY=($(compgen -W 'list show' -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == config ]]; then COMPREPLY=($(compgen -W 'show path' -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == bar ]]; then COMPREPLY=($(compgen -W 'once stream' -- "$cur")); return; fi
+  if [[ ${COMP_WORDS[1]} == greeter ]]; then COMPREPLY=($(compgen -W 'preflight --no-color --json' -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == completion ]]; then COMPREPLY=($(compgen -W 'zsh bash' -- "$cur")); return; fi
 }
 complete -F _akilix_complete akilix
