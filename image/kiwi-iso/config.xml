@@ -33,6 +33,9 @@
   <repository type="rpm-md" alias="Akilix-M17N-Fonts-Leap-16">
     <source path="https://download.opensuse.org/repositories/M17N:/fonts/16.0/"/>
   </repository>
+  <repository type="rpm-md" alias="Akilix-Security-Leap-16">
+    <source path="https://download.opensuse.org/repositories/security/16.0/"/>
+  </repository>
   <packages type="image">
     <package name="systemd"/>
     <package name="btrfsprogs"/>
@@ -84,6 +87,8 @@
     <package name="horst"/>
     <package name="wireshark"/>
     <package name="wireshark-ui-qt"/>
+    <package name="aircrack-ng"/>
+    <package name="hydra"/>
     <package name="bluez"/>
     <package name="bluez-obexd"/>
     <package name="bluez-zsh-completion"/>

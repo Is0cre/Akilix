@@ -40,6 +40,25 @@ python3 - <<'PY'
 import json
 from pathlib import Path
 
+lock = json.loads(Path("repositories/security-tools-lock.json").read_text())
+expected = {"aircrack-ng", "hydra"}
+packages = lock.get("packages", [])
+if lock.get("schema") != "akilix.package-lock.v1" or lock.get("repository_id") != "security-tools-leap-16":
+    raise SystemExit("security tool lock has the wrong source identity")
+if {item.get("name") for item in packages} != expected:
+    raise SystemExit("security tool lock is incomplete")
+for item in packages:
+    if len(item.get("sha512", "")) != 128 or not item.get("location", "").startswith("x86_64/"):
+        raise SystemExit("security tool lock contains invalid RPM identity")
+unavailable = {item.get("name") for item in lock.get("unavailable", [])}
+if "kismet" not in unavailable:
+    raise SystemExit("security tool lock does not record unavailable Kismet")
+PY
+
+python3 - <<'PY'
+import json
+from pathlib import Path
+
 lock = json.loads(Path("repositories/desktop-sway-lock.json").read_text())
 expected = {"sway", "swaybar", "swayidle", "swaylock", "foot", "fuzzel", "mako", "wl-clipboard", "grim", "slurp", "greetd", "greetd-branding-upstream", "tuigreet"}
 packages = lock.get("packages", [])
@@ -139,6 +158,8 @@ if repositories.get("Akilix-Base-System-Leap-16") != "https://download.opensuse.
     raise SystemExit("KIWI image lacks the audited Base:System source")
 if repositories.get("Akilix-M17N-Fonts-Leap-16") != "https://download.opensuse.org/repositories/M17N:/fonts/16.0/":
     raise SystemExit("KIWI image lacks the audited M17N:fonts source")
+if repositories.get("Akilix-Security-Leap-16") != "https://download.opensuse.org/repositories/security/16.0/":
+    raise SystemExit("KIWI image lacks the audited security tools source")
 plymouth = {"plymouth", "plymouth-branding-upstream", "plymouth-plugin-script", "plymouth-dracut"}
 if not plymouth <= packages:
     raise SystemExit("KIWI image lacks the complete Plymouth/initrd package set")
@@ -176,10 +197,12 @@ if not bluetooth <= packages:
     raise SystemExit("KIWI image lacks the Bluetooth and audio stack")
 wireless = {
     "iw", "wireless-regdb", "wireless-tools", "tcpdump", "ethtool",
-    "wavemon", "horst", "wireshark", "wireshark-ui-qt",
+    "wavemon", "horst", "wireshark", "wireshark-ui-qt", "aircrack-ng",
 }
 if not wireless <= packages:
-    raise SystemExit("KIWI image lacks the passive wireless toolkit")
+    raise SystemExit("KIWI image lacks the curated wireless toolkit")
+if "hydra" not in packages or "kismet" in packages:
+    raise SystemExit("KIWI security package selection disagrees with its lock")
 vimrc = (image / "root/etc/vimrc").read_text()
 for setting in ("syntax enable", "filetype plugin indent on", "set number", "set swapfile"):
     if setting not in vimrc:

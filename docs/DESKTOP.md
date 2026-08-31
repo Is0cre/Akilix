@@ -83,6 +83,13 @@ start packet capture. Those actions affect host networking and require an
 operator-selected workflow and any necessary explicit elevation. Monitor-mode
 support depends on the physical adapter, driver, and firmware.
 
+Aircrack-ng is supplied by the audited openSUSE `security/16.0` OBS repository.
+Its presence does not authorize deauthentication, credential attacks, or any
+other active operation. Hydra is available for explicitly authorized managed
+invocations but has no automatic action in the workbook TUI. Kismet is not
+published for x86_64 by that repository at the pinned revision and is therefore
+not claimed or requested by the image.
+
 ## Default interaction model
 
 The primary modifier should be the Super key. Initial bindings should include:

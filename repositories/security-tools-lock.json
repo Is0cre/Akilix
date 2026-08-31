@@ -1,0 +1,15 @@
+{
+  "schema": "akilix.package-lock.v1",
+  "repository_id": "security-tools-leap-16",
+  "architecture": "x86_64",
+  "resolved_at": "2026-08-31T00:00:00Z",
+  "repomd_revision": "1788207130",
+  "primary_sha512": "fe69d948c08e6f19e72daaa36fa840da3c99b6b51cb50fb5e649e93d543cc99c93a25b6a2bc21ba55e5818d9c25509f4ecddee097f983aaecf0f99cadd98a2bf",
+  "packages": [
+    {"name":"aircrack-ng","version":"1.7-bp160.22.3","sha512":"e5bd2269809dde2e60feaf25a09cd6c0191cad495c5bfe9d7325528dcc206da4cf5ef215f321c0a00864c6f25cf7e1fe8288d1872eaf4c921956edeefe785f42","location":"x86_64/aircrack-ng-1.7-bp160.22.3.x86_64.rpm"},
+    {"name":"hydra","version":"9.7+git20.gbccaea1-bp160.2.1","sha512":"2d3126e82f6e352af87196de8251b0dd52c20cb40162eaafc513831ebccbb03692f1c689be55f46cc1464806f7449663590130af69846215a46831bec2de82f0","location":"x86_64/hydra-9.7+git20.gbccaea1-bp160.2.1.x86_64.rpm"}
+  ],
+  "unavailable": [
+    {"name":"kismet","reason":"not published for x86_64 in security/16.0 at the recorded revision"}
+  ]
+}

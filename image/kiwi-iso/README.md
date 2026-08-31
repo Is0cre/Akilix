@@ -50,6 +50,12 @@ Super key. Exact OBS RPM identities are recorded in
 The split `swaybar` RPM is installed explicitly; installing `sway` alone does
 not provide `/usr/bin/swaybar` on this Leap repository.
 
+The approved openSUSE `security/16.0` OBS source supplies Aircrack-ng and Hydra.
+Its signing key, repository revision, primary metadata digest, and exact RPM
+identities are recorded in `repositories/security-tools-lock.json`. Kismet is
+not present for x86_64 at that revision and is intentionally omitted instead of
+leaving an unresolvable KIWI package request.
+
 The operator account uses Zsh with the documented Akilix system baseline,
 durable extended history, and generated CLI completion. See `docs/SHELL.md`.
 

@@ -11,5 +11,6 @@ rpm:
   - horst
   - wireshark
   - wireshark-ui-qt
+  - aircrack-ng
 containers:
   - akilix-wireless-analysis

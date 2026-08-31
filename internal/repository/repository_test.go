@@ -29,3 +29,10 @@ func TestRejectsInsecureRepositoryURL(t *testing.T) {
 		t.Fatal("HTTP repository accepted")
 	}
 }
+
+func TestAcceptsAuditedSecurityRepository(t *testing.T) {
+	item := Item{ID: "security-leap-16", Name: "Security", Purpose: "security", Tier: "obs", BaseURL: "https://download.opensuse.org/repositories/security/16.0/", KeyURL: "https://download.opensuse.org/repositories/security/16.0/repodata/repomd.xml.key", KeyFingerprint: "F9FA0223B56B116C363737EF5DA57BDD6DD785CA", ImageEnabled: true, Status: "approved"}
+	if err := item.Validate(); err != nil {
+		t.Fatal(err)
+	}
+}

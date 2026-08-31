@@ -256,15 +256,17 @@ func TestRepositoryListExposesApprovedImageSources(t *testing.T) {
 	if err := json.Unmarshal(out.Bytes(), &items); err != nil {
 		t.Fatal(err)
 	}
-	if len(items) != 4 {
+	if len(items) != 5 {
 		t.Fatalf("unexpected repository trust state: %+v", items)
 	}
+	want := map[string]bool{"leap-16-oss": true, "x11-wayland-leap-16": true, "base-system-leap-16": true, "m17n-fonts-leap-16": true, "security-tools-leap-16": true}
 	for _, item := range items {
 		if item["status"] != "approved" || item["image_enabled"] != true {
 			t.Fatalf("unexpected repository trust state: %+v", items)
 		}
+		delete(want, item["id"].(string))
 	}
-	if items[2]["purpose"] != "boot" || items[3]["id"] != "m17n-fonts-leap-16" {
-		t.Fatalf("unexpected repository purposes: %+v", items)
+	if len(want) != 0 {
+		t.Fatalf("missing repository identities: %+v", want)
 	}
 }
