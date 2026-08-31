@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"syscall"
 	"time"
 )
 
@@ -36,13 +37,11 @@ func (r Record) Validate() error {
 }
 
 func Import(workbookRoot, source string, now time.Time) (Record, error) {
-	info, err := os.Lstat(source)
+	in, info, err := openRegularNoFollow(source)
 	if err != nil {
 		return Record{}, err
 	}
-	if !info.Mode().IsRegular() || info.Mode()&os.ModeSymlink != 0 {
-		return Record{}, fmt.Errorf("evidence source must be a regular file")
-	}
+	defer in.Close()
 	name := filepath.Base(source)
 	if name == "." || name == ".." || strings.ContainsAny(name, "/\\") {
 		return Record{}, fmt.Errorf("invalid evidence filename")
@@ -56,6 +55,12 @@ func Import(workbookRoot, source string, now time.Time) (Record, error) {
 	}
 	dir := filepath.Join(workbookRoot, "evidence", "original")
 	if err := os.MkdirAll(dir, 0700); err != nil {
+		return Record{}, err
+	}
+	if err := requireRealDirectory(filepath.Join(workbookRoot, "evidence")); err != nil {
+		return Record{}, err
+	}
+	if err := requireRealDirectory(dir); err != nil {
 		return Record{}, err
 	}
 	dest := filepath.Join(dir, name)
@@ -74,12 +79,6 @@ func Import(workbookRoot, source string, now time.Time) (Record, error) {
 		tmp.Close()
 		return Record{}, err
 	}
-	in, err := os.Open(source)
-	if err != nil {
-		tmp.Close()
-		return Record{}, err
-	}
-	defer in.Close()
 	h := sha256.New()
 	n, err := io.Copy(io.MultiWriter(tmp, h), in)
 	if err == nil {
@@ -98,7 +97,7 @@ func Import(workbookRoot, source string, now time.Time) (Record, error) {
 		_ = os.Remove(dest)
 		return Record{}, err
 	}
-	if latest, statErr := os.Stat(source); statErr != nil || latest.Size() != info.Size() {
+	if latest, statErr := in.Stat(); statErr != nil || latest.Size() != info.Size() || !latest.ModTime().Equal(info.ModTime()) {
 		_ = os.Remove(dest)
 		if statErr != nil {
 			return Record{}, fmt.Errorf("evidence source changed or became unavailable: %w", statErr)
@@ -120,6 +119,10 @@ func Import(workbookRoot, source string, now time.Time) (Record, error) {
 		_ = os.Remove(dest)
 		return Record{}, err
 	}
+	if err := requireRealDirectory(filepath.Dir(manifest)); err != nil {
+		_ = os.Remove(dest)
+		return Record{}, err
+	}
 	if err := atomicWrite(manifest, data); err != nil {
 		_ = os.Remove(dest)
 		return Record{}, err
@@ -128,7 +131,13 @@ func Import(workbookRoot, source string, now time.Time) (Record, error) {
 }
 
 func Verify(workbookRoot, id string) (bool, Record, error) {
-	b, err := os.ReadFile(filepath.Join(workbookRoot, "evidence", "manifests", id+".json"))
+	if !validID(id) {
+		return false, Record{}, fmt.Errorf("invalid evidence ID")
+	}
+	if err := requireEvidenceDirectories(workbookRoot); err != nil {
+		return false, Record{}, err
+	}
+	b, err := readRegularNoFollow(filepath.Join(workbookRoot, "evidence", "manifests", id+".json"))
 	if err != nil {
 		return false, Record{}, err
 	}
@@ -142,7 +151,7 @@ func Verify(workbookRoot, id string) (bool, Record, error) {
 	if r.ID != id {
 		return false, r, fmt.Errorf("evidence manifest ID does not match requested ID")
 	}
-	f, err := os.Open(filepath.Join(workbookRoot, "evidence", "original", r.Filename))
+	f, _, err := openRegularNoFollow(filepath.Join(workbookRoot, "evidence", "original", r.Filename))
 	if err != nil {
 		return false, r, err
 	}
@@ -216,7 +225,7 @@ func CheckAll(workbookRoot string) ([]Record, bool, error) {
 }
 
 func checkRecord(workbookRoot string, r Record) (bool, error) {
-	f, err := os.Open(filepath.Join(workbookRoot, "evidence", "original", r.Filename))
+	f, _, err := openRegularNoFollow(filepath.Join(workbookRoot, "evidence", "original", r.Filename))
 	if err != nil {
 		return false, err
 	}
@@ -230,19 +239,31 @@ func checkRecord(workbookRoot string, r Record) (bool, error) {
 }
 
 func List(workbookRoot string) ([]Record, error) {
-	entries, err := os.ReadDir(filepath.Join(workbookRoot, "evidence", "manifests"))
-	if os.IsNotExist(err) {
-		return []Record{}, nil
+	manifestDir := filepath.Join(workbookRoot, "evidence", "manifests")
+	if err := requireRealDirectory(manifestDir); err != nil {
+		if os.IsNotExist(err) {
+			return []Record{}, nil
+		}
+		return nil, err
 	}
+	for _, path := range []string{filepath.Join(workbookRoot, "evidence"), filepath.Join(workbookRoot, "evidence", "original")} {
+		if err := requireRealDirectory(path); err != nil {
+			return nil, err
+		}
+	}
+	entries, err := os.ReadDir(manifestDir)
 	if err != nil {
 		return nil, err
 	}
 	out := make([]Record, 0, len(entries))
 	for _, e := range entries {
+		if e.Type()&os.ModeSymlink != 0 {
+			return nil, fmt.Errorf("evidence manifest must not be a symlink: %q", e.Name())
+		}
 		if e.IsDir() || filepath.Ext(e.Name()) != ".json" {
 			continue
 		}
-		b, err := os.ReadFile(filepath.Join(workbookRoot, "evidence", "manifests", e.Name()))
+		b, err := readRegularNoFollow(filepath.Join(workbookRoot, "evidence", "manifests", e.Name()))
 		if err != nil {
 			return nil, err
 		}
@@ -259,6 +280,57 @@ func List(workbookRoot string) ([]Record, error) {
 		out = append(out, r)
 	}
 	return out, nil
+}
+
+func readRegularNoFollow(path string) ([]byte, error) {
+	f, _, err := openRegularNoFollow(path)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	return io.ReadAll(f)
+}
+
+func openRegularNoFollow(path string) (*os.File, os.FileInfo, error) {
+	fd, err := syscall.Open(path, syscall.O_RDONLY|syscall.O_CLOEXEC|syscall.O_NOFOLLOW, 0)
+	if err != nil {
+		return nil, nil, err
+	}
+	f := os.NewFile(uintptr(fd), path)
+	info, err := f.Stat()
+	if err != nil {
+		f.Close()
+		return nil, nil, err
+	}
+	if !info.Mode().IsRegular() {
+		f.Close()
+		return nil, nil, fmt.Errorf("evidence source must be a regular file")
+	}
+	return f, info, nil
+}
+
+func requireRealDirectory(path string) error {
+	info, err := os.Lstat(path)
+	if err != nil {
+		return err
+	}
+	if !info.IsDir() || info.Mode()&os.ModeSymlink != 0 {
+		return fmt.Errorf("evidence path must be a real directory: %q", path)
+	}
+	return nil
+}
+
+func requireEvidenceDirectories(workbookRoot string) error {
+	for _, path := range []string{
+		filepath.Join(workbookRoot, "evidence"),
+		filepath.Join(workbookRoot, "evidence", "original"),
+		filepath.Join(workbookRoot, "evidence", "manifests"),
+	} {
+		if err := requireRealDirectory(path); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func uuid(t time.Time) (string, error) {
