@@ -47,6 +47,7 @@ type Options struct {
 	ScopeResult   string
 	ScopeTarget   string
 	ScopeOverride bool
+	OnStarted     func(string)
 }
 
 func (r Record) Validate() error {
@@ -182,6 +183,9 @@ func RunWithOptions(ctx context.Context, workbookRoot, workbookID string, args [
 	cmd.Stderr = errFile
 	if err := appendActivity(workbookRoot, id, workbookID, start, "STARTED", "native", filepath.Base(args[0]), nil); err != nil {
 		return Record{}, err
+	}
+	if options.OnStarted != nil {
+		options.OnStarted(id)
 	}
 	runErr := cmd.Run()
 	if syncErr := out.Sync(); syncErr != nil && runErr == nil {

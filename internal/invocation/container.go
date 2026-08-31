@@ -97,6 +97,9 @@ func RunContainer(ctx context.Context, workbookRoot, workbookID string, spec con
 	if err := appendActivity(workbookRoot, id, workbookID, start, "STARTED", "container", tool, nil); err != nil {
 		return Record{}, err
 	}
+	if options.OnStarted != nil {
+		options.OnStarted(id)
+	}
 	runErr := cmd.Run()
 	if syncErr := out.Sync(); syncErr != nil && runErr == nil {
 		runErr = syncErr

@@ -208,7 +208,11 @@ func runTUISession(scanner *bufio.Scanner, root, selected string, color bool, st
 				continue
 			}
 			spec := containerpkg.Spec{Identity: plan.Image, Arguments: plan.Arguments, Network: plan.Network, InvocationOutput: true}
-			record, err := invocation.RunContainer(context.Background(), filepath.Join(root, selected), overview.ID, spec, time.Now, invocation.Options{ScopeResult: string(plan.Scope.Result), ScopeTarget: plan.Target})
+			record, err := invocation.RunContainer(context.Background(), filepath.Join(root, selected), overview.ID, spec, time.Now, invocation.Options{ScopeResult: string(plan.Scope.Result), ScopeTarget: plan.Target, OnStarted: func(id string) {
+				if launchErr := launchInvocationWorkspace(selected, plan.Playbook, id); launchErr != nil {
+					fmt.Fprintln(stderr, "open invocation workspace:", launchErr)
+				}
+			}})
 			if err != nil {
 				fmt.Fprintf(stderr, "invocation %s failed: %v\n", record.ID, err)
 				continue
@@ -286,6 +290,45 @@ func launchWorkbookLog(name string) error {
 	cmd := exec.Command(terminal, "--title", "PenSUSE · "+name+" · Activity", self, "workbook", "follow", name)
 	if err := cmd.Start(); err != nil {
 		return fmt.Errorf("open workbook log window: %w", err)
+	}
+	return cmd.Process.Release()
+}
+
+func launchInvocationWorkspace(workbookName, playbook, id string) error {
+	if os.Getenv("SWAYSOCK") == "" {
+		return nil
+	}
+	swaymsg, err := exec.LookPath("swaymsg")
+	if err != nil {
+		return err
+	}
+	terminal, err := exec.LookPath("foot")
+	if err != nil {
+		return err
+	}
+	self, err := os.Executable()
+	if err != nil {
+		return err
+	}
+	tool := "run"
+	if strings.Contains(playbook, "port") {
+		tool = "naabu"
+	} else if strings.Contains(playbook, "network") {
+		tool = "nmap"
+	}
+	short := id
+	if len(short) > 4 {
+		short = short[len(short)-4:]
+	}
+	appID, workspace := "pensuse-invocation-"+id, tool+"-"+short
+	criteria := `[app_id="` + appID + `"]`
+	command := `move container to workspace "` + workspace + `"`
+	if err := exec.Command(swaymsg, "for_window", criteria, command).Run(); err != nil {
+		return fmt.Errorf("register invocation workspace: %w", err)
+	}
+	cmd := exec.Command(terminal, "--app-id", appID, "--title", "PenSUSE · "+workspace, self, "workbook", "follow", workbookName, "--invocation", id)
+	if err := cmd.Start(); err != nil {
+		return err
 	}
 	return cmd.Process.Release()
 }
@@ -1009,8 +1052,8 @@ func runWorkbook(args []string, stdout, stderr io.Writer) int {
 	root := effectiveWorkbookRoot()
 	switch args[0] {
 	case "follow":
-		if len(args) != 2 && !(len(args) == 3 && args[2] == "--once") {
-			fmt.Fprintln(stderr, "usage: pensuse workbook follow NAME [--once]")
+		if len(args) != 2 && !(len(args) == 3 && args[2] == "--once") && !(len(args) == 4 && args[2] == "--invocation" && args[3] != "") {
+			fmt.Fprintln(stderr, "usage: pensuse workbook follow NAME [--once | --invocation ID]")
 			return 2
 		}
 		if _, err := workbook.Open(root, args[1]); err != nil {
@@ -1019,6 +1062,7 @@ func runWorkbook(args []string, stdout, stderr io.Writer) int {
 		}
 		fmt.Fprintf(stdout, "PenSUSE workbook activity · %s\nWaiting for canonical invocation records…\n\n", args[1])
 		seen := 0
+		var stdoutOffset, stderrOffset int64
 		for {
 			events, err := activity.List(filepath.Join(root, args[1]))
 			if err != nil {
@@ -1026,6 +1070,9 @@ func runWorkbook(args []string, stdout, stderr io.Writer) int {
 				return 1
 			}
 			for _, event := range events[seen:] {
+				if len(args) == 4 && event.InvocationID != args[3] {
+					continue
+				}
 				exit := ""
 				if event.ExitCode != nil {
 					exit = fmt.Sprintf(" exit=%d", *event.ExitCode)
@@ -1033,6 +1080,10 @@ func runWorkbook(args []string, stdout, stderr io.Writer) int {
 				fmt.Fprintf(stdout, "%s  %-9s %-9s %-18s%s  %s\n", event.Timestamp.Local().Format("15:04:05"), event.Phase, event.Executor, event.Tool, exit, event.InvocationID)
 			}
 			seen = len(events)
+			if len(args) == 4 {
+				stdoutOffset = copyGrowingFile(filepath.Join(root, args[1], "tool-output", args[3]+".stdout"), stdoutOffset, stdout)
+				stderrOffset = copyGrowingFile(filepath.Join(root, args[1], "tool-output", args[3]+".stderr"), stderrOffset, stderr)
+			}
 			if len(args) == 3 {
 				return 0
 			}
@@ -1217,6 +1268,22 @@ func runWorkbook(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stderr, "unknown workbook command")
 		return 2
 	}
+}
+
+func copyGrowingFile(path string, offset int64, output io.Writer) int64 {
+	f, err := os.Open(path)
+	if err != nil {
+		return offset
+	}
+	defer f.Close()
+	if _, err := f.Seek(offset, io.SeekStart); err != nil {
+		return offset
+	}
+	n, err := io.Copy(output, f)
+	if err != nil {
+		return offset
+	}
+	return offset + n
 }
 
 func effectiveWorkbookRoot() string {

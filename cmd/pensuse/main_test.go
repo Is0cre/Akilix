@@ -95,6 +95,22 @@ func TestBarOnceWithoutActiveWorkbookIsValidJSON(t *testing.T) {
 	}
 }
 
+func TestCopyGrowingFileDoesNotRepeatOutput(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "stream")
+	if err := os.WriteFile(path, []byte("first"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	var out bytes.Buffer
+	offset := copyGrowingFile(path, 0, &out)
+	if err := os.WriteFile(path, []byte("first-second"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	offset = copyGrowingFile(path, offset, &out)
+	if out.String() != "first-second" || offset != int64(len("first-second")) {
+		t.Fatalf("output=%q offset=%d", out.String(), offset)
+	}
+}
+
 func TestContainerRunRejectsUnknownAndDuplicateOptions(t *testing.T) {
 	var out, errOut bytes.Buffer
 	if code := run([]string{"container", "run", "case-1", "image", "--bogus", "--", "true"}, &out, &errOut); code != 2 {

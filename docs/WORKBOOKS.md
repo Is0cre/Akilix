@@ -93,6 +93,13 @@ snapshot and exits, which is useful for scripts and diagnostics. In the
 workbook TUI, `[l]` explicitly opens the follower in a separate Foot window so
 Sway can tile it beside the operator workspace.
 
+For each confirmed TUI playbook run under Sway, PenSUSE assigns a dedicated
+Foot window to a workspace named for the tool and the final four invocation-ID
+characters, such as `naabu-4a2c`. That window filters lifecycle events to the
+invocation and follows its captured stdout and stderr while the workbook-wide
+activity window continues aggregating every managed source. Outside Sway, the
+same backend execution has no desktop side effect.
+
 Following is a local, read-only operation. It does not execute tools, inspect
 the network, capture the terminal, or change the workbook. The versioned
 `.pensuse/activity.jsonl` journal emits `STARTED`, `COMPLETED`, and `FAILED`
