@@ -1,0 +1,18 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://pensuse.org/schemas/pensuse.activity.v1.json",
+  "title": "PenSUSE invocation activity event v1",
+  "type": "object",
+  "required": ["schema", "invocation_id", "workbook_id", "timestamp", "phase", "executor", "tool"],
+  "properties": {
+    "schema": {"const": "pensuse.activity.v1"},
+    "invocation_id": {"type": "string", "minLength": 1},
+    "workbook_id": {"type": "string", "minLength": 1},
+    "timestamp": {"type": "string", "format": "date-time"},
+    "phase": {"enum": ["STARTED", "COMPLETED", "FAILED"]},
+    "executor": {"enum": ["native", "container"]},
+    "tool": {"type": "string", "minLength": 1},
+    "exit_code": {"type": "integer"}
+  },
+  "additionalProperties": false
+}

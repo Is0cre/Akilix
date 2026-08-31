@@ -14,6 +14,8 @@ import (
 	"strings"
 	"syscall"
 	"time"
+
+	"github.com/pensuse/pensuse/internal/activity"
 )
 
 const Schema = "pensuse.invocation.v1"
@@ -178,6 +180,9 @@ func RunWithOptions(ctx context.Context, workbookRoot, workbookID string, args [
 	cmd.Env = environmentList(executionEnvironment)
 	cmd.Stdout = out
 	cmd.Stderr = errFile
+	if err := appendActivity(workbookRoot, id, workbookID, start, "STARTED", "native", filepath.Base(args[0]), nil); err != nil {
+		return Record{}, err
+	}
 	runErr := cmd.Run()
 	if syncErr := out.Sync(); syncErr != nil && runErr == nil {
 		runErr = syncErr
@@ -207,10 +212,24 @@ func RunWithOptions(ctx context.Context, workbookRoot, workbookID string, args [
 	if err := appendRecord(workbookRoot, r); err != nil {
 		return Record{}, err
 	}
+	if err := appendActivity(workbookRoot, id, workbookID, end, activityPhase(status), "native", filepath.Base(args[0]), &exitCode); err != nil {
+		return r, err
+	}
 	if runErr != nil {
 		return r, fmt.Errorf("command failed: %w", runErr)
 	}
 	return r, nil
+}
+
+func activityPhase(status string) string {
+	if status == "complete" {
+		return "COMPLETED"
+	}
+	return "FAILED"
+}
+
+func appendActivity(root, id, workbookID string, at time.Time, phase, executor, tool string, exitCode *int) error {
+	return activity.Append(root, activity.Event{Schema: activity.Schema, InvocationID: id, WorkbookID: workbookID, Timestamp: at, Phase: phase, Executor: executor, Tool: tool, ExitCode: exitCode})
 }
 
 // appendRecord serializes updates to the canonical JSONL provenance stream.

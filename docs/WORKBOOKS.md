@@ -94,10 +94,10 @@ workbook TUI, `[l]` explicitly opens the follower in a separate Foot window so
 Sway can tile it beside the operator workspace.
 
 Following is a local, read-only operation. It does not execute tools, inspect
-the network, capture the terminal, or change the workbook. This initial view
-reports completed invocation records; a future versioned activity journal will
-represent start and progress events without treating partial provenance as a
-completed invocation.
+the network, capture the terminal, or change the workbook. The versioned
+`.pensuse/activity.jsonl` journal emits `STARTED`, `COMPLETED`, and `FAILED`
+events for managed native and container executions. It is an operator activity
+stream; the final invocation manifest remains the canonical provenance record.
 
 SQLite is an index and convenience layer.
 

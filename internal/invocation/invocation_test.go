@@ -8,6 +8,8 @@ import (
 	"sync"
 	"testing"
 	"time"
+
+	"github.com/pensuse/pensuse/internal/activity"
 )
 
 func TestRunRecordsSuccessAndFailure(t *testing.T) {
@@ -40,6 +42,10 @@ func TestRunRecordsSuccessAndFailure(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(root, ".pensuse", "manifest.jsonl")); err != nil {
 		t.Fatal(err)
+	}
+	events, err := activity.List(root)
+	if err != nil || len(events) != 4 || events[0].Phase != "STARTED" || events[1].Phase != "COMPLETED" || events[2].Phase != "STARTED" || events[3].Phase != "FAILED" {
+		t.Fatalf("lifecycle events=%+v err=%v", events, err)
 	}
 }
 

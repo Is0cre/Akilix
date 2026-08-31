@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pensuse/pensuse/internal/activity"
 	"github.com/pensuse/pensuse/internal/completion"
 	"github.com/pensuse/pensuse/internal/config"
 	containerpkg "github.com/pensuse/pensuse/internal/container"
@@ -974,16 +975,19 @@ func runWorkbook(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintf(stdout, "PenSUSE workbook activity · %s\nWaiting for canonical invocation records…\n\n", args[1])
 		seen := 0
 		for {
-			records, err := invocation.List(filepath.Join(root, args[1]))
+			events, err := activity.List(filepath.Join(root, args[1]))
 			if err != nil {
 				fmt.Fprintln(stderr, err)
 				return 1
 			}
-			for _, record := range records[seen:] {
-				tool := filepath.Base(record.Arguments[0])
-				fmt.Fprintf(stdout, "%s  %-8s %-9s %-18s exit=%d  %s\n", record.Ended.Local().Format("15:04:05"), strings.ToUpper(record.Status), record.Executor, tool, record.ExitCode, record.ID)
+			for _, event := range events[seen:] {
+				exit := ""
+				if event.ExitCode != nil {
+					exit = fmt.Sprintf(" exit=%d", *event.ExitCode)
+				}
+				fmt.Fprintf(stdout, "%s  %-9s %-9s %-18s%s  %s\n", event.Timestamp.Local().Format("15:04:05"), event.Phase, event.Executor, event.Tool, exit, event.InvocationID)
 			}
-			seen = len(records)
+			seen = len(events)
 			if len(args) == 3 {
 				return 0
 			}

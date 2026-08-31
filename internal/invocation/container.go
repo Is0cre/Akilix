@@ -90,6 +90,13 @@ func RunContainer(ctx context.Context, workbookRoot, workbookID string, spec con
 	}
 	cmd := exec.CommandContext(ctx, executable, args...)
 	cmd.Stdout, cmd.Stderr = out, errFile
+	tool := spec.Identity.Image
+	if len(spec.Arguments) > 0 && spec.Arguments[0][0] != '-' {
+		tool = filepath.Base(spec.Arguments[0])
+	}
+	if err := appendActivity(workbookRoot, id, workbookID, start, "STARTED", "container", tool, nil); err != nil {
+		return Record{}, err
+	}
 	runErr := cmd.Run()
 	if syncErr := out.Sync(); syncErr != nil && runErr == nil {
 		runErr = syncErr
@@ -131,6 +138,9 @@ func RunContainer(ctx context.Context, workbookRoot, workbookID string, spec con
 	}
 	if err := appendRecord(workbookRoot, r); err != nil {
 		return Record{}, err
+	}
+	if err := appendActivity(workbookRoot, id, workbookID, end, activityPhase(status), "container", tool, &exitCode); err != nil {
+		return r, err
 	}
 	if runErr != nil {
 		return r, fmt.Errorf("container command failed: %w", runErr)
