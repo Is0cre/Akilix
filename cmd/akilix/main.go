@@ -13,6 +13,7 @@ import (
 	"strings"
 	"time"
 
+	tea "charm.land/bubbletea/v2"
 	"github.com/Is0cre/Akilix/internal/activity"
 	"github.com/Is0cre/Akilix/internal/completion"
 	"github.com/Is0cre/Akilix/internal/config"
@@ -153,13 +154,23 @@ func runTUISession(scanner *bufio.Scanner, root, selected string, color bool, st
 			fmt.Fprintln(stderr, err)
 			return 1
 		}
-		fmt.Fprint(stdout, tuipkg.Render(overview, config, color))
-		fmt.Fprint(stdout, tuipkg.RenderActions(color))
-		fmt.Fprint(stdout, "Select action > ")
-		if !scanner.Scan() {
-			return 0
+		dashboard := tuipkg.Render(overview, config, color)
+		var action string
+		if isTerminalWriter(stdout) && isTerminalFile(os.Stdin) {
+			action, err = selectInteractiveAction(dashboard, stdout)
+			if err != nil {
+				fmt.Fprintln(stderr, "select action:", err)
+				return 1
+			}
+		} else {
+			fmt.Fprint(stdout, dashboard)
+			fmt.Fprint(stdout, tuipkg.RenderActions(color))
+			fmt.Fprint(stdout, "Select action > ")
+			if !scanner.Scan() {
+				return 0
+			}
+			action = strings.ToLower(strings.TrimSpace(scanner.Text()))
 		}
-		action := strings.ToLower(strings.TrimSpace(scanner.Text()))
 		if action == "q" || action == "quit" {
 			return 0
 		}
@@ -243,15 +254,38 @@ func runTUISession(scanner *bufio.Scanner, root, selected string, color bool, st
 }
 
 func clearTUIScreen(stdout io.Writer) {
-	file, ok := stdout.(*os.File)
-	if !ok {
-		return
-	}
-	info, err := file.Stat()
-	if err != nil || info.Mode()&os.ModeCharDevice == 0 {
+	if !isTerminalWriter(stdout) {
 		return
 	}
 	fmt.Fprint(stdout, "\033[2J\033[H")
+}
+
+func isTerminalWriter(writer io.Writer) bool {
+	file, ok := writer.(*os.File)
+	return ok && isTerminalFile(file)
+}
+
+func isTerminalFile(file *os.File) bool {
+	info, err := file.Stat()
+	return err == nil && info.Mode()&os.ModeCharDevice != 0
+}
+
+func selectInteractiveAction(prefix string, stdout io.Writer) (string, error) {
+	program := tea.NewProgram(
+		tuipkg.NewActionsModel(prefix),
+		tea.WithInput(os.Stdin),
+		tea.WithOutput(stdout),
+		tea.WithEnvironment(os.Environ()),
+	)
+	result, err := program.Run()
+	if err != nil {
+		return "", err
+	}
+	model, ok := result.(*tuipkg.ActionsModel)
+	if !ok || model.Selected() == 0 {
+		return "", fmt.Errorf("action selection ended without a choice")
+	}
+	return strings.ToLower(string(model.Selected())), nil
 }
 
 func runBar(args []string, stdout, stderr io.Writer) int {

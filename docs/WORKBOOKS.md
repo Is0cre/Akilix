@@ -90,7 +90,7 @@ The filesystem remains canonical for evidence and primary provenance.
 `akilix workbook follow NAME` renders new canonical invocation records as they
 are completed. `akilix workbook follow NAME --once` prints the current
 snapshot and exits, which is useful for scripts and diagnostics. In the
-workbook TUI, `[l]` explicitly opens the follower in a separate Foot window so
+workbook TUI, the `L` action explicitly opens the follower in a separate Foot window so
 Sway can tile it beside the operator workspace.
 
 For each confirmed TUI playbook run under Sway, Akilix assigns a dedicated

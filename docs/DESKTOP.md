@@ -137,17 +137,22 @@ grow through:
 - consistent human and JSON output;
 - discoverable help and safe command previews;
 - readable status, scope, logging, and provenance summaries;
-- a panel-based workbook workspace today and a future interactive Go TUI that
-  calls the same packages as the CLI.
+- a Bubble Tea workbook workspace that calls the same packages as the CLI.
 
-A future TUI must not become a second implementation of workbook logic and
-must not introduce hidden monitoring or automatic engagement actions.
+The TUI must not become a second implementation of workbook logic and must not
+introduce hidden monitoring or automatic engagement actions. The interactive
+action model returns typed selections; the parent workbook loop owns all scope,
+playbook, logging, and lifecycle operations.
 
 When attached to a terminal, the workbook TUI clears and redraws the dashboard
 after each completed action so its panels remain at stable screen positions.
 Redirected output and test writers do not receive terminal-control sequences.
 Actions are shown as an aligned vertical command palette with highlighted key
-badges and semantic colors, while retaining single-key operation.
+badges and semantic colors. Arrow keys and `j`/`k` wrap through the list;
+Enter selects the focused action, and direct action hotkeys remain available.
+Non-terminal input retains a deterministic line-oriented path for automation
+and tests. Bubble Tea v2 establishes Go 1.25 as the source-build floor; the ISO
+contains the compiled Akilix binary rather than a Go runtime.
 
 ## Image acceptance tests
 
