@@ -1,4 +1,4 @@
 [32m       __[0m
 [32m _..--'  `-._[0m
-[1;37mPen[32mSUSE[0m  [33m●─●─●[0m
+[1;37mAki[32mlix[0m  [33m●─●─●[0m
 [90mSecurity work with provenance.[0m

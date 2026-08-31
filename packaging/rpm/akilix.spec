@@ -3,7 +3,7 @@ Version:        0.0.1
 Release:        0.m0%{?dist}
 Summary:        Akilix security engineering workstation foundation
 License:        Apache-2.0
-URL:            https://github.com/akilix/akilix
+URL:            https://github.com/Is0cre/Akilix
 BuildRequires:  golang
 Source0:        akilix.tar.gz
 

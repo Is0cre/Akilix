@@ -82,6 +82,16 @@ for path in ROOT.rglob("*.svg"):
     if re.search(r"<script|(?:href|xlink:href|src)\s*=\s*['\"](?:https?://|data:)", text, re.I):
         FAILURES.append(f"SVG contains script or remote/embedded reference: {path.relative_to(ROOT)}")
 
+for pattern in ("*.md", "*.py", "*.svg", "*.txt", "*.css", "*.scss", "*.json"):
+    for path in ROOT.rglob(pattern):
+        try:
+            text = path.read_text(encoding="utf-8")
+        except (OSError, UnicodeError) as error:
+            FAILURES.append(f"invalid branding text: {path.relative_to(ROOT)}: {error}")
+            continue
+        if "PenSUSE" in text:
+            FAILURES.append(f"retired PenSUSE identity in {path.relative_to(ROOT)}")
+
 for path in (ROOT / "terminal").glob("akilix-ascii-*.txt"):
     try:
         if any(ord(character) > 127 for character in path.read_text(encoding="utf-8")):

@@ -19,9 +19,9 @@ def place(bg, im, box): bg.alpha_composite(*contain(im, box))
 def text_logo(size, dark=True, tagline=True):
     im = Image.new('RGBA', size, (0,0,0,0)); d=ImageDraw.Draw(im); f=font(max(24,size[1]//4), True)
     x=size[0]//3; y=size[1]//3
-    d.text((x,y), 'Pen', font=f, fill=BONE if dark else GRAPHITE)
-    penw=d.textbbox((x,y),'Pen',font=f)[2]-x
-    d.text((x+penw-3,y), 'SUSE', font=f, fill=LEAF if dark else GREEN)
+    d.text((x,y), 'Aki', font=f, fill=BONE if dark else GRAPHITE)
+    prefixw=d.textbbox((x,y),'Aki',font=f)[2]-x
+    d.text((x+prefixw-3,y), 'lix', font=f, fill=LEAF if dark else GREEN)
     if tagline: d.text((x+2,y+f.size+10), 'SECURITY WORK WITH PROVENANCE.', font=font(max(12,size[1]//25)), fill='#AAB1AF' if dark else SLATE)
     return im
 def logo(size, dark=True, tagline=True):
@@ -62,4 +62,23 @@ def main():
     for i,(label,im) in enumerate(cards):
         x=40+(i%2)*780; y=85+(i//2)*255; cd.text((x,y),label,font=font(18,True),fill=LEAF); thumb=im.convert('RGBA'); thumb.thumbnail((720,210)); contact.paste(thumb,(x,y+28),thumb)
     contact.save(ROOT/'preview.png','PNG',optimize=False)
+
+    # Reference boards are generated from canonical Akilix assets so historical
+    # exploratory artwork cannot accidentally reintroduce the retired name.
+    board1=Image.new('RGBA',(1536,1024),GRAPHITE); bd=ImageDraw.Draw(board1)
+    bd.text((64,48),'AKILIX IDENTITY',font=font(44,True),fill=BONE)
+    bd.text((67,108),'Security work with provenance.',font=font(22),fill=SLATE)
+    place(board1,FULL,(40,180,760,760)); place(board1,darklogo,(720,250,760,360))
+    palette=[BG,GRAPHITE,BONE,GREEN,LEAF,AMBER,SLATE]
+    for i,color in enumerate(palette): bd.rectangle((760+i*92,720,832+i*92,792),fill=color)
+    board1.convert('RGB').save(ROOT/'reference/concept-board-01.png','PNG',optimize=False)
+
+    board2=Image.new('RGBA',(1536,1024),BG); bd=ImageDraw.Draw(board2)
+    bd.text((64,48),'AKILIX SYSTEM SURFACES',font=font(40,True),fill=BONE)
+    samples=[('COMPACT MARK',HEAD),('BOOT',ply),('DESKTOP',Image.open(ROOT/'os/wallpaper/akilix-1920x1080.png')),('SOCIAL',Image.open(ROOT/'web/social-card-1200x630.png'))]
+    for i,(label,sample) in enumerate(samples):
+        x=64+(i%2)*736; y=130+(i//2)*420
+        bd.text((x,y),label,font=font(18,True),fill=LEAF)
+        thumb=sample.convert('RGBA'); thumb.thumbnail((680,360)); board2.alpha_composite(thumb,(x,y+38))
+    board2.convert('RGB').save(ROOT/'reference/concept-board-02.png','PNG',optimize=False)
 if __name__=='__main__': main()

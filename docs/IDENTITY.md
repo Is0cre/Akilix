@@ -11,14 +11,10 @@ silently rewritten: forensic and provenance records must never be mutated by a
 branding migration. Any future importer must preserve the original bytes and
 record the migration explicitly.
 
-The Git remote remains at its existing repository location until its owner
-renames it. The Go module declares the intended future repository path
-`github.com/Is0cre/Akilix`; local builds do not require the remote rename.
+The canonical Git remote and Go module path are `github.com/Is0cre/Akilix`.
 
 ## Visual transition
 
-The renamed bitmap files are transitional copies of the earlier artwork and
-must be replaced before the next public Akilix ISO. Text, executable names,
-desktop integration, boot-theme paths, and image metadata already use Akilix.
-Replacement masters must then regenerate and validate every derived bitmap so
-no stale wordmark is shipped.
+All canonical and generated artwork uses the Akilix name. The monitor-lizard
+masters are name-neutral source art; reproducible derivatives add the Akilix
+wordmark for documentation, web, installer, boot, and desktop surfaces.
