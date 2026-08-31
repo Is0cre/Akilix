@@ -2,6 +2,18 @@
 # /etc/zshrc after distribution defaults and remains user-overridable.
 [[ -o interactive ]] || return
 
+# Load packaged completion functions, including Akilix. compinit only indexes
+# functions already installed locally and caches the index in the user's home.
+fpath=(/usr/share/zsh/site-functions $fpath)
+autoload -Uz compinit
+if (( ! $+functions[compdef] )); then
+  compinit -d "${ZDOTDIR:-$HOME}/.zcompdump"
+fi
+autoload -Uz _akilix
+compdef _akilix akilix
+zstyle ':completion:*' menu select
+zstyle ':completion:*' matcher-list 'm:{a-zA-Z}={A-Za-z}'
+
 # Keep substantial, timestamped history and synchronize it between terminals.
 # A command beginning with a space is intentionally excluded so operators can
 # avoid persisting credentials or other sensitive values.

@@ -88,8 +88,8 @@ console forwarding the host's Super key. It does not run a Akilix command,
 select a workbook, or initiate network activity.
 
 Sway displays the staged Akilix 3840×2160 wallpaper on every output using
-`fill` scaling. Foot uses the matching graphite palette at 92% opacity so the
-branding remains subtly visible behind terminal work without compromising text
+`fill` scaling. Foot uses the matching graphite palette at 78% opacity so the
+branding is clearly visible behind terminal work while preserving text
 contrast. Per-user Foot or Sway configuration may override these system
 defaults.
 

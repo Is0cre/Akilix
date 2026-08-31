@@ -155,6 +155,8 @@ if not fonts <= packages:
 foot = (image / "root/etc/xdg/foot/foot.ini").read_text()
 if "font=Noto Sans Mono:size=11,Noto Sans Symbols 2:size=11,Noto Color Emoji:size=11" not in foot:
     raise SystemExit("Foot does not use the installed Noto font stack")
+if "alpha=0.78" not in foot:
+    raise SystemExit("Foot does not expose the Akilix wallpaper at the selected opacity")
 sway = (image / "root/etc/sway/config").read_text()
 for setting in ("status_command /usr/bin/akilix bar stream", "focused_workspace #657a3e"):
     if setting not in sway:
@@ -166,9 +168,16 @@ zshrc = (image / "root/etc/zsh.zshrc.local").read_text()
 for setting in ("HISTSIZE=100000", "SAVEHIST=75000", "EXTENDED_HISTORY", "HIST_IGNORE_SPACE", "SHARE_HISTORY"):
     if setting not in zshrc:
         raise SystemExit(f"Zsh baseline lacks {setting}")
+for setting in ("/usr/share/zsh/site-functions", "autoload -Uz compinit", "compinit -d", "compdef _akilix akilix"):
+    if setting not in zshrc:
+        raise SystemExit(f"Zsh completion baseline lacks {setting}")
+skel_zshrc = image / "root/etc/skel/.zshrc"
+if not skel_zshrc.is_file() or "bindkey -e" not in skel_zshrc.read_text():
+    raise SystemExit("image lacks the default per-user Zsh configuration")
 PY
 
 zsh -n image/kiwi-iso/root/etc/zsh.zshrc.local
+zsh -n image/kiwi-iso/root/etc/skel/.zshrc
 
 profile_dir=${AKILIX_PROFILE_DIR:-profiles}
 profiles_json=$(AKILIX_PROFILE_DIR="$profile_dir" $cli profile list --json)
