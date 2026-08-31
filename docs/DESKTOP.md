@@ -81,6 +81,10 @@ empty tiling workspace an obvious first action without depending on the VM
 console forwarding the host's Super key. It does not run a PenSUSE command,
 select a workbook, or initiate network activity.
 
+Sway explicitly starts keyboards with Caps Lock disabled. This prevents VM or
+firmware lock state from turning the entire graphical session uppercase while
+leaving the selected keyboard layout unchanged.
+
 Opening the desktop or bar must not open a workbook or perform network
 activity. Workbook widgets may display local state only after the operator has
 explicitly selected a workbook.
@@ -91,6 +95,7 @@ The `pensuse` Go backend remains the source of truth. Terminal comfort should
 grow through:
 
 - fast shell completion without network lookups;
+- timestamped, durable Zsh history with an explicit secret-safe omission path;
 - consistent human and JSON output;
 - discoverable help and safe command previews;
 - readable status, scope, logging, and provenance summaries;

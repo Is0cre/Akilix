@@ -96,6 +96,9 @@ if (image / "root/etc/profile.d/50-pensuse-sway.sh").exists():
     raise SystemExit("legacy shell-profile Sway autostart is still present")
 
 tree = ET.parse(image / "config.xml")
+operator = tree.find(".//user[@name='pensuse']")
+if operator is None or operator.get("shell") != "/bin/zsh":
+    raise SystemExit("live operator does not use Zsh by default")
 repositories = {node.get("alias"): node.find("source").get("path") for node in tree.findall("repository")}
 if repositories.get("PenSUSE-Base-System-Leap-16") != "https://download.opensuse.org/repositories/Base:/System/16.0/":
     raise SystemExit("KIWI image lacks the audited Base:System source")
@@ -108,7 +111,18 @@ if preferences.findtext("bootsplash-theme") != "pensuse":
     raise SystemExit("KIWI does not select the PenSUSE Plymouth theme")
 if "splash" not in image_type.get("kernelcmdline", "").split():
     raise SystemExit("KIWI kernel command line does not activate Plymouth")
+
+sway = (image / "root/etc/sway/config").read_text()
+if "input type:keyboard xkb_capslock disabled" not in sway:
+    raise SystemExit("Sway does not normalize Caps Lock state")
+
+zshrc = (image / "root/etc/zsh.zshrc.local").read_text()
+for setting in ("HISTSIZE=100000", "SAVEHIST=75000", "EXTENDED_HISTORY", "HIST_IGNORE_SPACE", "SHARE_HISTORY"):
+    if setting not in zshrc:
+        raise SystemExit(f"Zsh baseline lacks {setting}")
 PY
+
+zsh -n image/kiwi-iso/root/etc/zsh.zshrc.local
 
 profile_dir=${PENSUSE_PROFILE_DIR:-profiles}
 profiles_json=$(PENSUSE_PROFILE_DIR="$profile_dir" $cli profile list --json)

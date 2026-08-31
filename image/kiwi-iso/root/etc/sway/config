@@ -13,6 +13,10 @@ gaps inner 6
 gaps outer 3
 smart_gaps on
 
+# VM firmware can leave Caps Lock active while handing the keyboard to the
+# compositor. Start each graphical session from a predictable state.
+input type:keyboard xkb_capslock disabled
+
 output * bg /usr/share/backgrounds/pensuse/pensuse-3840x2160.png fill
 
 exec waybar

@@ -17,7 +17,7 @@
   </preferences>
   <!-- The password placeholder is replaced only in a local build config. -->
   <users>
-    <user name="pensuse" groups="wheel" home="/home/pensuse" shell="/bin/bash"
+    <user name="pensuse" groups="wheel" home="/home/pensuse" shell="/bin/zsh"
           realname="PenSUSE Operator" password="__PENSUSE_LIVE_PASSWORD_HASH__"
           pwdformat="encrypted"/>
   </users>

@@ -1,0 +1,31 @@
+# PenSUSE interactive shell baseline. This file is loaded by openSUSE's
+# /etc/zshrc after distribution defaults and remains user-overridable.
+[[ -o interactive ]] || return
+
+# Keep substantial, timestamped history and synchronize it between terminals.
+# A command beginning with a space is intentionally excluded so operators can
+# avoid persisting credentials or other sensitive values.
+HISTFILE=${ZDOTDIR:-$HOME}/.zsh_history
+HISTSIZE=100000
+SAVEHIST=75000
+setopt APPEND_HISTORY
+setopt EXTENDED_HISTORY
+setopt HIST_FCNTL_LOCK
+setopt HIST_IGNORE_SPACE
+setopt HIST_LEX_WORDS
+setopt SHARE_HISTORY
+unsetopt HIST_IGNORE_ALL_DUPS
+unsetopt HIST_IGNORE_DUPS
+unsetopt HIST_SAVE_NO_DUPS
+
+# Search history using the text already typed at the prompt.
+autoload -Uz history-search-end
+zle -N history-beginning-search-backward-end history-search-end
+zle -N history-beginning-search-forward-end history-search-end
+bindkey '^[[A' history-beginning-search-backward-end
+bindkey '^[[B' history-beginning-search-forward-end
+
+# Compact prompt: identity and location remain visible in every captured log.
+setopt PROMPT_SUBST
+PROMPT='%F{green}%n@pensuse%f %F{blue}%~%f %# '
+RPROMPT='%(?..%F{red}exit %?%f)'
