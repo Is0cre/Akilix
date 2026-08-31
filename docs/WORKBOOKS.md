@@ -29,8 +29,8 @@ valid workbook. For example:
     cd "$(akilix workbook path client-2026 evidence)"
     cd "$(akilix workbook path client-2026 original-evidence)"
 
-Available sections are `root`, `artifacts`, `evidence`, `findings`, `logs`,
-`notes`, `original-evidence`, `reports`, `timeline`, and `tool-output`.
+Available sections are `root`, `artifacts`, `evidence`, `findings`, `hardware`,
+`logs`, `notes`, `original-evidence`, `reports`, `timeline`, and `tool-output`.
 
 ---
 
@@ -66,6 +66,8 @@ Renaming a workbook must never change its identity.
     │   ├── network/
     │   ├── wireless/
     │   └── memory/
+    ├── hardware/
+    │   └── inspections/
     ├── tool-output/
     ├── notes/
     ├── findings/

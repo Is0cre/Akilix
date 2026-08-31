@@ -110,18 +110,67 @@ func run(args []string, stdout, stderr io.Writer) int {
 }
 
 func runAcquire(args []string, stdout, stderr io.Writer) int {
-	if len(args) < 1 || args[0] != "inspect" || len(args) > 2 || len(args) == 2 && args[1] != "--json" {
-		fmt.Fprintln(stderr, "usage: akilix acquire inspect [--json]")
+	if len(args) < 1 || args[0] != "inspect" && args[0] != "record" {
+		fmt.Fprintln(stderr, "usage: akilix acquire inspect [--json] | acquire record WORKBOOK [--json]")
 		return 2
+	}
+	jsonOutput := false
+	if args[0] == "inspect" {
+		if len(args) > 2 || len(args) == 2 && args[1] != "--json" {
+			fmt.Fprintln(stderr, "usage: akilix acquire inspect [--json]")
+			return 2
+		}
+		jsonOutput = len(args) == 2
+	} else {
+		if len(args) != 2 && !(len(args) == 3 && args[2] == "--json") {
+			fmt.Fprintln(stderr, "usage: akilix acquire record WORKBOOK [--json]")
+			return 2
+		}
+		jsonOutput = len(args) == 3
+	}
+	var metadata workbook.Metadata
+	var workbookRoot string
+	if args[0] == "record" {
+		root := effectiveWorkbookRoot()
+		var err error
+		metadata, err = workbook.Open(root, args[1])
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		if metadata.Status != "open" {
+			fmt.Fprintln(stderr, "workbook is closed")
+			return 1
+		}
+		workbookRoot = filepath.Join(root, args[1])
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	report, err := acquire.Inspect(ctx, acquire.ExecRunner{}, time.Now())
+	now := time.Now().UTC()
+	report, err := acquire.Inspect(ctx, acquire.ExecRunner{}, now)
 	if err != nil {
 		fmt.Fprintln(stderr, err)
 		return 1
 	}
-	if len(args) == 2 {
+	if args[0] == "record" {
+		record, path, err := acquire.RecordInspection(workbookRoot, metadata.ID, report, now)
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		if jsonOutput {
+			data, err := json.MarshalIndent(record, "", "  ")
+			if err != nil {
+				fmt.Fprintln(stderr, err)
+				return 1
+			}
+			fmt.Fprintln(stdout, string(data))
+			return 0
+		}
+		fmt.Fprintf(stdout, "recorded passive hardware inventory %s\n%s\n", record.ID, path)
+		return 0
+	}
+	if jsonOutput {
 		data, err := json.MarshalIndent(report, "", "  ")
 		if err != nil {
 			fmt.Fprintln(stderr, err)

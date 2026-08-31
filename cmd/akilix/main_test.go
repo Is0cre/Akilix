@@ -217,7 +217,7 @@ func TestWorkbookOverviewAndSectionPath(t *testing.T) {
 	if err := json.Unmarshal(out.Bytes(), &overview); err != nil {
 		t.Fatalf("overview was not JSON: %v", err)
 	}
-	if overview.Name != "case-1" || len(overview.Sections) != 10 {
+	if overview.Name != "case-1" || len(overview.Sections) != 11 {
 		t.Fatalf("unexpected overview: %+v", overview)
 	}
 	out.Reset()

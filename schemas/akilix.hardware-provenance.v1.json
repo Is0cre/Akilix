@@ -1,0 +1,17 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://akilix.dev/schemas/akilix.hardware-provenance.v1.json",
+  "title": "Akilix hardware provenance record",
+  "type": "object",
+  "required": ["schema", "record_id", "workbook_id", "event", "recorded_at", "inspection", "record_status"],
+  "properties": {
+    "schema": {"const": "akilix.hardware-provenance.v1"},
+    "record_id": {"type": "string", "pattern": "^[0-9a-f-]{36}$"},
+    "workbook_id": {"type": "string", "minLength": 1},
+    "event": {"const": "INVENTORY_RECORDED"},
+    "recorded_at": {"type": "string", "format": "date-time"},
+    "inspection": {"$ref": "akilix.hardware-inspection.v1.json"},
+    "record_status": {"const": "complete"}
+  },
+  "additionalProperties": false
+}

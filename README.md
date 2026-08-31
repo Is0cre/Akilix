@@ -142,6 +142,7 @@ partitions without opening raw device nodes or changing device state:
 
     akilix acquire inspect
     akilix acquire inspect --json
+    akilix acquire record client-2026
 
 It reports capacity, transport, vendor/model/serial/WWN identifiers,
 filesystems, UUIDs, mount state, and current kernel read-only state. System

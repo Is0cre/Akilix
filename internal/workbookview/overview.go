@@ -38,6 +38,7 @@ var sectionPaths = map[string]string{
 	"artifacts":         "artifacts",
 	"evidence":          "evidence",
 	"findings":          "findings",
+	"hardware":          "hardware",
 	"logs":              "logs",
 	"notes":             "notes",
 	"original-evidence": "evidence/original",
