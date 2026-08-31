@@ -84,6 +84,13 @@ inside the Akilix workspace, where ownership and case-name confidentiality are
 defined. A future signed-ledger claim requires a real signing/key-management
 design and must not be simulated by greeter text.
 
+The native codec implements greetd's native-endian 32-bit length prefix and
+bounded JSON messages for `create_session`, `post_auth_message_response`,
+`start_session`, and `cancel_session`. It rejects oversized and unknown
+messages. Its protocol reference is greetd's upstream `greetd_ipc` source; the
+active tty1 client will switch only after the complete PAM state machine and
+VM login/logout recovery tests pass.
+
 No component may silently start scans, listeners, packet capture, terminal
 recording, telemetry, cloud synchronization, or workbook uploads.
 
