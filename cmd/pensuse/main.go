@@ -19,6 +19,7 @@ import (
 	profilepkg "github.com/pensuse/pensuse/internal/profile"
 	repositorypkg "github.com/pensuse/pensuse/internal/repository"
 	"github.com/pensuse/pensuse/internal/scope"
+	tuipkg "github.com/pensuse/pensuse/internal/tui"
 	"github.com/pensuse/pensuse/internal/version"
 	"github.com/pensuse/pensuse/internal/workbook"
 	"github.com/pensuse/pensuse/internal/workbookview"
@@ -62,6 +63,25 @@ func run(args []string, stdout, stderr io.Writer) int {
 	}
 	if args[0] == "completion" {
 		return runCompletion(args[1:], stdout, stderr)
+	}
+	if args[0] == "tui" {
+		if len(args) < 2 || len(args) > 3 || len(args) == 3 && args[2] != "--no-color" {
+			fmt.Fprintln(stderr, "usage: pensuse tui WORKBOOK [--no-color]")
+			return 2
+		}
+		root := effectiveWorkbookRoot()
+		overview, err := workbookview.Build(root, args[1])
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		config, err := scope.Load(filepath.Join(root, args[1]))
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		fmt.Fprint(stdout, tuipkg.Render(overview, config, len(args) != 3))
+		return 0
 	}
 	if args[0] != "version" {
 		fmt.Fprintln(stderr, "usage: pensuse version [--json] | workbook ... | scope ... | evidence ... | run ... | container ...")

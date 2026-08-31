@@ -373,6 +373,7 @@ Current local workflow examples:
 
 ```sh
 pensuse workbook create client-2026
+pensuse tui client-2026
 pensuse scope add client-2026 10.20.30.0/24
 pensuse evidence import client-2026 disk.E01
 pensuse run client-2026 --target 10.20.30.40 -- printf 'local check'
