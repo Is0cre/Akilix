@@ -100,6 +100,12 @@ PenSUSE validates that the canonical source directory has not been replaced or
 redirected by a symlink and always mounts it read-only at
 `/workbook/evidence/original`. Arbitrary host paths are not accepted.
 
+Writable output is also opt-in. `--mount-output` creates a fresh
+`artifacts/derived/<invocation-id>/` directory and mounts it at
+`/workbook/output`. Files remaining there after successful or failed execution
+are attributed to that invocation. Symlinks are rejected rather than recorded
+as valid generated artifacts.
+
 Podman options, including every mount, are emitted before the immutable image
 reference. This ordering is security-relevant: options after the image would
 instead become arguments to the containerized command.

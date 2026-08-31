@@ -57,6 +57,10 @@ func TestContainerRunRejectsUnknownAndDuplicateOptions(t *testing.T) {
 	if code := run([]string{"container", "run", "case-1", "image", "--mount-originals", "--mount-originals", "--", "true"}, &out, &errOut); code != 2 {
 		t.Fatalf("duplicate original mount exit code = %d, want 2", code)
 	}
+	errOut.Reset()
+	if code := run([]string{"container", "run", "case-1", "image", "--mount-output", "--mount-output", "--", "true"}, &out, &errOut); code != 2 {
+		t.Fatalf("duplicate output mount exit code = %d, want 2", code)
+	}
 }
 
 func TestScopeClosedWorkbookCannotMutateAndJSONListIsJSON(t *testing.T) {

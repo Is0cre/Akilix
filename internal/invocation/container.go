@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"time"
 
 	containerpkg "github.com/pensuse/pensuse/internal/container"
@@ -47,16 +48,24 @@ type containerMount struct {
 }
 
 func RunContainer(ctx context.Context, workbookRoot, workbookID string, spec containerpkg.Spec, now func() time.Time, options Options) (Record, error) {
-	args, err := spec.Args()
-	if err != nil {
-		return Record{}, err
-	}
 	executable, err := exec.LookPath("podman")
 	if err != nil {
 		return Record{}, err
 	}
 	start := now().UTC()
 	id, err := uuid(start)
+	if err != nil {
+		return Record{}, err
+	}
+	var invocationOutputDir string
+	if spec.InvocationOutput {
+		invocationOutputDir = filepath.Join(workbookRoot, "artifacts", "derived", id)
+		if err := os.Mkdir(invocationOutputDir, 0700); err != nil {
+			return Record{}, fmt.Errorf("create invocation output directory: %w", err)
+		}
+		spec.Mounts = append(spec.Mounts, containerpkg.Mount{Source: invocationOutputDir, Destination: "/workbook/output"})
+	}
+	args, err := spec.Args()
 	if err != nil {
 		return Record{}, err
 	}
@@ -90,6 +99,14 @@ func RunContainer(ctx context.Context, workbookRoot, workbookID string, spec con
 	}
 	end := now().UTC()
 	generated, generatedErr := generatedToolOutput(outDir, before)
+	if generatedErr == nil && invocationOutputDir != "" {
+		outputFiles, outputErr := generatedInvocationOutput(workbookRoot, invocationOutputDir)
+		if outputErr != nil {
+			generatedErr = outputErr
+		} else {
+			generated = append(generated, outputFiles...)
+		}
+	}
 	if generatedErr != nil && runErr == nil {
 		runErr = generatedErr
 	}
@@ -119,6 +136,29 @@ func RunContainer(ctx context.Context, workbookRoot, workbookID string, spec con
 		return r, fmt.Errorf("container command failed: %w", runErr)
 	}
 	return r, nil
+}
+
+func generatedInvocationOutput(workbookRoot, outputDir string) ([]string, error) {
+	var generated []string
+	err := filepath.WalkDir(outputDir, func(path string, entry os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if path == outputDir || entry.IsDir() {
+			return nil
+		}
+		if entry.Type()&os.ModeSymlink != 0 {
+			return fmt.Errorf("container output contains symlink %q", path)
+		}
+		relative, err := filepath.Rel(workbookRoot, path)
+		if err != nil {
+			return err
+		}
+		generated = append(generated, filepath.ToSlash(relative))
+		return nil
+	})
+	sort.Strings(generated)
+	return generated, err
 }
 
 func atomicWriteFile(path string, data []byte) error {

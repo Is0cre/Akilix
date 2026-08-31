@@ -16,13 +16,14 @@ type Mount struct {
 	OriginalEvidence bool
 }
 type Spec struct {
-	Identity     Identity
-	Arguments    []string
-	Mounts       []Mount
-	Network      string
-	WritableRoot bool
-	Environment  map[string]string
-	Workdir      string
+	Identity         Identity
+	Arguments        []string
+	Mounts           []Mount
+	Network          string
+	WritableRoot     bool
+	InvocationOutput bool
+	Environment      map[string]string
+	Workdir          string
 }
 
 func Execute(ctx context.Context, runner Runner, spec Spec) (string, error) {

@@ -358,7 +358,7 @@ func runContainerCommand(args []string, stdout, stderr io.Writer) int {
 	target, override, workdir := "", false, ""
 	environment := map[string]string{}
 	jsonOutput := false
-	mountOriginals := false
+	mountOriginals, mountOutput := false, false
 	separator := -1
 	for i := 2; i < len(args); i++ {
 		if args[i] == "--target" && i+1 < len(args) {
@@ -376,6 +376,14 @@ func runContainerCommand(args []string, stdout, stderr io.Writer) int {
 				return 2
 			}
 			mountOriginals = true
+			continue
+		}
+		if args[i] == "--mount-output" {
+			if mountOutput {
+				fmt.Fprintln(stderr, "duplicate --mount-output")
+				return 2
+			}
+			mountOutput = true
 			continue
 		}
 		if args[i] == "--workdir" && i+1 < len(args) {
@@ -458,7 +466,7 @@ func runContainerCommand(args []string, stdout, stderr io.Writer) int {
 		}
 		mounts = append(mounts, mount)
 	}
-	spec := containerpkg.Spec{Identity: identity, Arguments: append([]string(nil), args[separator+1:]...), Mounts: mounts, Workdir: workdir, Environment: environment}
+	spec := containerpkg.Spec{Identity: identity, Arguments: append([]string(nil), args[separator+1:]...), Mounts: mounts, InvocationOutput: mountOutput, Workdir: workdir, Environment: environment}
 	r, err := invocation.RunContainer(context.Background(), filepath.Join(root, args[0]), m.ID, spec, time.Now, invocation.Options{ScopeResult: scopeResult, ScopeTarget: target, ScopeOverride: override})
 	if err != nil {
 		fmt.Fprintf(stderr, "invocation %s failed: %v\n", r.ID, err)
