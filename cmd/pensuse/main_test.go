@@ -155,7 +155,15 @@ func TestRepositoryListExposesApprovedImageSources(t *testing.T) {
 	if err := json.Unmarshal(out.Bytes(), &items); err != nil {
 		t.Fatal(err)
 	}
-	if len(items) != 3 || items[1]["status"] != "approved" || items[1]["image_enabled"] != true || items[2]["purpose"] != "boot" || items[2]["status"] != "approved" || items[2]["image_enabled"] != true {
+	if len(items) != 4 {
 		t.Fatalf("unexpected repository trust state: %+v", items)
+	}
+	for _, item := range items {
+		if item["status"] != "approved" || item["image_enabled"] != true {
+			t.Fatalf("unexpected repository trust state: %+v", items)
+		}
+	}
+	if items[2]["purpose"] != "boot" || items[3]["id"] != "m17n-fonts-leap-16" {
+		t.Fatalf("unexpected repository purposes: %+v", items)
 	}
 }

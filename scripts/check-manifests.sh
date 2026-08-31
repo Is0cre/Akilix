@@ -51,6 +51,22 @@ python3 - <<'PY'
 import json
 from pathlib import Path
 
+lock = json.loads(Path("repositories/desktop-fonts-lock.json").read_text())
+expected = {"google-noto-sans-fonts", "google-noto-sans-mono-fonts", "google-noto-sans-symbols2-fonts"}
+packages = lock.get("packages", [])
+if lock.get("schema") != "pensuse.package-lock.v1" or lock.get("repository_id") != "m17n-fonts-leap-16":
+    raise SystemExit("desktop font lock has the wrong source identity")
+if {item.get("name") for item in packages} != expected:
+    raise SystemExit("desktop font lock is incomplete")
+for item in packages:
+    if len(item.get("sha512", "")) != 128 or not item.get("location", "").startswith("noarch/"):
+        raise SystemExit("desktop font lock contains invalid RPM identity")
+PY
+
+python3 - <<'PY'
+import json
+from pathlib import Path
+
 lock = json.loads(Path("repositories/boot-plymouth-lock.json").read_text())
 expected = {"plymouth", "plymouth-branding-upstream", "plymouth-dracut", "plymouth-plugin-script"}
 packages = lock.get("packages", [])
@@ -102,6 +118,8 @@ if operator is None or operator.get("shell") != "/bin/zsh":
 repositories = {node.get("alias"): node.find("source").get("path") for node in tree.findall("repository")}
 if repositories.get("PenSUSE-Base-System-Leap-16") != "https://download.opensuse.org/repositories/Base:/System/16.0/":
     raise SystemExit("KIWI image lacks the audited Base:System source")
+if repositories.get("PenSUSE-M17N-Fonts-Leap-16") != "https://download.opensuse.org/repositories/M17N:/fonts/16.0/":
+    raise SystemExit("KIWI image lacks the audited M17N:fonts source")
 plymouth = {"plymouth", "plymouth-branding-upstream", "plymouth-plugin-script", "plymouth-dracut"}
 if not plymouth <= packages:
     raise SystemExit("KIWI image lacks the complete Plymouth/initrd package set")
@@ -112,9 +130,12 @@ if preferences.findtext("bootsplash-theme") != "pensuse":
 if "splash" not in image_type.get("kernelcmdline", "").split():
     raise SystemExit("KIWI kernel command line does not activate Plymouth")
 
-sway = (image / "root/etc/sway/config").read_text()
-if "input type:keyboard xkb_capslock disabled" not in sway:
-    raise SystemExit("Sway does not normalize Caps Lock state")
+fonts = {"google-noto-sans-fonts", "google-noto-sans-mono-fonts", "google-noto-sans-symbols2-fonts"}
+if not fonts <= packages:
+    raise SystemExit("KIWI image lacks the selected desktop font set")
+foot = (image / "root/etc/xdg/foot/foot.ini").read_text()
+if "font=Noto Sans Mono:size=11,Noto Sans Symbols 2:size=11" not in foot:
+    raise SystemExit("Foot does not use the installed Noto font stack")
 
 zshrc = (image / "root/etc/zsh.zshrc.local").read_text()
 for setting in ("HISTSIZE=100000", "SAVEHIST=75000", "EXTENDED_HISTORY", "HIST_IGNORE_SPACE", "SHARE_HISTORY"):

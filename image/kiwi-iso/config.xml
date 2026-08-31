@@ -30,6 +30,9 @@
   <repository type="rpm-md" alias="PenSUSE-Base-System-Leap-16">
     <source path="https://download.opensuse.org/repositories/Base:/System/16.0/"/>
   </repository>
+  <repository type="rpm-md" alias="PenSUSE-M17N-Fonts-Leap-16">
+    <source path="https://download.opensuse.org/repositories/M17N:/fonts/16.0/"/>
+  </repository>
   <packages type="image">
     <package name="systemd"/>
     <package name="btrfsprogs"/>
@@ -66,6 +69,9 @@
     <package name="plymouth-branding-upstream"/>
     <package name="plymouth-plugin-script"/>
     <package name="plymouth-dracut"/>
+    <package name="google-noto-sans-fonts"/>
+    <package name="google-noto-sans-mono-fonts"/>
+    <package name="google-noto-sans-symbols2-fonts"/>
   </packages>
   <packages type="bootstrap">
     <package name="bash"/>
