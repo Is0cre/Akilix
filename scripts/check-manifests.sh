@@ -100,6 +100,20 @@ if session.get("user") != "greeter" or "--cmd sway" not in session.get("command"
     raise SystemExit("greetd does not launch the audited Sway session")
 if "--remember" in session.get("command", ""):
     raise SystemExit("greetd must not remember operator identity by default")
+command = session.get("command", "")
+for setting in (
+    "--issue",
+    "--theme",
+    "--sessions /usr/share/wayland-sessions",
+    "--power-shutdown '/usr/bin/systemctl poweroff'",
+    "--power-reboot '/usr/bin/systemctl reboot'",
+):
+    if setting not in command:
+        raise SystemExit(f"greetd lacks required Akilix setting: {setting}")
+issue = (image / "root/etc/issue").read_text()
+for marker in ("AKILIX", "Security work with provenance.", "Live development image"):
+    if marker not in issue:
+        raise SystemExit(f"greetd issue banner lacks: {marker}")
 
 packages = {node.get("name") for node in ET.parse(image / "config.xml").findall(".//package")}
 required = {"greetd", "greetd-branding-upstream", "tuigreet", "sway"}

@@ -2,5 +2,5 @@
 vt = 1
 
 [default_session]
-command = "tuigreet --time --asterisks --greeting 'Akilix — Security work with provenance.' --cmd sway"
+command = "tuigreet --issue --time --time-format '%A | %Y-%m-%d | %H:%M %Z' --asterisks --asterisks-char '*' --width 72 --window-padding 2 --container-padding 2 --prompt-padding 1 --greet-align center --theme 'text=gray;time=darkgray;container=black;border=green;title=green;greet=white;prompt=green;input=white;action=darkgray;button=yellow' --sessions /usr/share/wayland-sessions --kb-sessions 2 --kb-power 10 --kb-command 12 --power-shutdown '/usr/bin/systemctl poweroff' --power-reboot '/usr/bin/systemctl reboot' --cmd sway"
 user = "greeter"

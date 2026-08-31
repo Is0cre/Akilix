@@ -54,7 +54,11 @@ The development ISO runs `greetd` with the terminal-native `tuigreet` greeter
 on tty1. Authentication explicitly starts Sway; automatic account login is not
 enabled. Logging out or a failed session returns to the greeter. SSH sessions
 and tty2+ remain text-only recovery paths. The greeter does not remember the
-last username or selected session.
+last username or selected session. Its centered Akilix terminal artwork is read
+from `/etc/issue`; the graphite/green/amber terminal palette, zoned clock, Sway
+session selector, and explicit power menu are provided by pinned `tuigreet`
+0.9.1 options. F2 opens sessions, F10 opens power actions, and F12 opens the
+authenticated command selector.
 
 No component may silently start scans, listeners, packet capture, terminal
 recording, telemetry, cloud synchronization, or workbook uploads.

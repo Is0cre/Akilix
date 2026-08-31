@@ -41,6 +41,8 @@ The development build includes the minimal Sway session and `greetd`/`tuigreet`
 from the approved `X11:Wayland` OBS source. Account auto-login is disabled.
 The greeter owns tty1 and starts Sway only after authentication; logout or
 session failure returns to the greeter, while tty2+ remain recovery consoles.
+The login screen uses the compact Akilix terminal mark, UTC clock, themed
+prompt, F2 session menu, and F10 power menu without remembering operator names.
 The session opens one Foot terminal as its visible starting point;
 `Ctrl+Alt+T` remains available when a VM or host compositor intercepts the
 Super key. Exact OBS RPM identities are recorded in
