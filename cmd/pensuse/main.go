@@ -307,11 +307,33 @@ func runCompletion(args []string, stdout, stderr io.Writer) int {
 }
 
 func runContainer(args []string, stdout, stderr io.Writer) int {
+	if len(args) >= 1 && args[0] == "doctor" {
+		if len(args) > 2 || len(args) == 2 && args[1] != "--json" {
+			fmt.Fprintln(stderr, "usage: pensuse container doctor [--json]")
+			return 2
+		}
+		status, err := containerpkg.CheckRuntime(context.Background(), containerpkg.PodmanRunner{})
+		if len(args) == 2 {
+			data, marshalErr := json.MarshalIndent(status, "", "  ")
+			if marshalErr != nil {
+				fmt.Fprintln(stderr, marshalErr)
+				return 1
+			}
+			fmt.Fprintln(stdout, string(data))
+		} else {
+			fmt.Fprintf(stdout, "Podman available: %t\nRootless: %t\nUser namespace ready: %t\n", status.Available, status.Rootless, status.UserNamespaceReady)
+		}
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		return 0
+	}
 	if len(args) >= 1 && args[0] == "run" {
 		return runContainerCommand(args[1:], stdout, stderr)
 	}
 	if len(args) != 2 || args[0] != "inspect" {
-		fmt.Fprintln(stderr, "usage: pensuse container inspect IMAGE | container run WORKBOOK IMAGE [--target TARGET] [--override] [--json] [--workdir DIR] [--env KEY=VALUE] -- COMMAND [ARGS...]")
+		fmt.Fprintln(stderr, "usage: pensuse container doctor [--json] | container inspect IMAGE | container run WORKBOOK IMAGE [--target TARGET] [--override] [--json] [--workdir DIR] [--env KEY=VALUE] -- COMMAND [ARGS...]")
 		return 2
 	}
 	id, err := containerpkg.Resolve(context.Background(), containerpkg.PodmanRunner{}, args[1])

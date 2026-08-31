@@ -56,7 +56,6 @@ func (s Spec) Args() ([]string, error) {
 	if s.Workdir != "" {
 		args = append(args, "--workdir", s.Workdir)
 	}
-	args = append(args, s.Identity.Image+"@"+s.Identity.Digest)
 	for _, m := range s.Mounts {
 		mode := "rw"
 		if m.ReadOnly {
@@ -64,6 +63,9 @@ func (s Spec) Args() ([]string, error) {
 		}
 		args = append(args, "--volume", m.Source+":"+m.Destination+":"+mode)
 	}
+	// Every Podman option must precede the image reference. Anything after the
+	// image is passed to the container entrypoint as a command argument.
+	args = append(args, s.Identity.Image+"@"+s.Identity.Digest)
 	return append(args, s.Arguments...), nil
 }
 

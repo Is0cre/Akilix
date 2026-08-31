@@ -15,6 +15,18 @@ func TestSpecRequiresReadOnlyOriginals(t *testing.T) {
 	if err != nil || len(args) < 15 || args[0] != "run" || args[3] != "--network=none" || args[4] != "--userns=keep-id" || args[5] != "--pid=private" || args[6] != "--ipc=private" || args[7] != "--uts=private" || args[8] != "--security-opt=no-new-privileges" || args[9] != "--cap-drop=ALL" || args[10] != "--read-only" {
 		t.Fatalf("args: %#v %v", args, err)
 	}
+	imageIndex, volumeIndex := -1, -1
+	for i, arg := range args {
+		if arg == "--volume" {
+			volumeIndex = i
+		}
+		if arg == s.Identity.Image+"@"+s.Identity.Digest {
+			imageIndex = i
+		}
+	}
+	if volumeIndex < 0 || imageIndex < 0 || volumeIndex > imageIndex {
+		t.Fatalf("volume option must precede image: %#v", args)
+	}
 }
 
 func TestSpecEnvironmentAndWorkdirValidation(t *testing.T) {

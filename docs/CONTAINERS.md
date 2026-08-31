@@ -6,6 +6,13 @@ Podman is the default OCI runtime.
 
 Rootless execution is preferred.
 
+Check the local runtime without contacting a registry:
+
+    pensuse container doctor
+
+The check requires Podman to report rootless operation and verifies that the
+operator's user namespace can be entered. It does not pull or build an image.
+
 ---
 
 # Purpose
@@ -83,6 +90,10 @@ Generated container specs currently default to:
 
 Original-evidence mounts must be explicitly read-only. Writable mounts are
 reserved for derived evidence, tool output, and temporary workspaces.
+
+Podman options, including every mount, are emitted before the immutable image
+reference. This ordering is security-relevant: options after the image would
+instead become arguments to the containerized command.
 
 Do not automatically use:
 

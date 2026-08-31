@@ -60,7 +60,7 @@ _pensuse() {
         logging) _values 'logging command' status ;;
         evidence) _values 'evidence command' import list verify ;;
         run) _message 'use: pensuse run WORKBOOK -- COMMAND [ARGS...]' ;;
-        container) _values 'container command' inspect run ;;
+        container) _values 'container command' doctor inspect run ;;
         profile) _values 'profile command' list show plan ;;
         repository) _values 'repository command' list show ;;
         config) _values 'config command' show path ;;
@@ -85,7 +85,7 @@ const Bash = `_pensuse_complete() {
   if [[ ${COMP_WORDS[1]} == scope ]]; then COMPREPLY=($(compgen -W 'add remove exclude list check' -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == logging ]]; then COMPREPLY=($(compgen -W 'status' -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == evidence ]]; then COMPREPLY=($(compgen -W 'import list verify' -- "$cur")); return; fi
-  if [[ ${COMP_WORDS[1]} == container ]]; then COMPREPLY=($(compgen -W 'inspect' -- "$cur")); return; fi
+  if [[ ${COMP_WORDS[1]} == container ]]; then COMPREPLY=($(compgen -W 'doctor inspect run' -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == profile ]]; then COMPREPLY=($(compgen -W 'list show plan' -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == repository ]]; then COMPREPLY=($(compgen -W 'list show' -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == config ]]; then COMPREPLY=($(compgen -W 'show path' -- "$cur")); return; fi

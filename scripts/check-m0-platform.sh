@@ -30,10 +30,12 @@ fi
 
 if command -v podman >/dev/null 2>&1; then
     pass "podman utility available"
-    podman info --format '{{.Host.Security.Rootless}}' >/dev/null 2>&1 && pass "podman info available" || fail "podman info"
     if [ "$(id -u)" -eq 0 ]; then
         warn "running as root; rootless Podman requires a regular operator account"
+	    elif command -v pensuse >/dev/null 2>&1; then
+	        pensuse container doctor >/dev/null 2>&1 && pass "PenSUSE rootless container runtime" || fail "PenSUSE rootless container runtime"
     else
+	        podman info --format '{{.Host.Security.Rootless}}' >/dev/null 2>&1 && pass "podman info available" || fail "podman info"
         podman unshare true >/dev/null 2>&1 && pass "rootless user namespace" || fail "rootless user namespace"
     fi
 else

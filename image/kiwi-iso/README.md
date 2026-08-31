@@ -46,3 +46,13 @@ Super key. Exact OBS RPM identities are recorded in
 
 The operator account uses Zsh with the documented PenSUSE system baseline,
 durable extended history, and generated CLI completion. See `docs/SHELL.md`.
+
+After login, validate the container substrate without pulling an image:
+
+```sh
+pensuse container doctor
+```
+
+A passing result confirms that Podman is operating rootless and that the live
+operator's user namespace is usable. It does not claim that a tool image has
+already been installed.
