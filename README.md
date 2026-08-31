@@ -1,5 +1,13 @@
 # PenSUSE
 
+<p align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="branding/web/pensuse-horizontal-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="branding/web/pensuse-horizontal-light.png">
+    <img alt="PenSUSE — Security work with provenance" src="branding/web/pensuse-horizontal-light.png" width="720">
+  </picture>
+</p>
+
 [![CI](https://github.com/Is0cre/PenSUSE/actions/workflows/ci.yml/badge.svg)](https://github.com/Is0cre/PenSUSE/actions/workflows/ci.yml)
 
 **Security work with provenance.**
