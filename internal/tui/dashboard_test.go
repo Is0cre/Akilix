@@ -13,4 +13,9 @@ func TestDashboardShowsPlaybookReadinessWithoutColor(t *testing.T) {
 	if !strings.Contains(out, "Local network discovery") || !strings.Contains(out, "READY") || strings.Contains(out, "\x1b[") {
 		t.Fatalf("dashboard: %q", out)
 	}
+	for _, line := range strings.Split(strings.TrimSpace(out), "\n") {
+		if len([]rune(line)) != 63 {
+			t.Fatalf("unaligned line width %d: %q", len([]rune(line)), line)
+		}
+	}
 }
