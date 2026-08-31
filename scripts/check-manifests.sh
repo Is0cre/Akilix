@@ -36,7 +36,7 @@ import json
 from pathlib import Path
 
 lock = json.loads(Path("repositories/desktop-sway-lock.json").read_text())
-expected = {"sway", "waybar", "foot", "fuzzel", "mako", "wl-clipboard", "grim", "slurp", "greetd", "greetd-branding-upstream", "tuigreet"}
+expected = {"sway", "swayidle", "swaylock", "waybar", "foot", "fuzzel", "mako", "wl-clipboard", "grim", "slurp", "greetd", "greetd-branding-upstream", "tuigreet"}
 packages = lock.get("packages", [])
 names = {item.get("name") for item in packages}
 if lock.get("schema") != "pensuse.package-lock.v1" or names != expected:

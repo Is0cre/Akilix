@@ -12,6 +12,8 @@
 /image/kiwi-iso/root/usr/share/pensuse/branding/logo.png
 /image/kiwi-iso/root/usr/share/backgrounds/pensuse/pensuse-3840x2160.png
 /image/kiwi-iso/root/usr/share/licenses/pensuse-branding/LICENSE
+/image/kiwi-iso/root/usr/bin/weathr
+/image/kiwi-iso/root/usr/share/licenses/weathr/LICENSE
 
 # Go caches and local workspace state
 /.cache/

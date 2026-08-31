@@ -17,6 +17,7 @@ output * bg /usr/share/backgrounds/pensuse/pensuse-3840x2160.png fill
 
 exec waybar
 exec mako
+exec swayidle -w timeout 300 'systemd-run --user --unit=pensuse-weathr-screensaver --collect /usr/bin/pensuse-weathr-screensaver' resume 'systemctl --user stop pensuse-weathr-screensaver.service' timeout 600 'swaylock --color 0b1114' before-sleep 'swaylock --color 0b1114'
 exec $term --title "PenSUSE Workspace"
 
 bindsym $mod+Return exec $term
@@ -80,6 +81,8 @@ bindsym $mod+e layout toggle split
 bindsym $mod+a focus parent
 bindsym $mod+Shift+c reload
 bindsym $mod+Shift+e exec swaynag -t warning -m 'Exit the PenSUSE session?' -B 'Exit' 'swaymsg exit'
+bindsym $mod+Shift+r exec systemd-run --user --unit=pensuse-weathr-screensaver --collect /usr/bin/pensuse-weathr-screensaver
+bindsym $mod+Shift+l exec swaylock --color 0b1114
 
 client.focused #8ead55 #657a3e #e8e6dd #c68a2b #8ead55
 client.unfocused #151a1d #151a1d #aab1af #4a5358 #151a1d

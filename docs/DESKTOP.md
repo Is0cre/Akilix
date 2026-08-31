@@ -48,6 +48,7 @@ comfortable workstation:
 - Grim and Slurp for explicit operator-requested screenshots;
 - a minimal PolicyKit agent where graphical elevation workflows require it;
 - the PenSUSE wallpaper and icon assets already stored under `branding/`.
+- an offline-by-default Weathr ASCII animation for the idle screen;
 
 The development ISO runs `greetd` with the terminal-native `tuigreet` greeter
 on tty1. Authentication explicitly starts Sway; automatic account login is not
@@ -86,6 +87,20 @@ Sway displays the staged PenSUSE 3840×2160 wallpaper on every output using
 branding remains subtly visible behind terminal work without compromising text
 contrast. Per-user Foot or Sway configuration may override these system
 defaults.
+
+## Idle screen and locking
+
+After five idle minutes, Sway launches Weathr fullscreen in simulated rainy
+night mode. Simulation is deliberate: the idle screen makes no weather,
+geocoding, or IP-location request. Input dismisses that animation. After ten
+idle minutes, and before suspend, `swaylock` provides the actual authentication
+boundary; the animation must never be described as a lock screen. `Super+Shift+R`
+starts the animation manually and `Super+Shift+L` locks immediately.
+
+The development ISO stages the upstream GPL-3.0-or-later Weathr 1.4.0 x86_64
+binary using its published SHA-256 digest and installs its license. The download
+cache and both artifact origins are overrideable for local mirrors. No unpinned
+installer or `latest` URL is executed during the image build.
 
 The image explicitly installs Noto Sans for desktop text, Noto Sans Mono for
 Foot, and Noto Sans Symbols 2 as a technical-symbol fallback. Font selection
