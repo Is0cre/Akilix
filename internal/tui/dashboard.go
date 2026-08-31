@@ -46,6 +46,7 @@ func Render(overview workbookview.Overview, config scope.Config, color bool) str
 	b.WriteString(frameRow(fmt.Sprintf("Excludes %-3d             │  Evidence %-4d  failures %-3d", overview.ScopeExcludes, overview.Evidence, overview.FailedInvocations)))
 	fmt.Fprintf(&b, "├─ Playbooks ─────────────────────────────────────────────────┤\n")
 	b.WriteString(frameRow(fmt.Sprintf("Local network discovery  %s%s%s", readyColor, ready, p.Reset)))
+	b.WriteString(frameRow(fmt.Sprintf("Local port discovery     %s%s%s", readyColor, ready, p.Reset)))
 	b.WriteString(frameRow(fmt.Sprintf("%sPlanning is passive. Execution always needs confirmation.%s", p.Muted, p.Reset)))
 	fmt.Fprintf(&b, "%s└─────────────────────────────────────────────────────────────┘%s\n", p.Blue, p.Reset)
 	return b.String()

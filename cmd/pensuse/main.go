@@ -144,7 +144,7 @@ func runTUISession(scanner *bufio.Scanner, root, selected string, color bool, st
 			return 1
 		}
 		fmt.Fprint(stdout, tuipkg.Render(overview, config, color))
-		fmt.Fprint(stdout, "[a] add scope  [x] add exclusion  [p] preview/run discovery  [q] quit > ")
+		fmt.Fprint(stdout, "[a] add scope  [x] add exclusion  [n] network discovery  [p] port discovery  [q] quit > ")
 		if !scanner.Scan() {
 			return 0
 		}
@@ -152,17 +152,21 @@ func runTUISession(scanner *bufio.Scanner, root, selected string, color bool, st
 		if action == "q" || action == "quit" {
 			return 0
 		}
-		if action == "p" {
+		if action == "n" || action == "p" {
 			if overview.Status != "open" {
 				fmt.Fprintln(stderr, "workbook is closed")
 				continue
 			}
-			fmt.Fprint(stdout, "Discovery CIDR: ")
+			prompt, tool := "Network", "Nmap"
+			if action == "p" {
+				prompt, tool = "Port", "Naabu"
+			}
+			fmt.Fprintf(stdout, "%s discovery CIDR: ", prompt)
 			if !scanner.Scan() {
 				return 0
 			}
 			target := strings.TrimSpace(scanner.Text())
-			fmt.Fprint(stdout, "Local Nmap image (already pulled): ")
+			fmt.Fprintf(stdout, "Local %s image (already pulled): ", tool)
 			if !scanner.Scan() {
 				return 0
 			}
@@ -172,7 +176,12 @@ func runTUISession(scanner *bufio.Scanner, root, selected string, color bool, st
 				fmt.Fprintln(stderr, err)
 				continue
 			}
-			plan, err := playbookpkg.PlanLocalNetworkDiscovery(config, target, identity)
+			var plan playbookpkg.Plan
+			if action == "n" {
+				plan, err = playbookpkg.PlanLocalNetworkDiscovery(config, target, identity)
+			} else {
+				plan, err = playbookpkg.PlanLocalPortDiscovery(config, target, identity)
+			}
 			if err != nil {
 				fmt.Fprintln(stderr, err)
 				continue

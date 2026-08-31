@@ -34,3 +34,30 @@ func TestPlanLocalDiscoveryBlocksUnknownAndNonCIDR(t *testing.T) {
 		}
 	}
 }
+
+func TestPlanLocalPortDiscoveryUsesConservativeRootlessFlags(t *testing.T) {
+	identity := containerpkg.Identity{Image: "example/naabu:1", Digest: "sha256:" + strings.Repeat("b", 64)}
+	config := scope.Config{Includes: []string{"192.168.50.0/24"}, Excludes: []string{"192.168.50.9", "10.0.0.0/8"}}
+	plan, err := PlanLocalPortDiscovery(config, "192.168.50.23/24", identity)
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []string{"-host", "192.168.50.0/24", "-scan-type", "c", "-top-ports", "100", "-rate", "100", "-retries", "1", "-timeout", "1000", "-disable-update-check", "-no-color", "-json", "-output", "/workbook/output/ports.jsonl", "-exclude-hosts", "192.168.50.9"}
+	if !reflect.DeepEqual(plan.Arguments, want) {
+		t.Fatalf("args=%v want=%v", plan.Arguments, want)
+	}
+	if plan.Playbook != LocalPortDiscovery || plan.OutputPath != "/workbook/output/ports.jsonl" || plan.Network != "bridge" || !plan.MountOutput || plan.MountOriginals {
+		t.Fatalf("unsafe plan: %+v", plan)
+	}
+}
+
+func TestPlanLocalPortDiscoveryBlocksUnknownAndMutableImage(t *testing.T) {
+	good := containerpkg.Identity{Image: "example/naabu:1", Digest: "sha256:" + strings.Repeat("b", 64)}
+	config := scope.Config{Includes: []string{"192.168.50.0/24"}}
+	if _, err := PlanLocalPortDiscovery(config, "10.0.0.0/24", good); err == nil {
+		t.Fatal("accepted unknown target")
+	}
+	if _, err := PlanLocalPortDiscovery(config, "192.168.50.0/24", containerpkg.Identity{Image: "example/naabu:latest"}); err == nil {
+		t.Fatal("accepted mutable image identity")
+	}
+}
