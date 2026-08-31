@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -110,6 +111,37 @@ func TestLoggingStatusIsExplicitAndJSONReadable(t *testing.T) {
 	}
 	if policy["terminal_recording"] != false || policy["command_metadata"] != true {
 		t.Fatalf("unexpected logging policy: %+v", policy)
+	}
+}
+
+func TestWorkbookOverviewAndSectionPath(t *testing.T) {
+	root := t.TempDir()
+	t.Setenv("PENSUSE_WORKBOOK_ROOT", root)
+	if _, err := workbook.Create(root, "case-1", time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+	var out, errOut bytes.Buffer
+	if code := run([]string{"workbook", "overview", "case-1", "--json"}, &out, &errOut); code != 0 {
+		t.Fatalf("workbook overview: %d %s", code, errOut.String())
+	}
+	var overview struct {
+		Name     string              `json:"name"`
+		Sections []map[string]string `json:"sections"`
+	}
+	if err := json.Unmarshal(out.Bytes(), &overview); err != nil {
+		t.Fatalf("overview was not JSON: %v", err)
+	}
+	if overview.Name != "case-1" || len(overview.Sections) != 10 {
+		t.Fatalf("unexpected overview: %+v", overview)
+	}
+	out.Reset()
+	errOut.Reset()
+	if code := run([]string{"workbook", "path", "case-1", "evidence"}, &out, &errOut); code != 0 {
+		t.Fatalf("workbook path: %d %s", code, errOut.String())
+	}
+	want := filepath.Join(root, "case-1", "evidence") + "\n"
+	if out.String() != want {
+		t.Fatalf("path = %q, want %q", out.String(), want)
 	}
 }
 

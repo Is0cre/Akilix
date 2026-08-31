@@ -32,7 +32,7 @@ The graphical boot menu retains GRUB's text-console fallback and must be tested
 in both BIOS and UEFI modes before the image is published.
 
 The next development build includes the minimal Sway session from the approved
-`X11:Wayland` OBS source. Graphical auto-login is intentionally disabled. After
-console login, run `sway` to exercise the tiling session while retaining a
-known-good console recovery path. Exact directly selected RPM identities are
-recorded in `repositories/desktop-sway-lock.json`.
+`X11:Wayland` OBS source. Account auto-login is intentionally disabled. Sway
+starts after the live operator logs in on tty1; exiting or failing Sway returns
+to the console. SSH and secondary-console logins remain text-only. Exact OBS
+RPM identities are recorded in `repositories/desktop-sway-lock.json`.

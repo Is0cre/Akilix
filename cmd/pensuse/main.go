@@ -21,6 +21,7 @@ import (
 	"github.com/pensuse/pensuse/internal/scope"
 	"github.com/pensuse/pensuse/internal/version"
 	"github.com/pensuse/pensuse/internal/workbook"
+	"github.com/pensuse/pensuse/internal/workbookview"
 )
 
 func main() {
@@ -749,11 +750,56 @@ func runEvidence(args []string, stdout, stderr io.Writer) int {
 
 func runWorkbook(args []string, stdout, stderr io.Writer) int {
 	if len(args) == 0 {
-		fmt.Fprintln(stderr, "usage: pensuse workbook <create|list|open|status|close|reopen|rename|validate>")
+		fmt.Fprintln(stderr, "usage: pensuse workbook <create|list|open|overview|path|status|close|reopen|rename|validate>")
 		return 2
 	}
 	root := effectiveWorkbookRoot()
 	switch args[0] {
+	case "overview":
+		if len(args) != 2 && !(len(args) == 3 && args[2] == "--json") {
+			fmt.Fprintln(stderr, "usage: pensuse workbook overview NAME [--json]")
+			return 2
+		}
+		overview, err := workbookview.Build(root, args[1])
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		if len(args) == 3 {
+			data, err := json.MarshalIndent(overview, "", "  ")
+			if err != nil {
+				fmt.Fprintln(stderr, err)
+				return 1
+			}
+			fmt.Fprintln(stdout, string(data))
+			return 0
+		}
+		fmt.Fprintf(stdout, "PenSUSE workbook\n%s [%s]\nID:      %s\nCreated: %s\nRoot:    %s\n\n", overview.Name, strings.ToUpper(overview.Status), overview.ID, overview.Created, overview.Root)
+		fmt.Fprintf(stdout, "Summary\n  Scope        %d included / %d excluded\n  Evidence     %d originals\n  Invocations  %d total / %d failed\n  Capture      stdout %s / stderr %s\n  Sensitive    terminal recording %s / packet metadata %s\n\n",
+			overview.ScopeIncludes, overview.ScopeExcludes, overview.Evidence, overview.Invocations, overview.FailedInvocations,
+			enabled(overview.Logging.StdoutCapture), enabled(overview.Logging.StderrCapture),
+			enabled(overview.Logging.TerminalRecording), enabled(overview.Logging.PacketMetadata))
+		fmt.Fprintln(stdout, "Sections")
+		for _, section := range overview.Sections {
+			fmt.Fprintf(stdout, "  %-18s %s\n", section.Name, section.Path)
+		}
+		return 0
+	case "path":
+		if len(args) != 2 && len(args) != 3 {
+			fmt.Fprintln(stderr, "usage: pensuse workbook path NAME [SECTION]")
+			return 2
+		}
+		section := "root"
+		if len(args) == 3 {
+			section = args[2]
+		}
+		path, err := workbookview.Path(root, args[1], section)
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		fmt.Fprintln(stdout, path)
+		return 0
 	case "validate":
 		if len(args) != 2 && !(len(args) == 3 && args[2] == "--json") {
 			fmt.Fprintln(stderr, "usage: pensuse workbook validate NAME [--json]")

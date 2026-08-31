@@ -10,6 +10,25 @@ Examples:
 
     pensuse workbook create client-2026
     pensuse workbook open client-2026
+    pensuse workbook overview client-2026
+
+## Terminal navigation
+
+`pensuse workbook overview NAME` presents the workbook identity, lifecycle
+state, scope and evidence counts, invocation health, explicit capture policy,
+and canonical section paths in one local-only dashboard. Use `--json` for TUI,
+GUI, or automation consumers; those interfaces should reuse this model rather
+than reimplement workbook discovery.
+
+`pensuse workbook path NAME [SECTION]` prints exactly one absolute path for
+shell composition. Sections are allowlisted and resolved only after opening a
+valid workbook. For example:
+
+    cd "$(pensuse workbook path client-2026 evidence)"
+    cd "$(pensuse workbook path client-2026 original-evidence)"
+
+Available sections are `root`, `artifacts`, `evidence`, `findings`, `logs`,
+`notes`, `original-evidence`, `reports`, `timeline`, and `tool-output`.
 
 ---
 

@@ -49,10 +49,11 @@ comfortable workstation:
 - a minimal PolicyKit agent where graphical elevation workflows require it;
 - the PenSUSE wallpaper and icon assets already stored under `branding/`.
 
-The development ISO installs this session but does not enable graphical
-auto-login. Log in on the console and run `sway`; automatic graphical startup
-remains deferred until the console fallback and representative hardware paths
-have been boot-tested.
+The development ISO starts Sway automatically after the live `pensuse` operator
+logs in on tty1. It does not enable automatic account login. SSH sessions,
+secondary consoles, nested graphical sessions, and other users do not trigger
+the compositor. Exiting or failing Sway returns to the tty1 shell so the
+console remains a recovery path.
 
 No component may silently start scans, listeners, packet capture, terminal
 recording, telemetry, cloud synchronization, or workbook uploads.
