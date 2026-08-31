@@ -81,6 +81,12 @@ empty tiling workspace an obvious first action without depending on the VM
 console forwarding the host's Super key. It does not run a PenSUSE command,
 select a workbook, or initiate network activity.
 
+Sway displays the staged PenSUSE 3840×2160 wallpaper on every output using
+`fill` scaling. Foot uses the matching graphite palette at 92% opacity so the
+branding remains subtly visible behind terminal work without compromising text
+contrast. Per-user Foot or Sway configuration may override these system
+defaults.
+
 The image explicitly installs Noto Sans for desktop text, Noto Sans Mono for
 Foot, and Noto Sans Symbols 2 as a technical-symbol fallback. Font selection
 must not depend on whatever sparse fallback happens to enter the dependency
