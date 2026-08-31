@@ -142,6 +142,7 @@ func runTUISession(scanner *bufio.Scanner, root, selected string, color bool, st
 		fmt.Fprintln(stderr, "activate workbook status:", err)
 	}
 	for {
+		clearTUIScreen(stdout)
 		overview, err := workbookview.Build(root, selected)
 		if err != nil {
 			fmt.Fprintln(stderr, err)
@@ -240,6 +241,18 @@ func runTUISession(scanner *bufio.Scanner, root, selected string, color bool, st
 	}
 }
 
+func clearTUIScreen(stdout io.Writer) {
+	file, ok := stdout.(*os.File)
+	if !ok {
+		return
+	}
+	info, err := file.Stat()
+	if err != nil || info.Mode()&os.ModeCharDevice == 0 {
+		return
+	}
+	fmt.Fprint(stdout, "\033[2J\033[H")
+}
+
 func runBar(args []string, stdout, stderr io.Writer) int {
 	if len(args) != 1 || args[0] != "once" && args[0] != "stream" {
 		fmt.Fprintln(stderr, "usage: akilix bar <once|stream>")
@@ -257,22 +270,28 @@ func runBar(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stdout, string(b))
 		return 0
 	}
-	fmt.Fprintln(stdout, `{"version":1}`)
-	fmt.Fprintln(stdout, "[")
-	first := true
+	stream := bufio.NewWriter(stdout)
+	if _, err := fmt.Fprintln(stream, `{"version":1}`); err != nil {
+		fmt.Fprintln(stderr, err)
+		return 1
+	}
+	if _, err := fmt.Fprintln(stream, "["); err != nil {
+		fmt.Fprintln(stderr, err)
+		return 1
+	}
 	for {
 		b, err := json.Marshal(render())
 		if err != nil {
 			fmt.Fprintln(stderr, err)
 			return 1
 		}
-		if !first {
-			fmt.Fprintln(stdout, ",")
+		if _, err := fmt.Fprintf(stream, "%s,\n", b); err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
 		}
-		first = false
-		fmt.Fprint(stdout, string(b))
-		if f, ok := stdout.(interface{ Flush() error }); ok {
-			_ = f.Flush()
+		if err := stream.Flush(); err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
 		}
 		time.Sleep(time.Second)
 	}

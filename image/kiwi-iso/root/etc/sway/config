@@ -22,7 +22,7 @@ exec $term --title "Akilix Workspace"
 bar {
     position top
     font pango:Noto Sans 10
-    status_command akilix bar stream
+    status_command /usr/bin/akilix bar stream
     colors {
         background #0b1114
         statusline #e8e6dd

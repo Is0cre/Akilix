@@ -142,7 +142,7 @@ foot = (image / "root/etc/xdg/foot/foot.ini").read_text()
 if "font=Noto Sans Mono:size=11,Noto Sans Symbols 2:size=11" not in foot:
     raise SystemExit("Foot does not use the installed Noto font stack")
 sway = (image / "root/etc/sway/config").read_text()
-for setting in ("status_command akilix bar stream", "focused_workspace #657a3e"):
+for setting in ("status_command /usr/bin/akilix bar stream", "focused_workspace #657a3e"):
     if setting not in sway:
         raise SystemExit(f"Sway native command strip lacks {setting}")
 if "exec waybar" in sway or "waybar" in packages:

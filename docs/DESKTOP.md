@@ -112,8 +112,10 @@ Opening the desktop or bar must not open a workbook or perform network
 activity. Workbook widgets may display local state only after the operator has
 explicitly selected a workbook.
 
-The native command strip runs `akilix bar stream` using the i3bar JSON
-protocol. Entering a workbook TUI atomically marks that workbook active beneath
+The native command strip runs `/usr/bin/akilix bar stream` using the i3bar JSON
+protocol. The absolute path makes startup independent of an interactive shell's
+`PATH`; each status frame is flushed immediately. Entering a workbook TUI
+atomically marks that workbook active beneath
 `$XDG_RUNTIME_DIR/akilix/`. The strip derives declared scope and running or
 failed managed invocations from canonical local files. It does not claim packet
 drops, hashing queues, or other metrics Akilix does not yet record. No daemon,
@@ -134,6 +136,10 @@ grow through:
 
 A future TUI must not become a second implementation of workbook logic and
 must not introduce hidden monitoring or automatic engagement actions.
+
+When attached to a terminal, the workbook TUI clears and redraws the dashboard
+after each completed action so its panels remain at stable screen positions.
+Redirected output and test writers do not receive terminal-control sequences.
 
 ## Image acceptance tests
 

@@ -95,6 +95,14 @@ func TestBarOnceWithoutActiveWorkbookIsValidJSON(t *testing.T) {
 	}
 }
 
+func TestClearTUIScreenDoesNotPolluteRedirectedOutput(t *testing.T) {
+	var out bytes.Buffer
+	clearTUIScreen(&out)
+	if out.Len() != 0 {
+		t.Fatalf("redirected output contains terminal controls: %q", out.String())
+	}
+}
+
 func TestCopyGrowingFileDoesNotRepeatOutput(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "stream")
 	if err := os.WriteFile(path, []byte("first"), 0600); err != nil {
