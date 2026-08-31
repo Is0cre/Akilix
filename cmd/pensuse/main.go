@@ -24,6 +24,7 @@ import (
 	profilepkg "github.com/pensuse/pensuse/internal/profile"
 	repositorypkg "github.com/pensuse/pensuse/internal/repository"
 	"github.com/pensuse/pensuse/internal/scope"
+	"github.com/pensuse/pensuse/internal/statusbar"
 	tuipkg "github.com/pensuse/pensuse/internal/tui"
 	"github.com/pensuse/pensuse/internal/version"
 	"github.com/pensuse/pensuse/internal/workbook"
@@ -68,6 +69,9 @@ func run(args []string, stdout, stderr io.Writer) int {
 	if args[0] == "completion" {
 		return runCompletion(args[1:], stdout, stderr)
 	}
+	if args[0] == "bar" {
+		return runBar(args[1:], stdout, stderr)
+	}
 	if args[0] == "tui" {
 		if len(args) == 1 {
 			return runTUIHome(os.Stdin, stdout, stderr)
@@ -79,7 +83,7 @@ func run(args []string, stdout, stderr io.Writer) int {
 		return runTUISession(bufio.NewScanner(os.Stdin), effectiveWorkbookRoot(), args[1], len(args) != 3, stdout, stderr)
 	}
 	if args[0] != "version" {
-		fmt.Fprintln(stderr, "usage: pensuse version [--json] | workbook ... | scope ... | evidence ... | run ... | container ...")
+		fmt.Fprintln(stderr, "usage: pensuse version [--json] | workbook ... | scope ... | evidence ... | run ... | container ... | bar ...")
 		return 2
 	}
 	info := version.Current()
@@ -134,6 +138,9 @@ func runTUIHome(stdin io.Reader, stdout, stderr io.Writer) int {
 }
 
 func runTUISession(scanner *bufio.Scanner, root, selected string, color bool, stdout, stderr io.Writer) int {
+	if err := statusbar.Activate(os.Getenv("XDG_RUNTIME_DIR"), root, selected); err != nil {
+		fmt.Fprintln(stderr, "activate workbook status:", err)
+	}
 	for {
 		overview, err := workbookview.Build(root, selected)
 		if err != nil {
@@ -226,6 +233,44 @@ func runTUISession(scanner *bufio.Scanner, root, selected string, color bool, st
 			continue
 		}
 		fmt.Fprintln(stdout, "scope updated")
+	}
+}
+
+func runBar(args []string, stdout, stderr io.Writer) int {
+	if len(args) != 1 || args[0] != "once" && args[0] != "stream" {
+		fmt.Fprintln(stderr, "usage: pensuse bar <once|stream>")
+		return 2
+	}
+	render := func() []statusbar.Block {
+		m, err := statusbar.Current(os.Getenv("XDG_RUNTIME_DIR"))
+		if err != nil {
+			return []statusbar.Block{{FullText: " PenSUSE · no active workbook ", Color: "#aab1af", Separator: false}}
+		}
+		return statusbar.Blocks(m)
+	}
+	if args[0] == "once" {
+		b, _ := json.Marshal(render())
+		fmt.Fprintln(stdout, string(b))
+		return 0
+	}
+	fmt.Fprintln(stdout, `{"version":1}`)
+	fmt.Fprintln(stdout, "[")
+	first := true
+	for {
+		b, err := json.Marshal(render())
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		if !first {
+			fmt.Fprintln(stdout, ",")
+		}
+		first = false
+		fmt.Fprint(stdout, string(b))
+		if f, ok := stdout.(interface{ Flush() error }); ok {
+			_ = f.Flush()
+		}
+		time.Sleep(time.Second)
 	}
 }
 

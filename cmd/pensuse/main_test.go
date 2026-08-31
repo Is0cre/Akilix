@@ -83,6 +83,18 @@ func TestRunRejectsUnknownCommand(t *testing.T) {
 	}
 }
 
+func TestBarOnceWithoutActiveWorkbookIsValidJSON(t *testing.T) {
+	t.Setenv("XDG_RUNTIME_DIR", t.TempDir())
+	var out, errOut bytes.Buffer
+	if code := run([]string{"bar", "once"}, &out, &errOut); code != 0 {
+		t.Fatalf("code=%d stderr=%s", code, errOut.String())
+	}
+	var blocks []map[string]interface{}
+	if err := json.Unmarshal(out.Bytes(), &blocks); err != nil || len(blocks) != 1 {
+		t.Fatalf("bar output=%q err=%v", out.String(), err)
+	}
+}
+
 func TestContainerRunRejectsUnknownAndDuplicateOptions(t *testing.T) {
 	var out, errOut bytes.Buffer
 	if code := run([]string{"container", "run", "case-1", "image", "--bogus", "--", "true"}, &out, &errOut); code != 2 {

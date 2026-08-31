@@ -56,7 +56,6 @@
     <package name="sway"/>
     <package name="swayidle"/>
     <package name="swaylock"/>
-    <package name="waybar"/>
     <package name="foot"/>
     <package name="fuzzel"/>
     <package name="mako"/>

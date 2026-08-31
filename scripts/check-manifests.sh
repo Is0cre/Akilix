@@ -36,7 +36,7 @@ import json
 from pathlib import Path
 
 lock = json.loads(Path("repositories/desktop-sway-lock.json").read_text())
-expected = {"sway", "swayidle", "swaylock", "waybar", "foot", "fuzzel", "mako", "wl-clipboard", "grim", "slurp", "greetd", "greetd-branding-upstream", "tuigreet"}
+expected = {"sway", "swayidle", "swaylock", "foot", "fuzzel", "mako", "wl-clipboard", "grim", "slurp", "greetd", "greetd-branding-upstream", "tuigreet"}
 packages = lock.get("packages", [])
 names = {item.get("name") for item in packages}
 if lock.get("schema") != "pensuse.package-lock.v1" or names != expected:
@@ -136,6 +136,12 @@ if not fonts <= packages:
 foot = (image / "root/etc/xdg/foot/foot.ini").read_text()
 if "font=Noto Sans Mono:size=11,Noto Sans Symbols 2:size=11" not in foot:
     raise SystemExit("Foot does not use the installed Noto font stack")
+sway = (image / "root/etc/sway/config").read_text()
+for setting in ("status_command pensuse bar stream", "focused_workspace #657a3e"):
+    if setting not in sway:
+        raise SystemExit(f"Sway native command strip lacks {setting}")
+if "exec waybar" in sway or "waybar" in packages:
+    raise SystemExit("legacy Waybar integration is still active")
 
 zshrc = (image / "root/etc/zsh.zshrc.local").read_text()
 for setting in ("HISTSIZE=100000", "SAVEHIST=75000", "EXTENDED_HISTORY", "HIST_IGNORE_SPACE", "SHARE_HISTORY"):

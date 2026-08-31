@@ -41,7 +41,7 @@ comfortable workstation:
 - Sway compositor and tiling window manager;
 - Xwayland for applications that still require X11;
 - Foot or another small Wayland-native terminal;
-- Waybar with local system and workbook status only;
+- Sway's native bar with a local PenSUSE workbook status stream;
 - Fuzzel or an equivalently small application launcher;
 - Mako for local notifications;
 - wl-clipboard;
@@ -111,6 +111,13 @@ closure. Exact font RPM identities are recorded in
 Opening the desktop or bar must not open a workbook or perform network
 activity. Workbook widgets may display local state only after the operator has
 explicitly selected a workbook.
+
+The native command strip runs `pensuse bar stream` using the i3bar JSON
+protocol. Entering a workbook TUI atomically marks that workbook active beneath
+`$XDG_RUNTIME_DIR/pensuse/`. The strip derives declared scope and running or
+failed managed invocations from canonical local files. It does not claim packet
+drops, hashing queues, or other metrics PenSUSE does not yet record. No daemon,
+shared global UID, network request, or telemetry service is involved.
 
 ## Go terminal experience
 
