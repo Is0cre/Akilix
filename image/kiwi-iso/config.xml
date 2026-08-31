@@ -40,6 +40,10 @@
     <package name="podman"/>
     <package name="selinux-policy-targeted"/>
     <package name="zsh"/>
+    <package name="vim"/>
+    <package name="vim-data"/>
+    <package name="nano"/>
+    <package name="featherpad"/>
     <package name="git"/>
     <package name="iproute2"/>
     <package name="wicked"/>

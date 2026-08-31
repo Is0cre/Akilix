@@ -152,13 +152,24 @@ if "splash" not in image_type.get("kernelcmdline", "").split():
 fonts = {"google-noto-sans-fonts", "google-noto-sans-mono-fonts", "google-noto-sans-symbols2-fonts", "google-noto-coloremoji-fonts"}
 if not fonts <= packages:
     raise SystemExit("KIWI image lacks the selected desktop font set")
+editors = {"vim", "vim-data", "nano", "featherpad"}
+if not editors <= packages:
+    raise SystemExit("KIWI image lacks the core editor set")
+vimrc = (image / "root/etc/vimrc").read_text()
+for setting in ("syntax enable", "filetype plugin indent on", "set number", "set swapfile"):
+    if setting not in vimrc:
+        raise SystemExit(f"Vim baseline lacks {setting}")
+nanorc = (image / "root/etc/nanorc").read_text()
+for setting in ("set linenumbers", "set autoindent", "set softwrap", 'include "/usr/share/nano/*.nanorc"'):
+    if setting not in nanorc:
+        raise SystemExit(f"Nano baseline lacks {setting}")
 foot = (image / "root/etc/xdg/foot/foot.ini").read_text()
 if "font=Noto Sans Mono:size=11,Noto Sans Symbols 2:size=11,Noto Color Emoji:size=11" not in foot:
     raise SystemExit("Foot does not use the installed Noto font stack")
 if "alpha=0.78" not in foot:
     raise SystemExit("Foot does not expose the Akilix wallpaper at the selected opacity")
 sway = (image / "root/etc/sway/config").read_text()
-for setting in ("status_command /usr/bin/akilix bar stream", "focused_workspace #657a3e"):
+for setting in ("status_command /usr/bin/akilix bar stream", "focused_workspace #657a3e", "bindsym $mod+Shift+n exec featherpad"):
     if setting not in sway:
         raise SystemExit(f"Sway native command strip lacks {setting}")
 if "exec waybar" in sway or "waybar" in packages:

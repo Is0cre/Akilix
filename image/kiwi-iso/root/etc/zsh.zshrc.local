@@ -2,6 +2,12 @@
 # /etc/zshrc after distribution defaults and remains user-overridable.
 [[ -o interactive ]] || return
 
+# CLI programs should always have a capable editor, while respecting an
+# operator's explicit environment choice.
+: ${EDITOR:=vim}
+: ${VISUAL:=$EDITOR}
+export EDITOR VISUAL
+
 # Load packaged completion functions, including Akilix. compinit only indexes
 # functions already installed locally and caches the index in the user's home.
 fpath=(/usr/share/zsh/site-functions $fpath)

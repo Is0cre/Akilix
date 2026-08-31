@@ -39,6 +39,7 @@ bindsym $mod+d exec $menu
 # VM consoles and host compositors frequently intercept the Super key.
 bindsym Ctrl+Alt+t exec $term
 bindsym Alt+F2 exec $menu
+bindsym $mod+Shift+n exec featherpad
 bindsym $mod+Shift+q kill
 bindsym $mod+f fullscreen toggle
 bindsym $mod+Shift+space floating toggle

@@ -44,6 +44,7 @@ comfortable workstation:
 - Sway's separately packaged native `swaybar` with a local Akilix workbook
   status stream;
 - Fuzzel or an equivalently small application launcher;
+- FeatherPad as a lightweight graphical text editor (`Super+Shift+N`);
 - Mako for local notifications;
 - wl-clipboard;
 - Grim and Slurp for explicit operator-requested screenshots;
@@ -72,6 +73,7 @@ The primary modifier should be the Super key. Initial bindings should include:
 - `Ctrl+Alt+T` — terminal fallback for VM consoles that intercept Super;
 - `Super+D` — launcher;
 - `Alt+F2` — launcher fallback;
+- `Super+Shift+N` — FeatherPad;
 - `Super+Shift+Q` — close focused window;
 - `Super+1` through `Super+9` — select workspace;
 - `Super+Shift+1` through `Super+Shift+9` — move a window;

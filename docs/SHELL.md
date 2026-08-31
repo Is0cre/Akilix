@@ -24,3 +24,11 @@ Users can override the system baseline in `~/.zshrc`. The image installs the
 generated `akilix` completion function through Zsh's standard `fpath` and
 initializes Zsh `compinit` from the system baseline. Completion indexes only
 locally installed functions and does not contact the network.
+
+The base image includes Vim and Nano rather than assuming an editor will be
+added later. `EDITOR` and `VISUAL` default to Vim unless the operator already
+set them. `/etc/vimrc` enables syntax, filetype indentation, line numbers,
+search feedback, completion menus, mouse support, and Vim's crash-recovery swap
+files. `/etc/nanorc` enables line numbers, indentation, soft wrapping, status
+feedback, mouse support, and the packaged syntax definitions. Personal
+`~/.vimrc` and `~/.nanorc` files remain available for overrides.

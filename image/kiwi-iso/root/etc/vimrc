@@ -1,0 +1,41 @@
+" Akilix system Vim defaults. Users can override these in ~/.vimrc.
+set nocompatible
+syntax enable
+filetype plugin indent on
+
+set number
+set cursorline
+set ruler
+set showcmd
+set showmatch
+set wildmenu
+set wildmode=longest:full,full
+
+set ignorecase
+set smartcase
+set incsearch
+set hlsearch
+
+set autoindent
+set smartindent
+set expandtab
+set tabstop=4
+set shiftwidth=4
+set softtabstop=4
+
+set backspace=indent,eol,start
+set hidden
+set autoread
+set confirm
+set encoding=utf-8
+set mouse=a
+set laststatus=2
+set colorcolumn=100
+
+" Keep Vim's crash-recovery swap files, but do not scatter backup files.
+set swapfile
+set nobackup
+set nowritebackup
+
+" Clear search highlighting without destroying the current search pattern.
+nnoremap <silent> <Esc><Esc> :nohlsearch<CR>

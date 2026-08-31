@@ -1,0 +1,13 @@
+# Akilix system Nano defaults. Users can override these in ~/.nanorc.
+set linenumbers
+set autoindent
+set tabsize 4
+set tabstospaces
+set softwrap
+set indicator
+set stateflags
+set zap
+set mouse
+
+# Load syntax definitions supplied by the Nano package.
+include "/usr/share/nano/*.nanorc"
