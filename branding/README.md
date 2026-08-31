@@ -34,4 +34,4 @@ make validate     # structural, integrity, dimension, alpha, ASCII, ANSI checks
 make clean        # remove generated raster files
 ```
 
-The build uses local Python 3/Pillow and ImageMagick only; it performs no network downloads. Resizing uses Lanczos except for nearest-neighbour favicon review tiles. `preview.png` is a generated contact sheet containing the primary logo, compact mark, enlarged 16px/32px views, social card, Plymouth, GRUB, wallpaper, and terminal review samples. Inspect it before shipping.
+The build uses local Python 3/Pillow and ImageMagick only; it performs no network downloads. Set `PENSUSE_FONT_DIR` when DejaVu Sans is installed outside `/usr/share/fonts/truetype/dejavu`. ImageMagick is required to create `favicon.ico`; an existing validated ICO is preserved when ImageMagick is unavailable. Resizing uses Lanczos except for nearest-neighbour favicon review tiles. `preview.png` is a generated contact sheet containing the primary logo, compact mark, enlarged 16px/32px views, social card, Plymouth, GRUB, wallpaper, and terminal review samples. Inspect it before shipping.

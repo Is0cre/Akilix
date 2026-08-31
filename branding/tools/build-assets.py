@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont
-import subprocess, sys
+import os, shutil, subprocess, sys
 
 ROOT = Path(__file__).resolve().parents[1]
+FONT_DIR = Path(os.environ.get('PENSUSE_FONT_DIR', '/usr/share/fonts/truetype/dejavu'))
 FULL = Image.open(ROOT/'source/pensuse-master.png').convert('RGBA')
 HEAD = Image.open(ROOT/'source/pensuse-mark-master.png').convert('RGBA')
 BG = '#0B1114'; GRAPHITE = '#151A1D'; BONE = '#E8E6DD'; GREEN = '#657A3E'; LEAF = '#8EAD55'; AMBER = '#C68A2B'; SLATE = '#4A5358'
 
 def font(size, bold=False):
-    p = '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf' if bold else '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
+    p = FONT_DIR / ('DejaVuSans-Bold.ttf' if bold else 'DejaVuSans.ttf')
     return ImageFont.truetype(p, size)
 def contain(im, box):
     x, y, w, h = box; copy = im.copy(); copy.thumbnail((w, h), Image.Resampling.LANCZOS)
@@ -40,7 +41,11 @@ def main():
     for s in [16,22,24,32,48,64,128,256,512]: save(HEAD,f'desktop/pensuse-{s}.png',(s,s))
     save(HEAD,'web/favicon-16.png',(16,16)); save(HEAD,'web/favicon-32.png',(32,32)); save(HEAD,'web/favicon-48.png',(48,48)); save(HEAD,'web/apple-touch-icon.png',(180,180)); save(HEAD,'web/android-chrome-192.png',(192,192)); save(HEAD,'web/android-chrome-512.png',(512,512))
     save(darklogo,'web/github-social-1280x640.png',(1280,640),BG); save(darklogo,'web/social-card-1200x630.png',(1200,630),BG)
-    subprocess.run(['magick',str(ROOT/'web/favicon-16.png'),str(ROOT/'web/favicon-32.png'),str(ROOT/'web/favicon-48.png'),str(ROOT/'web/favicon.ico')],check=True)
+    magick = shutil.which('magick')
+    if magick:
+        subprocess.run([magick,str(ROOT/'web/favicon-16.png'),str(ROOT/'web/favicon-32.png'),str(ROOT/'web/favicon-48.png'),str(ROOT/'web/favicon.ico')],check=True)
+    elif not (ROOT/'web/favicon.ico').is_file():
+        raise RuntimeError('ImageMagick is required to create web/favicon.ico')
     ply=Image.new('RGBA',(1920,1080),BG); place(ply,HEAD,(700,120,520,520)); d=ImageDraw.Draw(ply); d.text((750,700),'PenSUSE',font=font(74,True),fill=BONE); d.text((753,790),'Security work with provenance.',font=font(24),fill=SLATE); save(ply,'os/plymouth/splash-1920x1080.png')
     save(HEAD,'os/plymouth/logo.png',(512,512)); save(HEAD,'os/grub/logo.png',(420,420))
     grub=Image.new('RGBA',(1920,1080),BG); place(grub,FULL,(1180,180,650,700)); save(grub,'os/grub/background-1920x1080.png')
