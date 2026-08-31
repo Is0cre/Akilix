@@ -163,6 +163,8 @@ func RunWithOptions(ctx context.Context, workbookRoot, workbookID string, args [
 		return Record{}, err
 	}
 	cmd := exec.CommandContext(ctx, args[0], args[1:]...)
+	executionEnvironment := safeEnvironment()
+	cmd.Env = environmentList(executionEnvironment)
 	cmd.Stdout = out
 	cmd.Stderr = errFile
 	runErr := cmd.Run()
@@ -187,7 +189,7 @@ func RunWithOptions(ctx context.Context, workbookRoot, workbookID string, args [
 		}
 	}
 	workingDirectory, _ := os.Getwd()
-	r := Record{Schema: Schema, ID: id, WorkbookID: workbookID, Started: start, Ended: end, Executor: "native", Executable: executable, Arguments: append([]string(nil), args...), WorkingDirectory: workingDirectory, Environment: safeEnvironment(), GeneratedFiles: generated, ExitCode: exitCode, Status: status, Stdout: filepath.ToSlash(filepath.Join("tool-output", id+".stdout")), Stderr: filepath.ToSlash(filepath.Join("tool-output", id+".stderr")), ScopeResult: options.ScopeResult, ScopeTarget: options.ScopeTarget, ScopeOverride: options.ScopeOverride}
+	r := Record{Schema: Schema, ID: id, WorkbookID: workbookID, Started: start, Ended: end, Executor: "native", Executable: executable, Arguments: append([]string(nil), args...), WorkingDirectory: workingDirectory, Environment: executionEnvironment, GeneratedFiles: generated, ExitCode: exitCode, Status: status, Stdout: filepath.ToSlash(filepath.Join("tool-output", id+".stdout")), Stderr: filepath.ToSlash(filepath.Join("tool-output", id+".stderr")), ScopeResult: options.ScopeResult, ScopeTarget: options.ScopeTarget, ScopeOverride: options.ScopeOverride}
 	if err := r.Validate(); err != nil {
 		return Record{}, err
 	}
@@ -271,6 +273,19 @@ func safeEnvironment() map[string]string {
 		if ok && allowed[key] {
 			out[key] = value
 		}
+	}
+	return out
+}
+
+func environmentList(environment map[string]string) []string {
+	keys := make([]string, 0, len(environment))
+	for key := range environment {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	out := make([]string, 0, len(keys))
+	for _, key := range keys {
+		out = append(out, key+"="+environment[key])
 	}
 	return out
 }

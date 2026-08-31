@@ -324,9 +324,12 @@ func validHex(value string, length int) bool {
 }
 
 func validID(value string) bool {
+	if len(value) != 36 || value[8] != '-' || value[13] != '-' || value[18] != '-' || value[23] != '-' || value[14] != '7' {
+		return false
+	}
 	variant := value[19]
 	validVariant := (variant >= '8' && variant <= '9') || (variant >= 'a' && variant <= 'b') || (variant >= 'A' && variant <= 'B')
-	if len(value) != 36 || value[8] != '-' || value[13] != '-' || value[18] != '-' || value[23] != '-' || value[14] != '7' || !validVariant {
+	if !validVariant {
 		return false
 	}
 	for i, c := range value {

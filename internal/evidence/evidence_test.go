@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 )
@@ -116,6 +117,29 @@ func TestListRejectsManifestIDMismatch(t *testing.T) {
 	}
 	if _, err := List(workbook); err == nil {
 		t.Fatal("accepted manifest filename mismatch")
+	}
+}
+
+func TestListRejectsShortManifestIDWithoutPanic(t *testing.T) {
+	workbook := t.TempDir()
+	manifestDir := filepath.Join(workbook, "evidence", "manifests")
+	if err := os.MkdirAll(manifestDir, 0700); err != nil {
+		t.Fatal(err)
+	}
+	record := Record{
+		Schema: Schema, ID: "short", Classification: "original", Filename: "source.bin",
+		Source: "/source.bin", Size: 1, SHA256: strings.Repeat("0", 64),
+		Imported: time.Now().UTC(), Status: "complete",
+	}
+	b, err := json.Marshal(record)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(manifestDir, "short.json"), b, 0600); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := List(workbook); err == nil {
+		t.Fatal("accepted short evidence ID")
 	}
 }
 
