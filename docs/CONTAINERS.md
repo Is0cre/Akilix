@@ -91,6 +91,15 @@ Generated container specs currently default to:
 Original-evidence mounts must be explicitly read-only. Writable mounts are
 reserved for derived evidence, tool output, and temporary workspaces.
 
+Original evidence is not mounted by default. The operator must request the
+fixed policy explicitly:
+
+    pensuse container run CASE IMAGE --mount-originals -- TOOL /workbook/evidence/original/item
+
+PenSUSE validates that the canonical source directory has not been replaced or
+redirected by a symlink and always mounts it read-only at
+`/workbook/evidence/original`. Arbitrary host paths are not accepted.
+
 Podman options, including every mount, are emitted before the immutable image
 reference. This ordering is security-relevant: options after the image would
 instead become arguments to the containerized command.

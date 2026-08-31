@@ -333,7 +333,7 @@ func runContainer(args []string, stdout, stderr io.Writer) int {
 		return runContainerCommand(args[1:], stdout, stderr)
 	}
 	if len(args) != 2 || args[0] != "inspect" {
-		fmt.Fprintln(stderr, "usage: pensuse container doctor [--json] | container inspect IMAGE | container run WORKBOOK IMAGE [--target TARGET] [--override] [--json] [--workdir DIR] [--env KEY=VALUE] -- COMMAND [ARGS...]")
+		fmt.Fprintln(stderr, "usage: pensuse container doctor [--json] | container inspect IMAGE | container run WORKBOOK IMAGE [--mount-originals] [--target TARGET] [--override] [--json] [--workdir DIR] [--env KEY=VALUE] -- COMMAND [ARGS...]")
 		return 2
 	}
 	id, err := containerpkg.Resolve(context.Background(), containerpkg.PodmanRunner{}, args[1])
@@ -352,12 +352,13 @@ func runContainer(args []string, stdout, stderr io.Writer) int {
 
 func runContainerCommand(args []string, stdout, stderr io.Writer) int {
 	if len(args) < 4 {
-		fmt.Fprintln(stderr, "usage: pensuse container run WORKBOOK IMAGE [--target TARGET] [--override] [--json] [--workdir DIR] [--env KEY=VALUE] -- COMMAND [ARGS...]")
+		fmt.Fprintln(stderr, "usage: pensuse container run WORKBOOK IMAGE [--mount-originals] [--target TARGET] [--override] [--json] [--workdir DIR] [--env KEY=VALUE] -- COMMAND [ARGS...]")
 		return 2
 	}
 	target, override, workdir := "", false, ""
 	environment := map[string]string{}
 	jsonOutput := false
+	mountOriginals := false
 	separator := -1
 	for i := 2; i < len(args); i++ {
 		if args[i] == "--target" && i+1 < len(args) {
@@ -367,6 +368,14 @@ func runContainerCommand(args []string, stdout, stderr io.Writer) int {
 		}
 		if args[i] == "--json" {
 			jsonOutput = true
+			continue
+		}
+		if args[i] == "--mount-originals" {
+			if mountOriginals {
+				fmt.Fprintln(stderr, "duplicate --mount-originals")
+				return 2
+			}
+			mountOriginals = true
 			continue
 		}
 		if args[i] == "--workdir" && i+1 < len(args) {
@@ -440,7 +449,16 @@ func runContainerCommand(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintln(stderr, err)
 		return 1
 	}
-	spec := containerpkg.Spec{Identity: identity, Arguments: append([]string(nil), args[separator+1:]...), Workdir: workdir, Environment: environment}
+	mounts := []containerpkg.Mount{}
+	if mountOriginals {
+		mount, mountErr := containerpkg.OriginalEvidenceMount(filepath.Join(root, args[0]))
+		if mountErr != nil {
+			fmt.Fprintln(stderr, mountErr)
+			return 1
+		}
+		mounts = append(mounts, mount)
+	}
+	spec := containerpkg.Spec{Identity: identity, Arguments: append([]string(nil), args[separator+1:]...), Mounts: mounts, Workdir: workdir, Environment: environment}
 	r, err := invocation.RunContainer(context.Background(), filepath.Join(root, args[0]), m.ID, spec, time.Now, invocation.Options{ScopeResult: scopeResult, ScopeTarget: target, ScopeOverride: override})
 	if err != nil {
 		fmt.Fprintf(stderr, "invocation %s failed: %v\n", r.ID, err)
