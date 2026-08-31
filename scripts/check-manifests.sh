@@ -31,6 +31,21 @@ for item in items:
         raise SystemExit("image-enabled repository is not approved")
 PY
 
+python3 - <<'PY'
+import json
+from pathlib import Path
+
+lock = json.loads(Path("repositories/desktop-sway-lock.json").read_text())
+expected = {"sway", "waybar", "foot", "fuzzel", "mako", "wl-clipboard", "grim", "slurp"}
+packages = lock.get("packages", [])
+names = {item.get("name") for item in packages}
+if lock.get("schema") != "pensuse.package-lock.v1" or names != expected:
+    raise SystemExit("desktop package lock is incomplete")
+for item in packages:
+    if len(item.get("sha512", "")) != 128 or not item.get("location", "").startswith("x86_64/"):
+        raise SystemExit("desktop package lock contains invalid RPM identity")
+PY
+
 profile_dir=${PENSUSE_PROFILE_DIR:-profiles}
 profiles_json=$(PENSUSE_PROFILE_DIR="$profile_dir" $cli profile list --json)
 PROFILE_JSON="$profiles_json" python3 - <<'PY'

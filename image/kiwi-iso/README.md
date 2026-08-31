@@ -30,3 +30,9 @@ install a desktop or Plymouth merely to display branding.
 GRUB background, theme, shared logo, and asset license into the KIWI overlay.
 The graphical boot menu retains GRUB's text-console fallback and must be tested
 in both BIOS and UEFI modes before the image is published.
+
+The next development build includes the minimal Sway session from the approved
+`X11:Wayland` OBS source. Graphical auto-login is intentionally disabled. After
+console login, run `sway` to exercise the tiling session while retaining a
+known-good console recovery path. Exact directly selected RPM identities are
+recorded in `repositories/desktop-sway-lock.json`.

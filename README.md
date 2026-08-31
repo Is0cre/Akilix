@@ -84,8 +84,9 @@ Fast-moving security applications should generally run in reproducible OCI envir
 
 The intended graphical environment is a lightweight, keyboard-first Sway
 session with tiling enabled by default. The console remains a supported
-recovery path, and desktop packaging will not enter the release image until its
-Leap 16 OBS dependencies are pinned and auditable.
+recovery path. The development image uses an explicitly approved openSUSE OBS
+source with pinned, offline-auditable package identities; graphical auto-login
+remains disabled until runtime validation is complete.
 
 ---
 

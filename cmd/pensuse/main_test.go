@@ -113,7 +113,7 @@ func TestLoggingStatusIsExplicitAndJSONReadable(t *testing.T) {
 	}
 }
 
-func TestRepositoryListExposesCandidateTrustState(t *testing.T) {
+func TestRepositoryListExposesApprovedDesktopSource(t *testing.T) {
 	t.Setenv("PENSUSE_REPOSITORY_MANIFEST", "../../repositories/repositories.json")
 	var out, errOut bytes.Buffer
 	if code := run([]string{"repository", "list", "--json"}, &out, &errOut); code != 0 {
@@ -123,7 +123,7 @@ func TestRepositoryListExposesCandidateTrustState(t *testing.T) {
 	if err := json.Unmarshal(out.Bytes(), &items); err != nil {
 		t.Fatal(err)
 	}
-	if len(items) != 2 || items[1]["status"] != "candidate" || items[1]["image_enabled"] != false {
+	if len(items) != 2 || items[1]["status"] != "approved" || items[1]["image_enabled"] != true {
 		t.Fatalf("unexpected repository trust state: %+v", items)
 	}
 }

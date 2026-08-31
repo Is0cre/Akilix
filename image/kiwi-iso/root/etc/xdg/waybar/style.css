@@ -1,0 +1,37 @@
+* {
+  border: none;
+  border-radius: 0;
+  font-family: "DejaVu Sans", sans-serif;
+  font-size: 12px;
+  min-height: 0;
+}
+
+window#waybar {
+  background: rgba(11, 17, 20, 0.96);
+  color: #e8e6dd;
+}
+
+#workspaces button {
+  padding: 0 9px;
+  color: #aab1af;
+}
+
+#workspaces button.focused,
+#workspaces button.active {
+  background: #657a3e;
+  color: #e8e6dd;
+}
+
+#mode {
+  background: #c68a2b;
+  color: #0b1114;
+  padding: 0 10px;
+}
+
+#clock,
+#cpu,
+#memory,
+#battery,
+#tray {
+  padding: 0 8px;
+}

@@ -20,8 +20,8 @@
       "base_url": "https://download.opensuse.org/repositories/X11:/Wayland/16.0/",
       "key_url": "https://download.opensuse.org/repositories/X11:/Wayland/16.0/repodata/repomd.xml.key",
       "key_fingerprint": "18CFC76392ED435107A76F368B23A9A7780504E9",
-      "image_enabled": false,
-      "status": "candidate"
+      "image_enabled": true,
+      "status": "approved"
     }
   ]
 }

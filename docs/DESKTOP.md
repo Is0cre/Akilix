@@ -20,18 +20,18 @@ repository:
 - <https://software.opensuse.org/package/sway?locale=en>
 - <https://software.opensuse.org/download/package?package=waybar&project=X11%3AWayland>
 
-The ISO must not silently add that repository. Before desktop packages enter a
-release image, PenSUSE must record the repository URL and signing key, resolve
-exact RPM versions, and produce an offline-auditable package manifest. A local
-mirror or PenSUSE OBS project is preferred for reproducible release builds.
+The repository is an explicitly approved experimental input for the development
+ISO. PenSUSE records its URL and signing-key fingerprint and keeps the resolved
+x86_64 RPM identities in `repositories/desktop-sway-lock.json`. A local mirror
+or PenSUSE OBS project remains preferred for reproducible release builds.
 
-The repository identity is recorded as a disabled candidate in
+The repository identity is recorded as an approved development-image source in
 `repositories/repositories.json`. Inspect it locally with:
 
     pensuse repository show x11-wayland-leap-16
 
-This inspection performs no network access and does not add or enable the
-repository.
+This inspection performs no network access. Enabling the source in the KIWI
+description does not add it to an already-running host.
 
 ## Minimal session
 
@@ -48,6 +48,11 @@ comfortable workstation:
 - Grim and Slurp for explicit operator-requested screenshots;
 - a minimal PolicyKit agent where graphical elevation workflows require it;
 - the PenSUSE wallpaper and icon assets already stored under `branding/`.
+
+The development ISO installs this session but does not enable graphical
+auto-login. Log in on the console and run `sway`; automatic graphical startup
+remains deferred until the console fallback and representative hardware paths
+have been boot-tested.
 
 No component may silently start scans, listeners, packet capture, terminal
 recording, telemetry, cloud synchronization, or workbook uploads.

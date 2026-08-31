@@ -22,6 +22,9 @@
   <repository type="rpm-md" alias="openSUSE-Leap-16.0-OSS">
     <source path="https://download.opensuse.org/distribution/leap/16.0/repo/oss/"/>
   </repository>
+  <repository type="rpm-md" alias="PenSUSE-X11-Wayland-Leap-16">
+    <source path="https://download.opensuse.org/repositories/X11:/Wayland/16.0/"/>
+  </repository>
   <packages type="image">
     <package name="systemd"/>
     <package name="btrfsprogs"/>
@@ -42,6 +45,15 @@
     <package name="grub2"/>
     <package name="grub2-i386-pc"/>
     <package name="grub2-x86_64-efi"/>
+    <package name="sway"/>
+    <package name="waybar"/>
+    <package name="foot"/>
+    <package name="fuzzel"/>
+    <package name="mako"/>
+    <package name="wl-clipboard"/>
+    <package name="grim"/>
+    <package name="slurp"/>
+    <package name="xwayland"/>
   </packages>
   <packages type="bootstrap">
     <package name="bash"/>

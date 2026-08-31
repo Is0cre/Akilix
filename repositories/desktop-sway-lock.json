@@ -1,0 +1,18 @@
+{
+  "schema": "pensuse.package-lock.v1",
+  "repository_id": "x11-wayland-leap-16",
+  "architecture": "x86_64",
+  "resolved_at": "2026-08-31T00:00:00Z",
+  "repomd_revision": "1788110949",
+  "primary_sha512": "467ca92d3269b9cf4d08d242de39a51443ca72de4b82f2df115887cd1b7a1c7f1af8c79390e5e22812f90cfa6b4e882c7fc156dee8d5e32df0448c38b6b69f48",
+  "packages": [
+    {"name":"foot","version":"1.27.0-lp160.107.3","sha512":"424616def1d38f0084be9d76bfaa6df2cafeedd168530dec0924bc198754100083c6ff70f8cf986fdedf0fa1fb5a2a96ee37690580c95825387d670a17b199b1","location":"x86_64/foot-1.27.0-lp160.107.3.x86_64.rpm"},
+    {"name":"fuzzel","version":"1.12.0-lp160.37.3","sha512":"c973a670016fdd90f786aba7bad34d67d442574e6b32c2775a808bbc23acf67139a4edb4ed6668e9f2b7e55a0a9bf44423cbe73cf0f1d61f65d8ce2722bcd8f2","location":"x86_64/fuzzel-1.12.0-lp160.37.3.x86_64.rpm"},
+    {"name":"grim","version":"1.5.0-lp160.18.3","sha512":"7c8ed9ad625a1619a391a3fa773b583c69e36407c970f63c0229262bacb675dc438bb68759657ff1ed5d804ff03896f4f7c49279a390eb472ece5b370b92addc","location":"x86_64/grim-1.5.0-lp160.18.3.x86_64.rpm"},
+    {"name":"mako","version":"1.11.0-lp160.25.2","sha512":"3810bf430f26fe15ea6eb8feaaf43c93ae09e647e03b115f3f3ea542b5ebab9f44eb39e90ad6ea5525528e4ec0163a0ac52f12eb20d31fba423ff5f9bfb21c52","location":"x86_64/mako-1.11.0-lp160.25.2.x86_64.rpm"},
+    {"name":"slurp","version":"1.6.0-lp160.21.3","sha512":"bfbb90399d1371cdc287ce1e0387c31711aba9ed8c22b4442e9d3ff8c43c513cfc3492135e2a47c754b4473f13fedfef954787d1708af70f2360f634b8df685a","location":"x86_64/slurp-1.6.0-lp160.21.3.x86_64.rpm"},
+    {"name":"sway","version":"1.11-lp160.149.4","sha512":"c2c82910150f1ab5ecd9d355f2efddb6144e3bcf6f51e9a8c2f1ac649ce91a034cb9d6fbb148a24bf83bc8bf626003b644c16aa60b38c81be3128a8d04d63d4a","location":"x86_64/sway-1.11-lp160.149.4.x86_64.rpm"},
+    {"name":"waybar","version":"0.15.0-lp160.153.4","sha512":"dcef518470b57e8c93aca20cd3a8225cc813f7ff6f4aee117d9c99ea9379dcf0a2e888b81b351a6abd4ee750f805e15224448cc6d4d458dc70007161bc659550","location":"x86_64/waybar-0.15.0-lp160.153.4.x86_64.rpm"},
+    {"name":"wl-clipboard","version":"2.3.0-lp160.14.3","sha512":"accdbe28fc5873ded72d6364975a1b0f9d077fcae606df1feda26ffc3eb4020a9d86a991cb921a59a267544b7edc22051989e5a56416c41a943ab2755fb743d3","location":"x86_64/wl-clipboard-2.3.0-lp160.14.3.x86_64.rpm"}
+  ]
+}
