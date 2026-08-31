@@ -85,6 +85,20 @@ Renaming a workbook must never change its identity.
 
 The filesystem remains canonical for evidence and primary provenance.
 
+## Live activity window
+
+`pensuse workbook follow NAME` renders new canonical invocation records as they
+are completed. `pensuse workbook follow NAME --once` prints the current
+snapshot and exits, which is useful for scripts and diagnostics. In the
+workbook TUI, `[l]` explicitly opens the follower in a separate Foot window so
+Sway can tile it beside the operator workspace.
+
+Following is a local, read-only operation. It does not execute tools, inspect
+the network, capture the terminal, or change the workbook. This initial view
+reports completed invocation records; a future versioned activity journal will
+represent start and progress events without treating partial provenance as a
+completed invocation.
+
 SQLite is an index and convenience layer.
 
 ---

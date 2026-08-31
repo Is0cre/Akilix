@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -101,10 +102,19 @@ func validHex(value string, length int) bool {
 }
 
 func List(workbookRoot string) ([]Record, error) {
-	b, err := os.ReadFile(filepath.Join(workbookRoot, ".pensuse", "manifest.jsonl"))
+	f, err := os.Open(filepath.Join(workbookRoot, ".pensuse", "manifest.jsonl"))
 	if os.IsNotExist(err) {
 		return []Record{}, nil
 	}
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	if err := syscall.Flock(int(f.Fd()), syscall.LOCK_SH); err != nil {
+		return nil, err
+	}
+	defer syscall.Flock(int(f.Fd()), syscall.LOCK_UN)
+	b, err := io.ReadAll(f)
 	if err != nil {
 		return nil, err
 	}

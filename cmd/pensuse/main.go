@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -144,13 +145,19 @@ func runTUISession(scanner *bufio.Scanner, root, selected string, color bool, st
 			return 1
 		}
 		fmt.Fprint(stdout, tuipkg.Render(overview, config, color))
-		fmt.Fprint(stdout, "[a] add scope  [x] add exclusion  [n] network discovery  [p] port discovery  [q] quit > ")
+		fmt.Fprint(stdout, "[a] add scope  [x] add exclusion  [n] network discovery  [p] port discovery  [l] live log  [q] quit > ")
 		if !scanner.Scan() {
 			return 0
 		}
 		action := strings.ToLower(strings.TrimSpace(scanner.Text()))
 		if action == "q" || action == "quit" {
 			return 0
+		}
+		if action == "l" {
+			if err := launchWorkbookLog(selected); err != nil {
+				fmt.Fprintln(stderr, err)
+			}
+			continue
 		}
 		if action == "n" || action == "p" {
 			if overview.Status != "open" {
@@ -219,6 +226,22 @@ func runTUISession(scanner *bufio.Scanner, root, selected string, color bool, st
 		}
 		fmt.Fprintln(stdout, "scope updated")
 	}
+}
+
+func launchWorkbookLog(name string) error {
+	terminal, err := exec.LookPath("foot")
+	if err != nil {
+		return fmt.Errorf("open workbook log window: %w", err)
+	}
+	self, err := os.Executable()
+	if err != nil {
+		return fmt.Errorf("locate pensuse executable: %w", err)
+	}
+	cmd := exec.Command(terminal, "--title", "PenSUSE · "+name+" · Activity", self, "workbook", "follow", name)
+	if err := cmd.Start(); err != nil {
+		return fmt.Errorf("open workbook log window: %w", err)
+	}
+	return cmd.Process.Release()
 }
 
 func runRepository(args []string, stdout, stderr io.Writer) int {
@@ -934,11 +957,38 @@ func runEvidence(args []string, stdout, stderr io.Writer) int {
 
 func runWorkbook(args []string, stdout, stderr io.Writer) int {
 	if len(args) == 0 {
-		fmt.Fprintln(stderr, "usage: pensuse workbook <create|list|open|overview|path|status|close|reopen|rename|validate>")
+		fmt.Fprintln(stderr, "usage: pensuse workbook <create|list|open|overview|follow|path|status|close|reopen|rename|validate>")
 		return 2
 	}
 	root := effectiveWorkbookRoot()
 	switch args[0] {
+	case "follow":
+		if len(args) != 2 && !(len(args) == 3 && args[2] == "--once") {
+			fmt.Fprintln(stderr, "usage: pensuse workbook follow NAME [--once]")
+			return 2
+		}
+		if _, err := workbook.Open(root, args[1]); err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		fmt.Fprintf(stdout, "PenSUSE workbook activity · %s\nWaiting for canonical invocation records…\n\n", args[1])
+		seen := 0
+		for {
+			records, err := invocation.List(filepath.Join(root, args[1]))
+			if err != nil {
+				fmt.Fprintln(stderr, err)
+				return 1
+			}
+			for _, record := range records[seen:] {
+				tool := filepath.Base(record.Arguments[0])
+				fmt.Fprintf(stdout, "%s  %-8s %-9s %-18s exit=%d  %s\n", record.Ended.Local().Format("15:04:05"), strings.ToUpper(record.Status), record.Executor, tool, record.ExitCode, record.ID)
+			}
+			seen = len(records)
+			if len(args) == 3 {
+				return 0
+			}
+			time.Sleep(750 * time.Millisecond)
+		}
 	case "overview":
 		if len(args) != 2 && !(len(args) == 3 && args[2] == "--json") {
 			fmt.Fprintln(stderr, "usage: pensuse workbook overview NAME [--json]")

@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"os"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -188,6 +189,24 @@ func TestWorkbookOverviewAndSectionPath(t *testing.T) {
 	want := filepath.Join(root, "case-1", "evidence") + "\n"
 	if out.String() != want {
 		t.Fatalf("path = %q, want %q", out.String(), want)
+	}
+}
+
+func TestWorkbookFollowOnceIsPassive(t *testing.T) {
+	root := t.TempDir()
+	t.Setenv("PENSUSE_WORKBOOK_ROOT", root)
+	if _, err := workbook.Create(root, "case-1", time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+	var out, errOut bytes.Buffer
+	if code := run([]string{"workbook", "follow", "case-1", "--once"}, &out, &errOut); code != 0 {
+		t.Fatalf("workbook follow: %d %s", code, errOut.String())
+	}
+	if !strings.Contains(out.String(), "workbook activity · case-1") || !strings.Contains(out.String(), "Waiting for canonical invocation records") {
+		t.Fatalf("follow output: %q", out.String())
+	}
+	if _, err := os.Stat(filepath.Join(root, "case-1", ".pensuse", "manifest.jsonl")); !os.IsNotExist(err) {
+		t.Fatalf("passive follower created manifest: %v", err)
 	}
 }
 
