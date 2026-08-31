@@ -63,6 +63,12 @@ kiwi:
 
 kiwi-iso: build branding-stage
 	: "$${PENSUSE_LIVE_PASSWORD:?Set PENSUSE_LIVE_PASSWORD for the live operator account}"
+	@if [ -e build/kiwi-iso ]; then \
+		archive="build/kiwi-iso.previous-$$(date -u +%Y%m%dT%H%M%SZ)"; \
+		test ! -e "$$archive"; \
+		mv build/kiwi-iso "$$archive"; \
+		printf '%s\n' "preserved previous ISO build as $$archive"; \
+	fi
 	install -Dm0755 pensuse image/kiwi-iso/root/usr/bin/pensuse
 	install -Dm0755 scripts/check-m0-platform.sh image/kiwi-iso/root/usr/bin/pensuse-m0-check
 	mkdir -p image/kiwi-iso/root/usr/share/zsh/site-functions image/kiwi-iso/root/usr/share/bash-completion/completions

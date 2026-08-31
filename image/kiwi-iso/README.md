@@ -16,8 +16,10 @@ The resulting image provides the regular `pensuse`
 operator account; root remains unavailable for ordinary console login.
 
 The target builds the current CLI and shell completions into the image overlay
-before KIWI runs. The result is written under `build/kiwi-iso/`. Verify the
-generated checksum before copying the ISO to Ventoy media. A Ventoy boot test
+before KIWI runs. The result is written under `build/kiwi-iso/`. If that path
+already exists, the target first preserves it as
+`build/kiwi-iso.previous-YYYYMMDDTHHMMSSZ`; KIWI never reuses an existing image
+root. Verify the generated checksum before copying the ISO to Ventoy media. A Ventoy boot test
 must verify that the system reaches the expected target, does not start PenSUSE
 listeners, and preserves the documented passive-opening behavior.
 
