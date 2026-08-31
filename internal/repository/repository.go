@@ -57,7 +57,7 @@ func (s Set) Validate() error {
 }
 
 func (i Item) Validate() error {
-	if i.ID == "" || strings.TrimSpace(i.Name) == "" || (i.Purpose != "base" && i.Purpose != "desktop") || (i.Tier != "release" && i.Tier != "obs") || (i.Status != "approved" && i.Status != "candidate") {
+	if i.ID == "" || strings.TrimSpace(i.Name) == "" || (i.Purpose != "base" && i.Purpose != "desktop" && i.Purpose != "boot") || (i.Tier != "release" && i.Tier != "obs") || (i.Status != "approved" && i.Status != "candidate") {
 		return fmt.Errorf("invalid repository metadata")
 	}
 	if i.ImageEnabled && i.Status != "approved" {

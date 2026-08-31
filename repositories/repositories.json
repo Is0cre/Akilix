@@ -22,6 +22,17 @@
       "key_fingerprint": "18CFC76392ED435107A76F368B23A9A7780504E9",
       "image_enabled": true,
       "status": "approved"
+    },
+    {
+      "id": "base-system-leap-16",
+      "name": "openSUSE OBS Base:System for Leap 16.0",
+      "purpose": "boot",
+      "tier": "obs",
+      "base_url": "https://download.opensuse.org/repositories/Base:/System/16.0/",
+      "key_url": "https://download.opensuse.org/repositories/Base:/System/16.0/repodata/repomd.xml.key",
+      "key_fingerprint": "9B76956C9465B30D7364090D88EB5D66E2C0098C",
+      "image_enabled": true,
+      "status": "approved"
     }
   ]
 }

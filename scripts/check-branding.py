@@ -105,6 +105,22 @@ try:
 except (OSError, UnicodeError) as error:
     FAILURES.append(f"invalid GRUB theme: {error}")
 
+plymouth_root = (
+    REPOSITORY_ROOT
+    / "image/kiwi-iso/root/usr/share/plymouth/themes/pensuse"
+)
+try:
+    plymouth_theme = (plymouth_root / "pensuse.plymouth").read_text(encoding="utf-8")
+    plymouth_script = (plymouth_root / "pensuse.script").read_text(encoding="utf-8")
+    if "ModuleName=script" not in plymouth_theme or "pensuse.script" not in plymouth_theme:
+        FAILURES.append("Plymouth theme does not select the tracked script")
+    if 'Image("logo.png")' not in plymouth_script:
+        FAILURES.append("Plymouth script does not select the staged logo")
+    if "http://" in plymouth_script or "https://" in plymouth_script:
+        FAILURES.append("Plymouth script contains a network resource")
+except (OSError, UnicodeError) as error:
+    FAILURES.append(f"invalid Plymouth theme: {error}")
+
 if FAILURES:
     print("branding check: FAIL")
     for failure in FAILURES:

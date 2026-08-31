@@ -33,6 +33,7 @@ branding-check:
 branding-stage: branding-check
 	install -Dm0644 branding/os/grub/background-1920x1080.png image/kiwi-iso/root/usr/share/grub2/themes/PenSUSE/background.png
 	install -Dm0644 branding/os/grub/logo.png image/kiwi-iso/root/usr/share/pensuse/branding/logo.png
+	install -Dm0644 branding/os/plymouth/logo.png image/kiwi-iso/root/usr/share/plymouth/themes/pensuse/logo.png
 	install -Dm0644 branding/os/wallpaper/pensuse-3840x2160.png image/kiwi-iso/root/usr/share/backgrounds/pensuse/pensuse-3840x2160.png
 	install -Dm0644 branding/LICENSE image/kiwi-iso/root/usr/share/licenses/pensuse-branding/LICENSE
 

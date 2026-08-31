@@ -21,15 +21,19 @@ generated checksum before copying the ISO to Ventoy media. A Ventoy boot test
 must verify that the system reaches the expected target, does not start PenSUSE
 listeners, and preserves the documented passive-opening behavior.
 
-The image display name and console banner are branded through tracked KIWI
-inputs. Artwork requirements and the planned boot-theme integration are
-documented in `docs/BRANDING.md`. The current console-only M0 image does not
-install a desktop or Plymouth merely to display branding.
+The image display name, console banner, GRUB menu, Plymouth screen, and Sway
+session are branded through tracked KIWI inputs. Artwork requirements are
+documented in `docs/BRANDING.md`.
 
 `make kiwi-iso` validates the canonical branding kit and stages the PenSUSE
 GRUB background, theme, shared logo, and asset license into the KIWI overlay.
 The graphical boot menu retains GRUB's text-console fallback and must be tested
 in both BIOS and UEFI modes before the image is published.
+
+The static Plymouth theme uses the approved `Base:System` OBS source because
+Leap 16 OSS does not currently carry the required package set. Its repository
+key and exact RPM identities are recorded in the repository manifests. Press
+Esc during boot to expose diagnostics; the theme does not replace that path.
 
 The development build includes the minimal Sway session and `greetd`/`tuigreet`
 from the approved `X11:Wayland` OBS source. Account auto-login is disabled.

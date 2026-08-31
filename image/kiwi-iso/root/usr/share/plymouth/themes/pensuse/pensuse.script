@@ -1,0 +1,16 @@
+# PenSUSE deliberately uses a static boot surface: no timing-dependent animation,
+# external fonts, or network-loaded resources.
+Window.SetBackgroundTopColor(0.035, 0.055, 0.063);
+Window.SetBackgroundBottomColor(0.016, 0.027, 0.031);
+
+mark.image = Image("logo.png");
+mark.sprite = Sprite(mark.image);
+
+fun place_mark ()
+  {
+    mark.sprite.SetX(Window.GetX() + Window.GetWidth() / 2 - mark.image.GetWidth() / 2);
+    mark.sprite.SetY(Window.GetY() + Window.GetHeight() / 2 - mark.image.GetHeight() / 2);
+  }
+
+place_mark();
+Plymouth.SetRefreshFunction(place_mark);

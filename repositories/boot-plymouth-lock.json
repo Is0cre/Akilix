@@ -1,0 +1,14 @@
+{
+  "schema": "pensuse.package-lock.v1",
+  "repository_id": "base-system-leap-16",
+  "architecture": "x86_64",
+  "resolved_at": "2026-08-31T00:00:00Z",
+  "repomd_revision": "1788183324",
+  "primary_sha512": "802ebbb4e6fc53ddbbf2715f9de44f033dcbb6f6a538c97bbc6be3c8e90a0db27764ab22ffa60ead427778e7d2af89ad8b54f282043a55104525c6da99135203",
+  "packages": [
+    {"name":"plymouth","version":"22.02.122+94.4bd41a3-lp160.488.9","sha512":"aaa9e671bd0c7a6186860971e549ffc555498937d293efdddad5fa9150fbcf0c8664b3e7a829e391e74098262551976333b37c767c931e36604685dd0cc82803","location":"x86_64/plymouth-22.02.122+94.4bd41a3-lp160.488.9.x86_64.rpm"},
+    {"name":"plymouth-branding-upstream","version":"22.02.122+94.4bd41a3-lp160.488.9","sha512":"9d7eff5ef5458d846cb65df9a22931ce91021cb1221ce51c205f4c9f7ec602edf3b4955aa9af6a057191c3ac77b434f88a6a95a57d12779b6a3722c9fdd5c694","location":"noarch/plymouth-branding-upstream-22.02.122+94.4bd41a3-lp160.488.9.noarch.rpm"},
+    {"name":"plymouth-dracut","version":"22.02.122+94.4bd41a3-lp160.488.9","sha512":"3083a6c9069199c5f6e096f21fcf35ca135e5ec2eab92a9b37807cb11084815a7f305005a270780f8c848fd8bc4b88ea4b21f242f33261f7a2d001f09f8feb94","location":"noarch/plymouth-dracut-22.02.122+94.4bd41a3-lp160.488.9.noarch.rpm"},
+    {"name":"plymouth-plugin-script","version":"22.02.122+94.4bd41a3-lp160.488.9","sha512":"ceb99351b5cb65e69906f610997145fa6c5d5e984ecbedc8c19c1e7d3152f7ff8795b40b8b931571b8175340ae7a36f3510710c86d9270db4c1ef0665076923e","location":"x86_64/plymouth-plugin-script-22.02.122+94.4bd41a3-lp160.488.9.x86_64.rpm"}
+  ]
+}

@@ -6,12 +6,14 @@
     <specification>PenSUSE M0 bootable ISO for USB/Ventoy testing</specification>
   </description>
   <preferences>
-    <type image="iso" filesystem="squashfs" firmware="uefi" eficsm="true"/>
+    <type image="iso" filesystem="squashfs" firmware="uefi" eficsm="true"
+          kernelcmdline="quiet splash"/>
     <version>0.0.1</version>
     <packagemanager>zypper</packagemanager>
     <locale>en_US</locale>
     <keytable>us</keytable>
     <bootloader-theme>PenSUSE</bootloader-theme>
+    <bootsplash-theme>pensuse</bootsplash-theme>
   </preferences>
   <!-- The password placeholder is replaced only in a local build config. -->
   <users>
@@ -24,6 +26,9 @@
   </repository>
   <repository type="rpm-md" alias="PenSUSE-X11-Wayland-Leap-16">
     <source path="https://download.opensuse.org/repositories/X11:/Wayland/16.0/"/>
+  </repository>
+  <repository type="rpm-md" alias="PenSUSE-Base-System-Leap-16">
+    <source path="https://download.opensuse.org/repositories/Base:/System/16.0/"/>
   </repository>
   <packages type="image">
     <package name="systemd"/>
@@ -57,6 +62,10 @@
     <package name="greetd"/>
     <package name="greetd-branding-upstream"/>
     <package name="tuigreet"/>
+    <package name="plymouth"/>
+    <package name="plymouth-branding-upstream"/>
+    <package name="plymouth-plugin-script"/>
+    <package name="plymouth-dracut"/>
   </packages>
   <packages type="bootstrap">
     <package name="bash"/>

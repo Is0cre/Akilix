@@ -145,7 +145,7 @@ func TestWorkbookOverviewAndSectionPath(t *testing.T) {
 	}
 }
 
-func TestRepositoryListExposesApprovedDesktopSource(t *testing.T) {
+func TestRepositoryListExposesApprovedImageSources(t *testing.T) {
 	t.Setenv("PENSUSE_REPOSITORY_MANIFEST", "../../repositories/repositories.json")
 	var out, errOut bytes.Buffer
 	if code := run([]string{"repository", "list", "--json"}, &out, &errOut); code != 0 {
@@ -155,7 +155,7 @@ func TestRepositoryListExposesApprovedDesktopSource(t *testing.T) {
 	if err := json.Unmarshal(out.Bytes(), &items); err != nil {
 		t.Fatal(err)
 	}
-	if len(items) != 2 || items[1]["status"] != "approved" || items[1]["image_enabled"] != true {
+	if len(items) != 3 || items[1]["status"] != "approved" || items[1]["image_enabled"] != true || items[2]["purpose"] != "boot" || items[2]["status"] != "approved" || items[2]["image_enabled"] != true {
 		t.Fatalf("unexpected repository trust state: %+v", items)
 	}
 }

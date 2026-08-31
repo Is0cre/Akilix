@@ -48,6 +48,24 @@ for item in packages:
 PY
 
 python3 - <<'PY'
+import json
+from pathlib import Path
+
+lock = json.loads(Path("repositories/boot-plymouth-lock.json").read_text())
+expected = {"plymouth", "plymouth-branding-upstream", "plymouth-dracut", "plymouth-plugin-script"}
+packages = lock.get("packages", [])
+if lock.get("schema") != "pensuse.package-lock.v1":
+    raise SystemExit("Plymouth package lock has the wrong schema")
+if lock.get("repository_id") != "base-system-leap-16":
+    raise SystemExit("Plymouth package lock has the wrong repository")
+if {item.get("name") for item in packages} != expected:
+    raise SystemExit("Plymouth package lock is incomplete")
+for item in packages:
+    if len(item.get("sha512", "")) != 128 or not item.get("location", "").startswith(("x86_64/", "noarch/")):
+        raise SystemExit("Plymouth package lock contains invalid RPM identity")
+PY
+
+python3 - <<'PY'
 import tomllib
 import xml.etree.ElementTree as ET
 from pathlib import Path
@@ -76,6 +94,20 @@ for path, target in links.items():
         raise SystemExit(f"invalid systemd image link: {path}")
 if (image / "root/etc/profile.d/50-pensuse-sway.sh").exists():
     raise SystemExit("legacy shell-profile Sway autostart is still present")
+
+tree = ET.parse(image / "config.xml")
+repositories = {node.get("alias"): node.find("source").get("path") for node in tree.findall("repository")}
+if repositories.get("PenSUSE-Base-System-Leap-16") != "https://download.opensuse.org/repositories/Base:/System/16.0/":
+    raise SystemExit("KIWI image lacks the audited Base:System source")
+plymouth = {"plymouth", "plymouth-branding-upstream", "plymouth-plugin-script", "plymouth-dracut"}
+if not plymouth <= packages:
+    raise SystemExit("KIWI image lacks the complete Plymouth/initrd package set")
+preferences = tree.find("preferences")
+image_type = preferences.find("type")
+if preferences.findtext("bootsplash-theme") != "pensuse":
+    raise SystemExit("KIWI does not select the PenSUSE Plymouth theme")
+if "splash" not in image_type.get("kernelcmdline", "").split():
+    raise SystemExit("KIWI kernel command line does not activate Plymouth")
 PY
 
 profile_dir=${PENSUSE_PROFILE_DIR:-profiles}
