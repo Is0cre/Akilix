@@ -208,8 +208,8 @@ func runDevice(args []string, stdout, stderr io.Writer) int {
 }
 
 func runAcquire(args []string, stdout, stderr io.Writer) int {
-	if len(args) < 1 || args[0] != "inspect" && args[0] != "record" && args[0] != "protect" {
-		fmt.Fprintln(stderr, "usage: akilix acquire inspect [--json] | acquire record WORKBOOK [--json] | acquire protect WORKBOOK DEVICE [--json]")
+	if len(args) < 1 || args[0] != "inspect" && args[0] != "record" && args[0] != "protect" && args[0] != "identify" {
+		fmt.Fprintln(stderr, "usage: akilix acquire inspect [--json] | acquire record WORKBOOK [--json] | acquire identify WORKBOOK DEVICE [--json] | acquire protect WORKBOOK DEVICE [--json]")
 		return 2
 	}
 	jsonOutput := false
@@ -227,14 +227,14 @@ func runAcquire(args []string, stdout, stderr io.Writer) int {
 		jsonOutput = len(args) == 3
 	} else {
 		if len(args) != 3 && !(len(args) == 4 && args[3] == "--json") {
-			fmt.Fprintln(stderr, "usage: akilix acquire protect WORKBOOK DEVICE [--json]")
+			fmt.Fprintf(stderr, "usage: akilix acquire %s WORKBOOK DEVICE [--json]\n", args[0])
 			return 2
 		}
 		jsonOutput = len(args) == 4
 	}
 	var metadata workbook.Metadata
 	var workbookRoot string
-	if args[0] == "record" || args[0] == "protect" {
+	if args[0] == "record" || args[0] == "protect" || args[0] == "identify" {
 		root := effectiveWorkbookRoot()
 		var err error
 		metadata, err = workbook.Open(root, args[1])
@@ -278,6 +278,47 @@ func runAcquire(args []string, stdout, stderr io.Writer) int {
 			return 0
 		}
 		fmt.Fprintf(stdout, "recorded passive hardware inventory %s\n%s\n", record.ID, path)
+		return 0
+	}
+	if args[0] == "identify" {
+		device, err := acquire.Candidate(report, args[2])
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		inventory, _, err := acquire.RecordInspection(workbookRoot, metadata.ID, report, now)
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		identification, err := acquire.Identify(ctx, acquire.ExecResultRunner{}, device, inventory.ID, time.Now().UTC())
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		record, path, err := acquire.RecordIdentification(workbookRoot, metadata.ID, identification, time.Now().UTC())
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		if jsonOutput {
+			data, err := json.MarshalIndent(record, "", "  ")
+			if err != nil {
+				fmt.Fprintln(stderr, err)
+				return 1
+			}
+			fmt.Fprintln(stdout, string(data))
+		} else {
+			fmt.Fprintf(stdout, "recorded passive identity %s for %s\n%s\n", record.ID, device.Path, path)
+			for _, command := range record.Commands {
+				fmt.Fprintf(stdout, "%-10s %s (exit %d)\n", command.Tool, command.Status, command.ExitCode)
+			}
+		}
+		for _, command := range record.Commands {
+			if command.Status == "UNAVAILABLE" || command.Status == "TOOL_ERROR" || command.Status == "INVALID_OUTPUT" {
+				return 1
+			}
+		}
 		return 0
 	}
 	if args[0] == "protect" {

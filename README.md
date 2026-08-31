@@ -143,6 +143,7 @@ partitions without opening raw device nodes or changing device state:
     akilix acquire inspect
     akilix acquire inspect --json
     akilix acquire record client-2026
+    sudo --preserve-env=AKILIX_WORKBOOK_ROOT akilix acquire identify client-2026 /dev/sdb
     sudo --preserve-env=AKILIX_WORKBOOK_ROOT akilix acquire protect client-2026 /dev/sdb
     akilix device trust add /dev/sdb "known lab disk"
     akilix device trust list
@@ -170,6 +171,11 @@ The ISO also stages a checksum-pinned `usb.ids` snapshot for offline friendly
 names; those unauthenticated VID/PID labels are never treated as identity.
 For USB storage, numeric VID/PID values from local udev metadata are combined
 with the serial when no WWN exists. Friendly database names remain display-only.
+
+Workbook-bound passive identification records a baseline inventory before any
+diagnostic command touches the selected disk. It captures structured SMART or
+NVMe identity/health output, exact arguments and exit status without mounting
+or modifying the target. Akilix never invokes privilege elevation itself.
 
 ---
 
