@@ -37,3 +37,14 @@ The operator shell also includes `nnn` for fast terminal file navigation and
 `btop` for on-demand process, disk, and network visibility. `nnn` defaults to
 type-to-navigate and sends text edits to `$VISUAL`/`$EDITOR`. Neither tool is
 started in the background.
+
+The base command-line utility set covers archives (`zip`, `unzip`, `7zip`),
+structured data and search (`jq`, `ripgrep`, `fzf`), navigation (`less`, `tree`,
+`zoxide`), durable copying (`rsync`), transfer visibility (`pv`), and persistent
+terminal sessions (`tmux`). Zoxide initialization reads and writes only the
+operator's local database; it performs no network activity. Tmux ships with
+mouse support, deep history, fast escape handling, and an Akilix status palette.
+
+Local administration utilities include PCI, USB, SMART, and NVMe inspection;
+process and syscall diagnostics; and DNS, route, and ownership lookup tools.
+Some hardware inspection operations may still require explicit elevation.

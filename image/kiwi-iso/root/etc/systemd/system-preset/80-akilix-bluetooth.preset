@@ -1,0 +1,3 @@
+# Bluetooth D-Bus support is available, but BlueZ is configured not to power
+# adapters or enter discovery/pairing automatically.
+enable bluetooth.service

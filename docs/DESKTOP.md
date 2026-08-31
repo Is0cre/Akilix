@@ -49,6 +49,8 @@ comfortable workstation:
   removable-media automount and autorun disabled;
 - `nnn` as the terminal file navigator (`Super+Shift+O`);
 - `btop` as the on-demand system and network monitor (`Super+Shift+B`);
+- BlueZ and Blueman for operator-controlled Bluetooth (`Super+Shift+P`), backed
+  by PipeWire and WirePlumber for audio devices;
 - Mako for local notifications;
 - wl-clipboard;
 - Grim and Slurp for explicit operator-requested screenshots;
@@ -69,6 +71,11 @@ authenticated command selector.
 No component may silently start scans, listeners, packet capture, terminal
 recording, telemetry, cloud synchronization, or workbook uploads.
 
+BlueZ is available through D-Bus, but Akilix does not automatically power
+Bluetooth adapters, begin discovery, become discoverable, or start pairing.
+Discoverable and pairable modes have 180-second limits when the operator
+enables them. The Blueman tray applet is not autostarted.
+
 ## Default interaction model
 
 The primary modifier should be the Super key. Initial bindings should include:
@@ -81,6 +88,7 @@ The primary modifier should be the Super key. Initial bindings should include:
 - `Super+Shift+F` — PCManFM-Qt;
 - `Super+Shift+O` — `nnn` in Foot;
 - `Super+Shift+B` — `btop` in Foot;
+- `Super+Shift+P` — Bluetooth manager;
 - `Super+Shift+Q` — close focused window;
 - `Super+1` through `Super+9` — select workspace;
 - `Super+Shift+1` through `Super+Shift+9` — move a window;

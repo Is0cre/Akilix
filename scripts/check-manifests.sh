@@ -158,6 +158,22 @@ if not editors <= packages:
 operator_tools = {"pcmanfm-qt", "nnn", "btop", "ark", "xdg-utils"}
 if not operator_tools <= packages:
     raise SystemExit("KIWI image lacks the core operator utility set")
+cli_tools = {
+    "zip", "unzip", "7zip", "less", "tree", "file", "jq", "ripgrep",
+    "fzf", "zoxide", "dos2unix", "pv", "rsync", "tmux", "pciutils",
+    "usbutils", "smartmontools", "nvme-cli", "procps", "psmisc", "lsof",
+    "strace", "bind-utils", "traceroute", "mtr", "whois",
+}
+if not cli_tools <= packages:
+    raise SystemExit("KIWI image lacks the curated command-line utility set")
+bluetooth = {
+    "bluez", "bluez-obexd", "bluez-zsh-completion",
+    "kernel-firmware-bluetooth", "blueman", "urfkill", "pipewire",
+    "pipewire-alsa", "pipewire-pulseaudio", "pipewire-spa-plugins-0_2",
+    "wireplumber",
+}
+if not bluetooth <= packages:
+    raise SystemExit("KIWI image lacks the Bluetooth and audio stack")
 vimrc = (image / "root/etc/vimrc").read_text()
 for setting in ("syntax enable", "filetype plugin indent on", "set number", "set swapfile"):
     if setting not in vimrc:
@@ -172,14 +188,14 @@ if "font=Noto Sans Mono:size=11,Noto Sans Symbols 2:size=11,Noto Color Emoji:siz
 if "alpha=0.78" not in foot:
     raise SystemExit("Foot does not expose the Akilix wallpaper at the selected opacity")
 sway = (image / "root/etc/sway/config").read_text()
-for setting in ("status_command /usr/bin/akilix bar stream", "focused_workspace #657a3e", "bindsym $mod+Shift+n exec featherpad", "bindsym $mod+Shift+f exec pcmanfm-qt", 'foot --title "Akilix System Monitor" btop', 'foot --title "Akilix File Navigator" nnn'):
+for setting in ("status_command /usr/bin/akilix bar stream", "focused_workspace #657a3e", "bindsym $mod+Shift+n exec featherpad", "bindsym $mod+Shift+f exec pcmanfm-qt", 'foot --title "Akilix System Monitor" btop', 'foot --title "Akilix File Navigator" nnn', "bindsym $mod+Shift+p exec blueman-manager"):
     if setting not in sway:
         raise SystemExit(f"Sway native command strip lacks {setting}")
 if "exec waybar" in sway or "waybar" in packages:
     raise SystemExit("legacy Waybar integration is still active")
 
 zshrc = (image / "root/etc/zsh.zshrc.local").read_text()
-for setting in ("HISTSIZE=100000", "SAVEHIST=75000", "EXTENDED_HISTORY", "HIST_IGNORE_SPACE", "SHARE_HISTORY", "NNN_OPTS:=eEn"):
+for setting in ("HISTSIZE=100000", "SAVEHIST=75000", "EXTENDED_HISTORY", "HIST_IGNORE_SPACE", "SHARE_HISTORY", "NNN_OPTS:=eEn", "zoxide init zsh"):
     if setting not in zshrc:
         raise SystemExit(f"Zsh baseline lacks {setting}")
 for setting in ("/usr/share/zsh/site-functions", "autoload -Uz compinit", "compinit -d", "compdef _akilix akilix"):
@@ -196,6 +212,17 @@ btop = (image / "root/etc/skel/.config/btop/btop.conf").read_text()
 for setting in ('theme_background = false', 'vim_keys = true', 'update_ms = 1000'):
     if setting not in btop:
         raise SystemExit(f"btop baseline lacks {setting}")
+tmux = (image / "root/etc/tmux.conf").read_text()
+for setting in ("set -g mouse on", "set -g history-limit 100000", "set -s escape-time 10"):
+    if setting not in tmux:
+        raise SystemExit(f"tmux baseline lacks {setting}")
+bluez = (image / "root/etc/bluetooth/main.conf").read_text()
+for setting in ("DiscoverableTimeout = 180", "PairableTimeout = 180", "AlwaysPairable = false", "AutoEnable = false"):
+    if setting not in bluez:
+        raise SystemExit(f"Bluetooth policy lacks {setting}")
+bluetooth_preset = (image / "root/etc/systemd/system-preset/80-akilix-bluetooth.preset").read_text()
+if "enable bluetooth.service" not in bluetooth_preset:
+    raise SystemExit("Bluetooth service is not explicitly preset")
 PY
 
 zsh -n image/kiwi-iso/root/etc/zsh.zshrc.local
