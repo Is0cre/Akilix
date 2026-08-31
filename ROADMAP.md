@@ -308,6 +308,10 @@ Primary subjects:
 
 The CLI/backend remains authoritative.
 
+The passive, panel-based workbook workspace begins during M1. M10 adds the
+interactive full-screen layer—focus, keyboard navigation, resizing, and richer
+object views—without moving workbook business logic out of the backend.
+
 ---
 
 # Long-term work

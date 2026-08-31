@@ -14,11 +14,13 @@ Examples:
 
 ## Terminal navigation
 
-`pensuse workbook overview NAME` presents the workbook identity, lifecycle
-state, scope and evidence counts, invocation health, explicit capture policy,
-and canonical section paths in one local-only dashboard. Use `--json` for TUI,
-GUI, or automation consumers; those interfaces should reuse this model rather
-than reimplement workbook discovery.
+`pensuse workbook open NAME` and `pensuse workbook overview NAME` present a
+TUI-influenced workspace: workbook identity and lifecycle state, scope and
+evidence counts, invocation health, explicit capture policy, canonical section
+paths, and safe quick-jump commands. The view is deliberately passive and has
+no terminal control sequences, so it remains useful when copied or redirected.
+Use `overview --json` for future interactive TUI, GUI, or automation consumers;
+those interfaces should reuse this model rather than reimplement discovery.
 
 `pensuse workbook path NAME [SECTION]` prints exactly one absolute path for
 shell composition. Sections are allowlisted and resolved only after opening a

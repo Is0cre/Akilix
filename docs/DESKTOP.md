@@ -87,7 +87,8 @@ grow through:
 - consistent human and JSON output;
 - discoverable help and safe command previews;
 - readable status, scope, logging, and provenance summaries;
-- a future thin Go TUI that calls the same packages as the CLI.
+- a panel-based workbook workspace today and a future interactive Go TUI that
+  calls the same packages as the CLI.
 
 A future TUI must not become a second implementation of workbook logic and
 must not introduce hidden monitoring or automatic engagement actions.

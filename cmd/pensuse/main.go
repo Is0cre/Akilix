@@ -774,15 +774,7 @@ func runWorkbook(args []string, stdout, stderr io.Writer) int {
 			fmt.Fprintln(stdout, string(data))
 			return 0
 		}
-		fmt.Fprintf(stdout, "PenSUSE workbook\n%s [%s]\nID:      %s\nCreated: %s\nRoot:    %s\n\n", overview.Name, strings.ToUpper(overview.Status), overview.ID, overview.Created, overview.Root)
-		fmt.Fprintf(stdout, "Summary\n  Scope        %d included / %d excluded\n  Evidence     %d originals\n  Invocations  %d total / %d failed\n  Capture      stdout %s / stderr %s\n  Sensitive    terminal recording %s / packet metadata %s\n\n",
-			overview.ScopeIncludes, overview.ScopeExcludes, overview.Evidence, overview.Invocations, overview.FailedInvocations,
-			enabled(overview.Logging.StdoutCapture), enabled(overview.Logging.StderrCapture),
-			enabled(overview.Logging.TerminalRecording), enabled(overview.Logging.PacketMetadata))
-		fmt.Fprintln(stdout, "Sections")
-		for _, section := range overview.Sections {
-			fmt.Fprintf(stdout, "  %-18s %s\n", section.Name, section.Path)
-		}
+		fmt.Fprint(stdout, workbookview.Render(overview))
 		return 0
 	case "path":
 		if len(args) != 2 && len(args) != 3 {
@@ -925,6 +917,15 @@ func runWorkbook(args []string, stdout, stderr io.Writer) int {
 				return 1
 			}
 			fmt.Fprintln(stdout, string(data))
+			return 0
+		}
+		if args[0] == "open" {
+			overview, err := workbookview.Build(root, args[1])
+			if err != nil {
+				fmt.Fprintln(stderr, err)
+				return 1
+			}
+			fmt.Fprint(stdout, workbookview.Render(overview))
 			return 0
 		}
 		fmt.Fprintf(stdout, "%s\nID: %s\nStatus: %s\nCreated: %s\n", m.Name, m.ID, m.Status, m.Created.Format(time.RFC3339Nano))
