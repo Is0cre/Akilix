@@ -49,11 +49,11 @@ comfortable workstation:
 - a minimal PolicyKit agent where graphical elevation workflows require it;
 - the PenSUSE wallpaper and icon assets already stored under `branding/`.
 
-The development ISO starts Sway automatically after the live `pensuse` operator
-logs in on tty1. It does not enable automatic account login. SSH sessions,
-secondary consoles, nested graphical sessions, and other users do not trigger
-the compositor. Exiting or failing Sway returns to the tty1 shell so the
-console remains a recovery path.
+The development ISO runs `greetd` with the terminal-native `tuigreet` greeter
+on tty1. Authentication explicitly starts Sway; automatic account login is not
+enabled. Logging out or a failed session returns to the greeter. SSH sessions
+and tty2+ remain text-only recovery paths. The greeter does not remember the
+last username or selected session.
 
 No component may silently start scans, listeners, packet capture, terminal
 recording, telemetry, cloud synchronization, or workbook uploads.

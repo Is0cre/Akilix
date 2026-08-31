@@ -31,10 +31,11 @@ GRUB background, theme, shared logo, and asset license into the KIWI overlay.
 The graphical boot menu retains GRUB's text-console fallback and must be tested
 in both BIOS and UEFI modes before the image is published.
 
-The next development build includes the minimal Sway session from the approved
-`X11:Wayland` OBS source. Account auto-login is intentionally disabled. Sway
-starts after the live operator logs in on tty1; exiting or failing Sway returns
-to the console. The session opens one Foot terminal as its visible starting
-point; `Ctrl+Alt+T` remains available when a VM or host compositor intercepts
-the Super key. SSH and secondary-console logins remain text-only. Exact OBS RPM
-identities are recorded in `repositories/desktop-sway-lock.json`.
+The development build includes the minimal Sway session and `greetd`/`tuigreet`
+from the approved `X11:Wayland` OBS source. Account auto-login is disabled.
+The greeter owns tty1 and starts Sway only after authentication; logout or
+session failure returns to the greeter, while tty2+ remain recovery consoles.
+The session opens one Foot terminal as its visible starting point;
+`Ctrl+Alt+T` remains available when a VM or host compositor intercepts the
+Super key. Exact OBS RPM identities are recorded in
+`repositories/desktop-sway-lock.json`.

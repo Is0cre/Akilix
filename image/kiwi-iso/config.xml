@@ -54,6 +54,9 @@
     <package name="grim"/>
     <package name="slurp"/>
     <package name="xwayland"/>
+    <package name="greetd"/>
+    <package name="greetd-branding-upstream"/>
+    <package name="tuigreet"/>
   </packages>
   <packages type="bootstrap">
     <package name="bash"/>

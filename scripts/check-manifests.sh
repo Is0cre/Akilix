@@ -36,14 +36,46 @@ import json
 from pathlib import Path
 
 lock = json.loads(Path("repositories/desktop-sway-lock.json").read_text())
-expected = {"sway", "waybar", "foot", "fuzzel", "mako", "wl-clipboard", "grim", "slurp"}
+expected = {"sway", "waybar", "foot", "fuzzel", "mako", "wl-clipboard", "grim", "slurp", "greetd", "greetd-branding-upstream", "tuigreet"}
 packages = lock.get("packages", [])
 names = {item.get("name") for item in packages}
 if lock.get("schema") != "pensuse.package-lock.v1" or names != expected:
     raise SystemExit("desktop package lock is incomplete")
 for item in packages:
-    if len(item.get("sha512", "")) != 128 or not item.get("location", "").startswith("x86_64/"):
+    location = item.get("location", "")
+    if len(item.get("sha512", "")) != 128 or not location.startswith(("x86_64/", "noarch/")):
         raise SystemExit("desktop package lock contains invalid RPM identity")
+PY
+
+python3 - <<'PY'
+import tomllib
+import xml.etree.ElementTree as ET
+from pathlib import Path
+
+image = Path("image/kiwi-iso")
+config = tomllib.loads((image / "root/etc/greetd/config.toml").read_text())
+session = config.get("default_session", {})
+if config.get("terminal", {}).get("vt") != 1:
+    raise SystemExit("greetd must own tty1")
+if session.get("user") != "greeter" or "--cmd sway" not in session.get("command", ""):
+    raise SystemExit("greetd does not launch the audited Sway session")
+if "--remember" in session.get("command", ""):
+    raise SystemExit("greetd must not remember operator identity by default")
+
+packages = {node.get("name") for node in ET.parse(image / "config.xml").findall(".//package")}
+required = {"greetd", "greetd-branding-upstream", "tuigreet", "sway"}
+if not required <= packages:
+    raise SystemExit("KIWI image lacks the complete greetd/Sway session")
+
+links = {
+    image / "root/etc/systemd/system/default.target": "/usr/lib/systemd/system/graphical.target",
+    image / "root/etc/systemd/system/display-manager.service": "/usr/lib/systemd/system/greetd.service",
+}
+for path, target in links.items():
+    if not path.is_symlink() or str(path.readlink()) != target:
+        raise SystemExit(f"invalid systemd image link: {path}")
+if (image / "root/etc/profile.d/50-pensuse-sway.sh").exists():
+    raise SystemExit("legacy shell-profile Sway autostart is still present")
 PY
 
 profile_dir=${PENSUSE_PROFILE_DIR:-profiles}

@@ -1,0 +1,6 @@
+[terminal]
+vt = 1
+
+[default_session]
+command = "tuigreet --time --asterisks --greeting 'PenSUSE — Security work with provenance.' --cmd sway"
+user = "greeter"
