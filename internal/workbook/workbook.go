@@ -87,7 +87,15 @@ func Open(root, name string) (Metadata, error) {
 	if err := validName(name); err != nil {
 		return Metadata{}, err
 	}
-	b, err := os.ReadFile(filepath.Join(root, name, "workbook.yaml"))
+	workbookDir := filepath.Join(root, name)
+	if err := requirePath(workbookDir, true); err != nil {
+		return Metadata{}, err
+	}
+	metadataPath := filepath.Join(workbookDir, "workbook.yaml")
+	if err := requirePath(metadataPath, false); err != nil {
+		return Metadata{}, err
+	}
+	b, err := os.ReadFile(metadataPath)
 	if err != nil {
 		return Metadata{}, err
 	}

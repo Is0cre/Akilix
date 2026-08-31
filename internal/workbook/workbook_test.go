@@ -70,6 +70,41 @@ func TestOpenRejectsDirectoryMetadataMismatch(t *testing.T) {
 	}
 }
 
+func TestOpenRejectsSymlinkedWorkbookAndMetadata(t *testing.T) {
+	root := t.TempDir()
+	outside := t.TempDir()
+	if _, err := Create(outside, "real", time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(filepath.Join(outside, "real"), filepath.Join(root, "linked")); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Open(root, "linked"); err == nil {
+		t.Fatal("opened symlinked workbook directory")
+	}
+	if _, err := Create(root, "case-1", time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+	metadata := filepath.Join(root, "case-1", "workbook.yaml")
+	outsideMetadata := filepath.Join(outside, "workbook.yaml")
+	b, err := os.ReadFile(metadata)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(outsideMetadata, b, 0600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Remove(metadata); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink(outsideMetadata, metadata); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Open(root, "case-1"); err == nil {
+		t.Fatal("opened workbook with symlinked metadata")
+	}
+}
+
 func TestListIgnoresInterruptedCreationDirectory(t *testing.T) {
 	root := t.TempDir()
 	if err := os.Mkdir(filepath.Join(root, ".creating-interrupted"), 0700); err != nil {
