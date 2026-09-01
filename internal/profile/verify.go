@@ -6,10 +6,13 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
+	"io"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strings"
+	"syscall"
 	"time"
 )
 
@@ -132,6 +135,71 @@ func RecordVerification(stateDir string, verification Verification) (string, err
 	err = d.Sync()
 	_ = d.Close()
 	return path, err
+}
+
+func VerificationHistory(stateDir, profileID string) ([]Verification, error) {
+	if profileID != "" && !validID(profileID) {
+		return nil, fmt.Errorf("invalid profile ID")
+	}
+	dir := filepath.Join(stateDir, "platform", "profile-verifications")
+	dirInfo, err := os.Lstat(dir)
+	if os.IsNotExist(err) {
+		return []Verification{}, nil
+	}
+	if err != nil || !dirInfo.IsDir() || dirInfo.Mode()&os.ModeSymlink != 0 {
+		return nil, fmt.Errorf("invalid profile verification directory")
+	}
+	entries, err := os.ReadDir(dir)
+	if os.IsNotExist(err) {
+		return []Verification{}, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	result := []Verification{}
+	for _, entry := range entries {
+		if entry.IsDir() || filepath.Ext(entry.Name()) != ".json" {
+			continue
+		}
+		path := filepath.Join(dir, entry.Name())
+		file, err := os.OpenFile(path, os.O_RDONLY|syscall.O_NOFOLLOW, 0)
+		if err != nil {
+			return nil, err
+		}
+		info, statErr := file.Stat()
+		if statErr != nil || !info.Mode().IsRegular() || info.Size() > 1024*1024 {
+			_ = file.Close()
+			return nil, fmt.Errorf("invalid profile verification record %q", entry.Name())
+		}
+		data, readErr := io.ReadAll(file)
+		closeErr := file.Close()
+		if readErr != nil {
+			return nil, readErr
+		}
+		if closeErr != nil {
+			return nil, closeErr
+		}
+		var record Verification
+		if err := json.Unmarshal(data, &record); err != nil {
+			return nil, err
+		}
+		if record.Schema != VerificationSchema || record.ID == "" || !validID(record.ProfileID) || record.VerifiedAt.IsZero() {
+			return nil, fmt.Errorf("invalid profile verification record %q", entry.Name())
+		}
+		if entry.Name() != record.ID+".json" {
+			return nil, fmt.Errorf("profile verification filename does not match record identity")
+		}
+		if profileID == "" || record.ProfileID == profileID {
+			result = append(result, record)
+		}
+	}
+	sort.Slice(result, func(i, j int) bool {
+		if result[i].VerifiedAt.Equal(result[j].VerifiedAt) {
+			return result[i].ID < result[j].ID
+		}
+		return result[i].VerifiedAt.Before(result[j].VerifiedAt)
+	})
+	return result, nil
 }
 
 func boundedDetail(out []byte, err error) string {

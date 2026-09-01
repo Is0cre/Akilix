@@ -53,3 +53,23 @@ func TestRecordVerificationRejectsSymlinkDirectory(t *testing.T) {
 		t.Fatal("symlink directory accepted")
 	}
 }
+
+func TestVerificationHistoryIsSortedAndFilterable(t *testing.T) {
+	root := t.TempDir()
+	later := Verification{Schema: VerificationSchema, ID: "later", ProfileID: "NETWORK", VerifiedAt: time.Now().Add(time.Second), Ready: false, Components: []ComponentState{}}
+	earlier := Verification{Schema: VerificationSchema, ID: "earlier", ProfileID: "CORE", VerifiedAt: time.Now(), Ready: true, Components: []ComponentState{}}
+	if _, err := RecordVerification(root, later); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := RecordVerification(root, earlier); err != nil {
+		t.Fatal(err)
+	}
+	history, err := VerificationHistory(root, "")
+	if err != nil || len(history) != 2 || history[0].ID != "earlier" {
+		t.Fatalf("history=%+v err=%v", history, err)
+	}
+	history, err = VerificationHistory(root, "NETWORK")
+	if err != nil || len(history) != 1 || history[0].ID != "later" {
+		t.Fatalf("filtered=%+v err=%v", history, err)
+	}
+}

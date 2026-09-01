@@ -1037,9 +1037,49 @@ func runConfig(args []string, stdout, stderr io.Writer) int {
 }
 
 func runProfile(args []string, stdout, stderr io.Writer) int {
-	if len(args) < 1 || (args[0] != "list" && args[0] != "show" && args[0] != "plan" && args[0] != "verify") {
-		fmt.Fprintln(stderr, "usage: akilix profile list [--json] | profile show ID [--json] | profile plan ID [--json] | profile verify ID [--json]")
+	if len(args) < 1 || (args[0] != "list" && args[0] != "show" && args[0] != "plan" && args[0] != "verify" && args[0] != "history") {
+		fmt.Fprintln(stderr, "usage: akilix profile list [--json] | profile show ID [--json] | profile plan ID [--json] | profile verify ID [--json] | profile history [ID] [--json]")
 		return 2
+	}
+	if args[0] == "history" {
+		if len(args) > 3 || len(args) == 3 && args[2] != "--json" {
+			fmt.Fprintln(stderr, "usage: akilix profile history [ID] [--json]")
+			return 2
+		}
+		profileID := ""
+		jsonOutput := false
+		if len(args) >= 2 {
+			if args[1] == "--json" {
+				jsonOutput = true
+			} else {
+				profileID = args[1]
+			}
+		}
+		if len(args) == 3 {
+			jsonOutput = true
+		}
+		history, err := profilepkg.VerificationHistory(effectiveStateDir(), profileID)
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		if jsonOutput {
+			data, marshalErr := json.MarshalIndent(history, "", "  ")
+			if marshalErr != nil {
+				fmt.Fprintln(stderr, marshalErr)
+				return 1
+			}
+			fmt.Fprintln(stdout, string(data))
+			return 0
+		}
+		for _, record := range history {
+			state := "MISSING"
+			if record.Ready {
+				state = "READY"
+			}
+			fmt.Fprintf(stdout, "%s\t%s\t%-7s\t%s\n", record.VerifiedAt.Format(time.RFC3339), record.ProfileID, state, record.ID)
+		}
+		return 0
 	}
 	dir := os.Getenv("AKILIX_PROFILE_DIR")
 	if dir == "" {
