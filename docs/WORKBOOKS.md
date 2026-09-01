@@ -113,6 +113,12 @@ records. REQUESTED-only and FAILED imaging operations raise a visible
 `RECOVERY REQUIRED` count in the dashboard; this warning is passive and never
 causes automatic deletion, resumption, or evidence promotion.
 
+It also summarizes canonical journal observations: discovered hosts,
+discovered ports, and results dropped after scope re-evaluation. These are
+event counts rather than a deduplicated asset inventory, and `journal.jsonl`
+remains canonical. Reading an overview never initiates discovery or modifies
+the journal.
+
 ## Live activity window
 
 Inside the interactive workbook, `[L]` opens a native Go viewport over the

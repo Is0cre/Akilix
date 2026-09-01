@@ -10,6 +10,7 @@ import (
 	"github.com/Is0cre/Akilix/internal/acquire"
 	"github.com/Is0cre/Akilix/internal/evidence"
 	"github.com/Is0cre/Akilix/internal/invocation"
+	"github.com/Is0cre/Akilix/internal/journal"
 	"github.com/Is0cre/Akilix/internal/logpolicy"
 	"github.com/Is0cre/Akilix/internal/scope"
 	"github.com/Is0cre/Akilix/internal/workbook"
@@ -28,6 +29,9 @@ type Overview struct {
 	FailedInvocations int              `json:"failed_invocations"`
 	Acquisitions      int              `json:"acquisitions"`
 	RecoveryRequired  int              `json:"recovery_required"`
+	DiscoveredHosts   int              `json:"discovered_hosts"`
+	DiscoveredPorts   int              `json:"discovered_ports"`
+	DroppedResults    int              `json:"dropped_results"`
 	Logging           logpolicy.Policy `json:"logging"`
 	Sections          []Section        `json:"sections"`
 }
@@ -82,6 +86,10 @@ func Build(root, name string) (Overview, error) {
 	if err != nil {
 		return Overview{}, err
 	}
+	journalSummary, err := journal.Summarize(workbookRoot)
+	if err != nil {
+		return Overview{}, err
+	}
 	recoveryRequired := 0
 	for _, operation := range acquisitions {
 		if operation.RecoveryRequired {
@@ -110,6 +118,7 @@ func Build(root, name string) (Overview, error) {
 		ScopeIncludes: len(scopeConfig.Includes), ScopeExcludes: len(scopeConfig.Excludes),
 		Evidence: len(evidenceRecords), Invocations: len(invocations), FailedInvocations: failed,
 		Acquisitions: len(acquisitions), RecoveryRequired: recoveryRequired,
+		DiscoveredHosts: journalSummary.DiscoveredHosts, DiscoveredPorts: journalSummary.DiscoveredPorts, DroppedResults: journalSummary.DroppedResults,
 		Logging: policy, Sections: sections,
 	}, nil
 }

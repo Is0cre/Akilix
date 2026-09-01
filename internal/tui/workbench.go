@@ -336,7 +336,7 @@ func formatJournalLine(line string) string {
 		timestamp = parsed.Format("15:04:05")
 	}
 	value := event.Event
-	for _, key := range []string{"value", "endpoint", "device", "tool"} {
+	for _, key := range []string{"value", "endpoint", "address", "device", "tool"} {
 		if item, ok := event.Payload[key].(string); ok && item != "" {
 			value += ": " + item
 			break
@@ -365,7 +365,7 @@ func formatJournalLine(line string) string {
 		moduleName = "📦 OCI"
 	case "RECON":
 		moduleName = "⚡ RECON"
-		if event.Event == "PORT_FOUND" {
+		if event.Event == "PORT_FOUND" || event.Event == "HOST_DISCOVERED" {
 			moduleName = "🟢 RECON"
 		}
 	case "ENGINEERING":

@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/Is0cre/Akilix/internal/acquire"
+	"github.com/Is0cre/Akilix/internal/journal"
 	"github.com/Is0cre/Akilix/internal/workbook"
 )
 
@@ -34,6 +35,30 @@ func TestBuildAndSafeSectionPath(t *testing.T) {
 	}
 	if _, err := Path(root, "case-1", "../../escape"); err == nil {
 		t.Fatal("accepted unknown traversal section")
+	}
+}
+
+func TestBuildSurfacesDiscoveryJournalCounts(t *testing.T) {
+	root := t.TempDir()
+	if _, err := workbook.Create(root, "case-1", time.Now()); err != nil {
+		t.Fatal(err)
+	}
+	log, err := journal.Open(filepath.Join(root, "case-1"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, name := range []string{"HOST_DISCOVERED", "PORT_FOUND", "PORT_DROPPED_OUT_OF_SCOPE"} {
+		event, err := journal.NewEvent(name, "RECON", map[string]any{"test": true}, time.Now())
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := log.Append(event); err != nil {
+			t.Fatal(err)
+		}
+	}
+	overview, err := Build(root, "case-1")
+	if err != nil || overview.DiscoveredHosts != 1 || overview.DiscoveredPorts != 1 || overview.DroppedResults != 1 {
+		t.Fatalf("overview=%+v err=%v", overview, err)
 	}
 }
 

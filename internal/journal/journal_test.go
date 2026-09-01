@@ -88,3 +88,31 @@ func TestTimestampHasMillisecondUTCPrecision(t *testing.T) {
 		t.Fatalf("timestamp=%q", event.Timestamp)
 	}
 }
+
+func TestSummarizeCountsDiscoveryObservations(t *testing.T) {
+	root := t.TempDir()
+	log, err := Open(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, name := range []string{"HOST_DISCOVERED", "HOST_DISCOVERED", "PORT_FOUND", "HOST_DROPPED_OUT_OF_SCOPE", "INVOCATION_COMPLETED"} {
+		event, err := NewEvent(name, "RECON", map[string]any{"test": true}, time.Now())
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := log.Append(event); err != nil {
+			t.Fatal(err)
+		}
+	}
+	summary, err := Summarize(root)
+	if err != nil || summary.DiscoveredHosts != 2 || summary.DiscoveredPorts != 1 || summary.DroppedResults != 1 {
+		t.Fatalf("summary=%+v err=%v", summary, err)
+	}
+}
+
+func TestSummarizeMissingJournalIsEmpty(t *testing.T) {
+	summary, err := Summarize(t.TempDir())
+	if err != nil || summary != (Summary{}) {
+		t.Fatalf("summary=%+v err=%v", summary, err)
+	}
+}

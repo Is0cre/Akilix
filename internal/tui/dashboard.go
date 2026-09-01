@@ -70,6 +70,7 @@ func Render(overview workbookview.Overview, config scope.Config, color bool) str
 	fmt.Fprintf(&b, "├─ Scope ───────────────────┬─ Activity ──────────────────────┤\n")
 	b.WriteString(frameRow(fmt.Sprintf("Includes %-3d  CIDRs %-3d  │  Invocations %-4d  %s%s%s", overview.ScopeIncludes, cidrs, overview.Invocations, healthColor, health, p.Reset)))
 	b.WriteString(frameRow(fmt.Sprintf("Excludes %-3d             │  Evidence %-4d  failures %-3d", overview.ScopeExcludes, overview.Evidence, overview.FailedInvocations)))
+	b.WriteString(frameRow(fmt.Sprintf("Hosts %-5d Ports %-5d │  Dropped out-of-scope %-5d", overview.DiscoveredHosts, overview.DiscoveredPorts, overview.DroppedResults)))
 	recoveryColor, recovery := p.Green, "clear"
 	if overview.RecoveryRequired > 0 {
 		recoveryColor, recovery = p.Red, "RECOVERY REQUIRED"

@@ -1,6 +1,7 @@
 package journal
 
 import (
+	"bufio"
 	"crypto/rand"
 	"crypto/sha256"
 	"encoding/hex"
@@ -32,6 +33,62 @@ type Event struct {
 type Journal struct {
 	path string
 	mu   sync.Mutex
+}
+
+type Summary struct {
+	DiscoveredHosts int `json:"discovered_hosts"`
+	DiscoveredPorts int `json:"discovered_ports"`
+	DroppedResults  int `json:"dropped_results"`
+}
+
+// Summarize reads canonical journal records without changing the workbook.
+// Counts represent recorded observations, not a deduplicated asset inventory.
+func Summarize(workbookRoot string) (Summary, error) {
+	path := filepath.Join(workbookRoot, "journal.jsonl")
+	fd, err := syscall.Open(path, syscall.O_RDONLY|syscall.O_CLOEXEC|syscall.O_NOFOLLOW, 0)
+	if os.IsNotExist(err) {
+		return Summary{}, nil
+	}
+	if err != nil {
+		return Summary{}, err
+	}
+	file := os.NewFile(uintptr(fd), path)
+	defer file.Close()
+	info, err := file.Stat()
+	if err != nil || !info.Mode().IsRegular() {
+		return Summary{}, fmt.Errorf("invalid workbook journal")
+	}
+	if err := syscall.Flock(fd, syscall.LOCK_SH); err != nil {
+		return Summary{}, err
+	}
+	defer syscall.Flock(fd, syscall.LOCK_UN)
+	var result Summary
+	scanner := bufio.NewScanner(file)
+	scanner.Buffer(make([]byte, 64*1024), maxRecordSize+1)
+	for scanner.Scan() {
+		if len(scanner.Bytes()) > maxRecordSize {
+			return Summary{}, fmt.Errorf("journal record exceeds size limit")
+		}
+		var event Event
+		if err := json.Unmarshal(scanner.Bytes(), &event); err != nil {
+			return Summary{}, fmt.Errorf("decode journal record: %w", err)
+		}
+		if event.Schema != Schema || !eventPattern.MatchString(event.Event) || !modulePattern.MatchString(event.Module) || event.Payload == nil || event.ProvenanceID == "" {
+			return Summary{}, fmt.Errorf("invalid journal event")
+		}
+		switch event.Event {
+		case "HOST_DISCOVERED":
+			result.DiscoveredHosts++
+		case "PORT_FOUND":
+			result.DiscoveredPorts++
+		case "HOST_DROPPED_OUT_OF_SCOPE", "PORT_DROPPED_OUT_OF_SCOPE":
+			result.DroppedResults++
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		return Summary{}, err
+	}
+	return result, nil
 }
 
 func Open(workbookRoot string) (*Journal, error) {

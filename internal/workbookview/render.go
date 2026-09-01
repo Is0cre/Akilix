@@ -23,6 +23,7 @@ func Render(overview Overview) string {
 	fmt.Fprintf(&b, "│  Scope         %d included · %d excluded\n", overview.ScopeIncludes, overview.ScopeExcludes)
 	fmt.Fprintf(&b, "│  Evidence      %d originals\n", overview.Evidence)
 	fmt.Fprintf(&b, "│  Invocations   %d total · %d failed\n", overview.Invocations, overview.FailedInvocations)
+	fmt.Fprintf(&b, "│  Discoveries   %d hosts · %d ports · %d dropped out-of-scope\n", overview.DiscoveredHosts, overview.DiscoveredPorts, overview.DroppedResults)
 	writeRule("CAPTURE POLICY")
 	fmt.Fprintf(&b, "│  stdout %-8s  stderr %-8s  terminal %-8s  packet metadata %s\n",
 		state(overview.Logging.StdoutCapture), state(overview.Logging.StderrCapture),
