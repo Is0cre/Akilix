@@ -233,8 +233,8 @@ func runDevice(args []string, stdout, stderr io.Writer) int {
 }
 
 func runAcquire(args []string, stdout, stderr io.Writer) int {
-	if len(args) < 1 || args[0] != "inspect" && args[0] != "record" && args[0] != "protect" && args[0] != "identify" && args[0] != "image" && args[0] != "verify" {
-		fmt.Fprintln(stderr, "usage: akilix acquire inspect [--json] | acquire record WORKBOOK [--json] | acquire identify WORKBOOK DEVICE [--json] | acquire protect WORKBOOK DEVICE [--json] | acquire image WORKBOOK DEVICE OUTPUT [--json] | acquire verify WORKBOOK OPERATION_ID [--json]")
+	if len(args) < 1 || args[0] != "inspect" && args[0] != "record" && args[0] != "protect" && args[0] != "identify" && args[0] != "image" && args[0] != "verify" && args[0] != "status" {
+		fmt.Fprintln(stderr, "usage: akilix acquire inspect [--json] | acquire record WORKBOOK [--json] | acquire identify WORKBOOK DEVICE [--json] | acquire protect WORKBOOK DEVICE [--json] | acquire image WORKBOOK DEVICE OUTPUT [--json] | acquire verify WORKBOOK OPERATION_ID [--json] | acquire status WORKBOOK [OPERATION_ID] [--json]")
 		return 2
 	}
 	jsonOutput := false
@@ -256,6 +256,12 @@ func runAcquire(args []string, stdout, stderr io.Writer) int {
 			return 2
 		}
 		jsonOutput = len(args) == 5
+	} else if args[0] == "status" {
+		if len(args) < 2 || len(args) > 4 || len(args) == 4 && args[3] != "--json" {
+			fmt.Fprintln(stderr, "usage: akilix acquire status WORKBOOK [OPERATION_ID] [--json]")
+			return 2
+		}
+		jsonOutput = len(args) == 3 && args[2] == "--json" || len(args) == 4
 	} else {
 		if len(args) != 3 && !(len(args) == 4 && args[3] == "--json") {
 			fmt.Fprintf(stderr, "usage: akilix acquire %s WORKBOOK DEVICE [--json]\n", args[0])
@@ -265,7 +271,7 @@ func runAcquire(args []string, stdout, stderr io.Writer) int {
 	}
 	var metadata workbook.Metadata
 	var workbookRoot string
-	if args[0] == "record" || args[0] == "protect" || args[0] == "identify" || args[0] == "image" || args[0] == "verify" {
+	if args[0] == "record" || args[0] == "protect" || args[0] == "identify" || args[0] == "image" || args[0] == "verify" || args[0] == "status" {
 		root := effectiveWorkbookRoot()
 		var err error
 		metadata, err = workbook.Open(root, args[1])
@@ -278,6 +284,30 @@ func runAcquire(args []string, stdout, stderr io.Writer) int {
 			return 1
 		}
 		workbookRoot = filepath.Join(root, args[1])
+	}
+	if args[0] == "status" {
+		opID := ""
+		if len(args) >= 3 && args[2] != "--json" {
+			opID = args[2]
+		}
+		states, err := acquire.ImageStatus(workbookRoot, opID)
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		if jsonOutput {
+			data, marshalErr := json.MarshalIndent(states, "", "  ")
+			if marshalErr != nil {
+				fmt.Fprintln(stderr, marshalErr)
+				return 1
+			}
+			fmt.Fprintln(stdout, string(data))
+			return 0
+		}
+		for _, state := range states {
+			fmt.Fprintf(stdout, "%s\t%-9s\trecovery=%t\t%s\n", state.OperationID, state.State, state.RecoveryRequired, state.Destination)
+		}
+		return 0
 	}
 	if args[0] == "verify" {
 		verifyCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt)

@@ -64,7 +64,7 @@ _akilix() {
         scope) _values 'scope command' add remove exclude list check ;;
         logging) _values 'logging command' status ;;
         evidence) _values 'evidence command' import list verify ;;
-		acquire) _values 'acquisition command' inspect record identify protect image verify ;;
+		acquire) _values 'acquisition command' inspect record identify protect image verify status ;;
 		device) _values 'device command' trust ;;
         run) _message 'use: akilix run WORKBOOK -- COMMAND [ARGS...]' ;;
         container) _values 'container command' doctor inspect run ;;
@@ -94,7 +94,7 @@ const Bash = `_akilix_complete() {
   if [[ ${COMP_WORDS[1]} == scope ]]; then COMPREPLY=($(compgen -W 'add remove exclude list check' -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == logging ]]; then COMPREPLY=($(compgen -W 'status' -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == evidence ]]; then COMPREPLY=($(compgen -W 'import list verify' -- "$cur")); return; fi
-  if [[ ${COMP_WORDS[1]} == acquire ]]; then COMPREPLY=($(compgen -W 'inspect record identify protect image verify --json' -- "$cur")); return; fi
+  if [[ ${COMP_WORDS[1]} == acquire ]]; then COMPREPLY=($(compgen -W 'inspect record identify protect image verify status --json' -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == device ]]; then COMPREPLY=($(compgen -W 'trust add list remove --json' -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == container ]]; then COMPREPLY=($(compgen -W 'doctor inspect run' -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == profile ]]; then COMPREPLY=($(compgen -W 'list show plan verify' -- "$cur")); return; fi
