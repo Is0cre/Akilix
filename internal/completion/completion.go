@@ -25,7 +25,7 @@ _akilix_images() {
 _akilix() {
   if (( CURRENT >= 4 )) && [[ "$words[1]" == "akilix" && "$words[2]" == "workbook" ]]; then
     case "$words[3]" in
-      open|overview|follow|path|status|close|reopen|rename|validate) _akilix_workbooks; return ;;
+      open|overview|discoveries|follow|path|status|close|reopen|rename|validate) _akilix_workbooks; return ;;
     esac
   fi
   if (( CURRENT >= 5 )) && [[ "$words[1]" == "akilix" && "$words[2]" == "evidence" && "$words[3]" == "verify" ]]; then _akilix_evidence_ids; return; fi
@@ -60,7 +60,7 @@ _akilix() {
       'completion[Generate shell completion]' ;;
     argument)
       case $words[2] in
-        workbook) _values 'workbook command' create list open overview follow path status close reopen rename validate; [[ $CURRENT -ge 4 ]] && _akilix_workbooks ;;
+        workbook) _values 'workbook command' create list open overview discoveries follow path status close reopen rename validate; [[ $CURRENT -ge 4 ]] && _akilix_workbooks ;;
         scope) _values 'scope command' add remove exclude list check ;;
         logging) _values 'logging command' status ;;
         evidence) _values 'evidence command' import list verify ;;
@@ -84,7 +84,7 @@ const Bash = `_akilix_complete() {
   local cur prev
   cur="${COMP_WORDS[COMP_CWORD]}"; prev="${COMP_WORDS[COMP_CWORD-1]}"
   if [[ ${COMP_CWORD} -eq 1 ]]; then COMPREPLY=($(compgen -W 'version workbook scope logging evidence acquire device run container tui profile repository config bar greeter completion' -- "$cur")); return; fi
-  if [[ ${COMP_WORDS[1]} == workbook && ${COMP_CWORD} -eq 2 ]]; then COMPREPLY=($(compgen -W 'create list open overview follow path status close reopen rename validate' -- "$cur")); return; fi
+  if [[ ${COMP_WORDS[1]} == workbook && ${COMP_CWORD} -eq 2 ]]; then COMPREPLY=($(compgen -W 'create list open overview discoveries follow path status close reopen rename validate' -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == workbook && ${COMP_CWORD} -ge 3 ]]; then local workbooks; workbooks="$(akilix workbook list 2>/dev/null | awk '{print $1}')"; COMPREPLY=($(compgen -W "$workbooks" -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == evidence && ${COMP_WORDS[2]} == verify && ${COMP_CWORD} -ge 4 ]]; then local ids; ids="$(akilix evidence list "${COMP_WORDS[3]}" 2>/dev/null | awk '{print $1}')"; COMPREPLY=($(compgen -W "$ids" -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == container && ${COMP_WORDS[2]} == run && ${COMP_CWORD} -ge 5 ]]; then COMPREPLY=($(compgen -W '--mount-originals --mount-output --target --override --json --workdir --env --' -- "$cur")); return; fi

@@ -1750,11 +1750,38 @@ func runEvidence(args []string, stdout, stderr io.Writer) int {
 
 func runWorkbook(args []string, stdout, stderr io.Writer) int {
 	if len(args) == 0 {
-		fmt.Fprintln(stderr, "usage: akilix workbook <create|list|open|overview|follow|path|status|close|reopen|rename|validate>")
+		fmt.Fprintln(stderr, "usage: akilix workbook <create|list|open|overview|discoveries|follow|path|status|close|reopen|rename|validate>")
 		return 2
 	}
 	root := effectiveWorkbookRoot()
 	switch args[0] {
+	case "discoveries":
+		if len(args) != 2 && !(len(args) == 3 && args[2] == "--json") {
+			fmt.Fprintln(stderr, "usage: akilix workbook discoveries NAME [--json]")
+			return 2
+		}
+		items, err := workbookview.Discoveries(root, args[1])
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		if len(args) == 3 {
+			data, err := json.MarshalIndent(items, "", "  ")
+			if err != nil {
+				fmt.Fprintln(stderr, err)
+				return 1
+			}
+			fmt.Fprintln(stdout, string(data))
+			return 0
+		}
+		for _, item := range items {
+			label := item.Value
+			if item.Hostname != "" {
+				label += " (" + item.Hostname + ")"
+			}
+			fmt.Fprintf(stdout, "%-4s  %-36s seen=%d  last=%s  %s\n", item.Kind, label, item.Occurrences, item.LastSeen, item.LastProvenanceID)
+		}
+		return 0
 	case "follow":
 		if len(args) != 2 && !(len(args) == 3 && args[2] == "--once") && !(len(args) == 4 && args[2] == "--invocation" && args[3] != "") {
 			fmt.Fprintln(stderr, "usage: akilix workbook follow NAME [--once | --invocation ID]")

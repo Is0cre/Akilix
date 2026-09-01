@@ -11,6 +11,7 @@ Examples:
     akilix workbook create client-2026
     akilix workbook open client-2026
     akilix workbook overview client-2026
+    akilix workbook discoveries client-2026
 
 ## Terminal navigation
 
@@ -21,6 +22,12 @@ paths, and safe quick-jump commands. The view is deliberately passive and has
 no terminal control sequences, so it remains useful when copied or redirected.
 Use `overview --json` for future interactive TUI, GUI, or automation consumers;
 those interfaces should reuse this model rather than reimplement discovery.
+
+`akilix workbook discoveries NAME [--json]` presents a passive, deduplicated
+projection of `HOST_DISCOVERED` and `PORT_FOUND` events. Each row retains its
+first and last journal provenance IDs, last invocation ID, timestamps, and
+occurrence count. The command does not persist an asset database or alter the
+canonical journal; malformed journal records fail closed.
 
 `akilix workbook path NAME [SECTION]` prints exactly one absolute path for
 shell composition. Sections are allowlisted and resolved only after opening a

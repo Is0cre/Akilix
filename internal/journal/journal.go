@@ -41,41 +41,55 @@ type Summary struct {
 	DroppedResults  int `json:"dropped_results"`
 }
 
-// Summarize reads canonical journal records without changing the workbook.
-// Counts represent recorded observations, not a deduplicated asset inventory.
-func Summarize(workbookRoot string) (Summary, error) {
+// Visit reads validated journal events under a shared file lock. The callback
+// must not append to the same journal because doing so would deadlock.
+func Visit(workbookRoot string, visit func(Event) error) error {
+	if visit == nil {
+		return fmt.Errorf("journal visitor is required")
+	}
 	path := filepath.Join(workbookRoot, "journal.jsonl")
 	fd, err := syscall.Open(path, syscall.O_RDONLY|syscall.O_CLOEXEC|syscall.O_NOFOLLOW, 0)
 	if os.IsNotExist(err) {
-		return Summary{}, nil
+		return nil
 	}
 	if err != nil {
-		return Summary{}, err
+		return err
 	}
 	file := os.NewFile(uintptr(fd), path)
 	defer file.Close()
 	info, err := file.Stat()
 	if err != nil || !info.Mode().IsRegular() {
-		return Summary{}, fmt.Errorf("invalid workbook journal")
+		return fmt.Errorf("invalid workbook journal")
 	}
 	if err := syscall.Flock(fd, syscall.LOCK_SH); err != nil {
-		return Summary{}, err
+		return err
 	}
 	defer syscall.Flock(fd, syscall.LOCK_UN)
-	var result Summary
 	scanner := bufio.NewScanner(file)
 	scanner.Buffer(make([]byte, 64*1024), maxRecordSize+1)
 	for scanner.Scan() {
 		if len(scanner.Bytes()) > maxRecordSize {
-			return Summary{}, fmt.Errorf("journal record exceeds size limit")
+			return fmt.Errorf("journal record exceeds size limit")
 		}
 		var event Event
 		if err := json.Unmarshal(scanner.Bytes(), &event); err != nil {
-			return Summary{}, fmt.Errorf("decode journal record: %w", err)
+			return fmt.Errorf("decode journal record: %w", err)
 		}
 		if event.Schema != Schema || !eventPattern.MatchString(event.Event) || !modulePattern.MatchString(event.Module) || event.Payload == nil || event.ProvenanceID == "" {
-			return Summary{}, fmt.Errorf("invalid journal event")
+			return fmt.Errorf("invalid journal event")
 		}
+		if err := visit(event); err != nil {
+			return err
+		}
+	}
+	return scanner.Err()
+}
+
+// Summarize reads canonical journal records without changing the workbook.
+// Counts represent recorded observations, not a deduplicated asset inventory.
+func Summarize(workbookRoot string) (Summary, error) {
+	var result Summary
+	err := Visit(workbookRoot, func(event Event) error {
 		switch event.Event {
 		case "HOST_DISCOVERED":
 			result.DiscoveredHosts++
@@ -84,11 +98,9 @@ func Summarize(workbookRoot string) (Summary, error) {
 		case "HOST_DROPPED_OUT_OF_SCOPE", "PORT_DROPPED_OUT_OF_SCOPE":
 			result.DroppedResults++
 		}
-	}
-	if err := scanner.Err(); err != nil {
-		return Summary{}, err
-	}
-	return result, nil
+		return nil
+	})
+	return result, err
 }
 
 func Open(workbookRoot string) (*Journal, error) {
