@@ -97,6 +97,19 @@ func TestJournalFormatterShowsSocketAndSemanticModule(t *testing.T) {
 	}
 }
 
+func TestJournalFormatterLabelsEngineeringAndEvidenceSources(t *testing.T) {
+	for module, marker := range map[string]string{"ENGINEERING": "🛠 ENG", "EVIDENCE": "🔒 EVID"} {
+		event, err := journal.NewEvent("INVOCATION_COMPLETED", module, map[string]any{"tool": "vim"}, time.Now())
+		if err != nil {
+			t.Fatal(err)
+		}
+		encoded, _ := jsonMarshal(event)
+		if line := formatJournalLine(encoded); !strings.Contains(line, marker) {
+			t.Fatalf("module=%s line=%q", module, line)
+		}
+	}
+}
+
 func TestOfflineMissingImageShowsWarningAndAnyKeyRecovers(t *testing.T) {
 	model := NewWorkbenchModel("DASHBOARD\n", "case", nil, nil, nil)
 	model.SetScanRunner(func(action Action, target string) (string, error) {

@@ -368,6 +368,10 @@ func formatJournalLine(line string) string {
 		if event.Event == "PORT_FOUND" {
 			moduleName = "🟢 RECON"
 		}
+	case "ENGINEERING":
+		moduleName = "🛠 ENG"
+	case "EVIDENCE":
+		moduleName = "🔒 EVID"
 	}
 	return muted.Render("["+timestamp+"]") + " " + module.Render(fmt.Sprintf("[%-8s]", moduleName)) + " " + message.Render(value) + "  " + muted.Render(event.ProvenanceID)
 }

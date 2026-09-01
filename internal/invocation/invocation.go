@@ -245,7 +245,7 @@ func appendActivity(root, id, workbookID string, at time.Time, phase, executor, 
 	if exitCode != nil {
 		payload["exit_code"] = *exitCode
 	}
-	module := "CORE"
+	module := "ENGINEERING"
 	if executor == "container" {
 		module = "OCI"
 	}

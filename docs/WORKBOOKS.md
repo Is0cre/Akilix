@@ -97,6 +97,14 @@ Canonical evidence, invocation, hardware, and scope records remain authoritative
 the journal does not replace them. Writers use process-local serialization,
 an inter-process file lock, append mode, and `fsync`.
 
+Managed native commands appear as `ENGINEERING` events, while container runs
+remain `OCI`. This records lifecycle metadata for explicit `akilix run`
+invocations; it does not silently capture arbitrary shell commands or enable
+terminal recording. Evidence imports journal an explicit request followed by
+`EVIDENCE_IMPORTED` or `EVIDENCE_IMPORT_FAILED`, and each independent hash check
+adds an `EVIDENCE_VERIFIED` event carrying its match or mismatch result. The
+canonical evidence manifest and invocation manifest remain authoritative.
+
 ## Live activity window
 
 Inside the interactive workbook, `[L]` opens a native Go viewport over the

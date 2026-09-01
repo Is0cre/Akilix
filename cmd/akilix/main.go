@@ -1508,7 +1508,7 @@ func runEvidence(args []string, stdout, stderr io.Writer) int {
 			fmt.Fprintln(stderr, "usage: akilix evidence import WORKBOOK SOURCE")
 			return 2
 		}
-		r, err := evidence.Import(workbookRoot, args[2], time.Now().UTC())
+		r, err := evidence.ImportRecorded(workbookRoot, m.ID, args[2], time.Now().UTC())
 		if err != nil {
 			fmt.Fprintln(stderr, err)
 			return 1
@@ -1544,7 +1544,7 @@ func runEvidence(args []string, stdout, stderr io.Writer) int {
 		return 0
 	case "verify":
 		if len(args) == 3 && args[2] == "--all" || len(args) == 4 && args[2] == "--all" && args[3] == "--json" {
-			records, allMatch, err := evidence.VerifyAll(workbookRoot)
+			records, allMatch, err := evidence.VerifyAllRecorded(workbookRoot, m.ID, time.Now)
 			if err != nil {
 				fmt.Fprintln(stderr, err)
 				return 1
@@ -1573,7 +1573,7 @@ func runEvidence(args []string, stdout, stderr io.Writer) int {
 			fmt.Fprintln(stderr, "usage: akilix evidence verify WORKBOOK EVIDENCE_ID [--json] | --all [--json]")
 			return 2
 		}
-		ok, record, err := evidence.Verify(workbookRoot, args[2])
+		ok, record, err := evidence.VerifyRecorded(workbookRoot, m.ID, args[2], time.Now().UTC())
 		if err != nil {
 			fmt.Fprintln(stderr, err)
 			return 1
