@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/Is0cre/Akilix/internal/journal"
 )
 
 const ProtectionSchema = "akilix.hardware-protection.v1"
@@ -85,6 +87,17 @@ func RecordProtectionEvent(workbookRoot, workbookID, operationID, phase string, 
 	path := filepath.Join(protectionDir, id+".json")
 	if err := writeNewAtomic(path, data); err != nil {
 		return ProtectionEvent{}, "", err
+	}
+	log, err := journal.Open(workbookRoot)
+	if err != nil {
+		return record, path, err
+	}
+	event, err := journal.NewEvent("HARDWARE_PROTECTION_"+phase, "HARDWARE", map[string]any{"record_id": id, "operation_id": operationID, "workbook_id": workbookID, "device": device.Path, "kernel_forced_ro": result.KernelReadOnly}, now)
+	if err != nil {
+		return record, path, err
+	}
+	if err := log.Append(event); err != nil {
+		return record, path, err
 	}
 	return record, path, nil
 }

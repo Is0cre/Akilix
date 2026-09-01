@@ -116,9 +116,10 @@ func (m *ActionsModel) View() tea.View {
 	return tea.NewView(b.String())
 }
 
-func (m *ActionsModel) Cursor() int       { return m.cursor }
-func (m *ActionsModel) Selected() Action  { return m.selected }
-func (m *ActionsModel) Choices() []Choice { return m.choices[:] }
+func (m *ActionsModel) Cursor() int             { return m.cursor }
+func (m *ActionsModel) Selected() Action        { return m.selected }
+func (m *ActionsModel) Choices() []Choice       { return m.choices[:] }
+func (m *ActionsModel) SetPrefix(prefix string) { m.prefix = prefix }
 
 func selectAction(action Action) tea.Cmd {
 	return func() tea.Msg { return ActionMsg{Action: action} }

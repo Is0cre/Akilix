@@ -1,9 +1,14 @@
 package scope
 
 import (
+	"bufio"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
+	"time"
+
+	"github.com/Is0cre/Akilix/internal/journal"
 )
 
 func TestScopeEvaluation(t *testing.T) {
@@ -73,5 +78,53 @@ func TestScopeRejectsWhitespaceAndCanonicalizesIP(t *testing.T) {
 	}
 	if err := Add(root, "bad target", false); err == nil {
 		t.Fatal("whitespace target accepted")
+	}
+}
+
+func TestNormalizeIPTargetUsesNetipAndRejectsHostnames(t *testing.T) {
+	for input, want := range map[string]string{"192.168.2.9/24": "192.168.2.0/24", "10.0.0.5": "10.0.0.5", "2001:db8::1/64": "2001:db8::/64"} {
+		got, err := NormalizeIPTarget(input)
+		if err != nil || got != want {
+			t.Fatalf("input=%q got=%q want=%q err=%v", input, got, want, err)
+		}
+	}
+	if _, err := NormalizeIPTarget("example.org"); err == nil {
+		t.Fatal("hostname accepted by IP-only modal validator")
+	}
+}
+
+func TestAddRecordedWritesRequestThenCompletion(t *testing.T) {
+	root := t.TempDir()
+	if err := os.WriteFile(filepath.Join(root, "scope.yaml"), []byte("version: 1\ninclude:\n  []\nexclude:\n  []\n"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	log, err := journal.Open(root)
+	if err != nil {
+		t.Fatal(err)
+	}
+	got, err := AddRecorded(root, "workbook-id", "192.168.2.9/24", false, log, time.Now())
+	if err != nil || got != "192.168.2.0/24" {
+		t.Fatalf("got=%q err=%v", got, err)
+	}
+	config, err := Load(root)
+	if err != nil || len(config.Includes) != 1 || config.Includes[0] != got {
+		t.Fatalf("config=%+v err=%v", config, err)
+	}
+	file, err := os.Open(log.Path())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer file.Close()
+	scanner := bufio.NewScanner(file)
+	var events []journal.Event
+	for scanner.Scan() {
+		var event journal.Event
+		if err := json.Unmarshal(scanner.Bytes(), &event); err != nil {
+			t.Fatal(err)
+		}
+		events = append(events, event)
+	}
+	if len(events) != 2 || events[0].Event != "SCOPE_TARGET_ADD_REQUESTED" || events[1].Event != "SCOPE_TARGET_ADDED" || events[1].Payload["value"] != got {
+		t.Fatalf("events=%+v", events)
 	}
 }

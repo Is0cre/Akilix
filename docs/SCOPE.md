@@ -1,5 +1,12 @@
 # Akilix Scope Model
 
+The interactive `[A]` modal accepts only individual IPv4/IPv6 addresses or
+CIDR prefixes through `net/netip`; host bits in a prefix are canonicalized.
+Invalid input is cleared and retried without leaving the TUI. Successful input
+uses the shared scope backend, durably journals the explicit request and result,
+refreshes dashboard counts, and returns focus to the action selector. The CLI
+continues to support the broader hostname/domain/URL scope forms.
+
 ## Purpose
 
 Scope describes targets an operator is authorized to assess within a workbook.

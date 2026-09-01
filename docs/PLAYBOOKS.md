@@ -51,3 +51,9 @@ written as JSONL to the invocation-specific
 `/workbook/output/ports.jsonl`; stdout, stderr, scope reasoning, exact argument
 vector, and immutable image digest remain attributable through the normal
 container invocation record.
+
+After a successful managed run, Akilix parses that attributed JSONL artifact
+without scraping terminal output. In-scope sockets become `PORT_FOUND` journal
+events linked to the invocation. Results that the canonical scope engine does
+not allow become `PORT_DROPPED_OUT_OF_SCOPE` events and are not presented as
+actionable discoveries. The original tool artifact remains unchanged.

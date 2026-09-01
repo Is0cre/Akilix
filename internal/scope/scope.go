@@ -3,12 +3,140 @@ package scope
 import (
 	"fmt"
 	"net"
+	"net/netip"
 	"net/url"
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 	"unicode"
+
+	"github.com/Is0cre/Akilix/internal/journal"
 )
+
+func NormalizeIPTarget(value string) (string, error) {
+	value = strings.TrimSpace(value)
+	if prefix, err := netip.ParsePrefix(value); err == nil {
+		return prefix.Masked().String(), nil
+	}
+	if address, err := netip.ParseAddr(value); err == nil {
+		return address.String(), nil
+	}
+	return "", fmt.Errorf("invalid CIDR/IP format")
+}
+
+func AddRecorded(workbookRoot, workbookID, target string, exclude bool, log *journal.Journal, now time.Time) (string, error) {
+	if workbookID == "" || log == nil {
+		return "", fmt.Errorf("scope journal context is required")
+	}
+	normalized, err := normalize(target)
+	if err != nil {
+		return "", err
+	}
+	prefix := "SCOPE_TARGET"
+	if exclude {
+		prefix = "SCOPE_EXCLUSION"
+	}
+	requested, err := journal.NewEvent(prefix+"_ADD_REQUESTED", "SCOPE", map[string]any{"value": normalized, "operator_action": "EXPLICIT_CONFIRMED"}, now)
+	if err != nil {
+		return "", err
+	}
+	if err := log.Append(requested); err != nil {
+		return "", err
+	}
+	config, err := Load(workbookRoot)
+	if err != nil {
+		return "", err
+	}
+	values := config.Includes
+	if exclude {
+		values = config.Excludes
+	}
+	alreadyPresent := false
+	for _, value := range values {
+		if value == normalized {
+			alreadyPresent = true
+			break
+		}
+	}
+	if err := Add(workbookRoot, normalized, exclude); err != nil {
+		failed, eventErr := journal.NewEvent(prefix+"_ADD_FAILED", "SCOPE", map[string]any{"value": normalized, "operator_action": "EXPLICIT_CONFIRMED", "error": err.Error(), "request_provenance_id": requested.ProvenanceID}, time.Now().UTC())
+		if eventErr == nil {
+			eventErr = log.Append(failed)
+		}
+		if eventErr != nil {
+			return "", fmt.Errorf("add scope: %v; record failure: %w", err, eventErr)
+		}
+		return "", err
+	}
+	completion := prefix + "_ADDED"
+	if alreadyPresent {
+		completion = prefix + "_ALREADY_PRESENT"
+	}
+	added, err := journal.NewEvent(completion, "SCOPE", map[string]any{"value": normalized, "operator_action": "EXPLICIT_CONFIRMED", "request_provenance_id": requested.ProvenanceID, "workbook_id": workbookID}, time.Now().UTC())
+	if err != nil {
+		return "", err
+	}
+	if err := log.Append(added); err != nil {
+		return "", fmt.Errorf("scope updated but completion journal failed: %w", err)
+	}
+	return normalized, nil
+}
+
+func RemoveRecorded(workbookRoot, workbookID, target string, log *journal.Journal, now time.Time) (string, error) {
+	if workbookID == "" || log == nil {
+		return "", fmt.Errorf("scope journal context is required")
+	}
+	normalized, err := normalize(target)
+	if err != nil {
+		return "", err
+	}
+	config, err := Load(workbookRoot)
+	if err != nil {
+		return "", err
+	}
+	exclude := false
+	found := false
+	for _, value := range config.Includes {
+		if value == normalized {
+			found = true
+			break
+		}
+	}
+	if !found {
+		for _, value := range config.Excludes {
+			if value == normalized {
+				found, exclude = true, true
+				break
+			}
+		}
+	}
+	if !found {
+		return "", fmt.Errorf("scope target %q not found", normalized)
+	}
+	prefix := "SCOPE_TARGET"
+	if exclude {
+		prefix = "SCOPE_EXCLUSION"
+	}
+	requested, err := journal.NewEvent(prefix+"_REMOVE_REQUESTED", "SCOPE", map[string]any{"value": normalized, "operator_action": "EXPLICIT_CONFIRMED"}, now)
+	if err != nil {
+		return "", err
+	}
+	if err := log.Append(requested); err != nil {
+		return "", err
+	}
+	if err := Remove(workbookRoot, normalized, exclude); err != nil {
+		return "", err
+	}
+	removed, err := journal.NewEvent(prefix+"_REMOVED", "SCOPE", map[string]any{"value": normalized, "operator_action": "EXPLICIT_CONFIRMED", "request_provenance_id": requested.ProvenanceID, "workbook_id": workbookID}, time.Now().UTC())
+	if err != nil {
+		return "", err
+	}
+	if err := log.Append(removed); err != nil {
+		return "", fmt.Errorf("scope updated but completion journal failed: %w", err)
+	}
+	return normalized, nil
+}
 
 type Config struct {
 	Includes []string

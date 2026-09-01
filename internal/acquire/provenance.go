@@ -8,6 +8,8 @@ import (
 	"os"
 	"path/filepath"
 	"time"
+
+	"github.com/Is0cre/Akilix/internal/journal"
 )
 
 const ProvenanceSchema = "akilix.hardware-provenance.v1"
@@ -52,6 +54,17 @@ func RecordInspection(workbookRoot, workbookID string, inspection Inspection, no
 	path := filepath.Join(inspectionDir, id+".json")
 	if err := writeNewAtomic(path, data); err != nil {
 		return ProvenanceRecord{}, "", err
+	}
+	log, err := journal.Open(workbookRoot)
+	if err != nil {
+		return record, path, err
+	}
+	event, err := journal.NewEvent("HARDWARE_INVENTORY_RECORDED", "HARDWARE", map[string]any{"record_id": id, "workbook_id": workbookID, "device_count": len(inspection.Devices)}, now)
+	if err != nil {
+		return record, path, err
+	}
+	if err := log.Append(event); err != nil {
+		return record, path, err
 	}
 	return record, path, nil
 }

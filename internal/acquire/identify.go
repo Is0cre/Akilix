@@ -9,6 +9,8 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+
+	"github.com/Is0cre/Akilix/internal/journal"
 )
 
 const IdentificationSchema = "akilix.hardware-identification.v1"
@@ -64,6 +66,17 @@ func RecordIdentification(workbookRoot, workbookID string, identification Identi
 	path := filepath.Join(identificationDir, id+".json")
 	if err := writeNewAtomic(path, data); err != nil {
 		return Identification{}, "", err
+	}
+	log, err := journal.Open(workbookRoot)
+	if err != nil {
+		return identification, path, err
+	}
+	event, err := journal.NewEvent("HARDWARE_IDENTIFIED", "HARDWARE", map[string]any{"record_id": id, "workbook_id": workbookID, "device": identification.Device.Path}, now)
+	if err != nil {
+		return identification, path, err
+	}
+	if err := log.Append(event); err != nil {
+		return identification, path, err
 	}
 	return identification, path, nil
 }

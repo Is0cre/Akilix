@@ -131,6 +131,7 @@ A workbook may contain:
 - command records
 - hashes
 - logs
+- a unified `journal.jsonl` operational stream
 - findings
 - timeline events
 - report material

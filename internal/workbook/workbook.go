@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Is0cre/Akilix/internal/journal"
 	"github.com/Is0cre/Akilix/internal/logpolicy"
 )
 
@@ -75,6 +76,17 @@ func Create(root, name string, now time.Time) (Metadata, error) {
 		return Metadata{}, err
 	}
 	if err := atomicWrite(filepath.Join(stage, "README.md"), "# "+name+"\n\nAkilix workbook.\n", 0600); err != nil {
+		return Metadata{}, err
+	}
+	log, err := journal.Open(stage)
+	if err != nil {
+		return Metadata{}, err
+	}
+	event, err := journal.NewEvent("WORKBOOK_INITIALIZED", "CORE", map[string]any{"workbook_id": m.ID, "name": m.Name, "operator_action": "EXPLICIT_CONFIRMED"}, now)
+	if err != nil {
+		return Metadata{}, err
+	}
+	if err := log.Append(event); err != nil {
 		return Metadata{}, err
 	}
 	if err := syncDir(stage); err != nil {

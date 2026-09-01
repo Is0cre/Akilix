@@ -53,6 +53,7 @@ Renaming a workbook must never change its identity.
     ├── workbook.yaml
     ├── scope.yaml
     ├── logging.yaml
+    ├── journal.jsonl
     ├── README.md
     ├── evidence/
     │   ├── original/
@@ -89,7 +90,19 @@ Renaming a workbook must never change its identity.
 
 The filesystem remains canonical for evidence and primary provenance.
 
+`journal.jsonl` is the unified operational projection for rapid human review.
+It uses flat, bounded `akilix.journal.v1` JSONL records with millisecond UTC
+timestamps, semantic event/module tokens, payloads, and provenance IDs.
+Canonical evidence, invocation, hardware, and scope records remain authoritative;
+the journal does not replace them. Writers use process-local serialization,
+an inter-process file lock, append mode, and `fsync`.
+
 ## Live activity window
+
+Inside the interactive workbook, `[L]` opens a native Go viewport over the
+unified journal. It does not launch `tail`. The reader processes bounded chunks,
+does not retain a descriptor between polls, keeps at most 500 rendered records,
+and returns to the action menu with Escape or `q`.
 
 `akilix workbook follow NAME` renders new canonical invocation records as they
 are completed. `akilix workbook follow NAME --once` prints the current

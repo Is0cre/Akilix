@@ -22,6 +22,7 @@ import (
 	"github.com/Is0cre/Akilix/internal/evidence"
 	greeterpkg "github.com/Is0cre/Akilix/internal/greeter"
 	"github.com/Is0cre/Akilix/internal/invocation"
+	"github.com/Is0cre/Akilix/internal/journal"
 	"github.com/Is0cre/Akilix/internal/logpolicy"
 	playbookpkg "github.com/Is0cre/Akilix/internal/playbook"
 	profilepkg "github.com/Is0cre/Akilix/internal/profile"
@@ -505,7 +506,7 @@ func runTUISession(scanner *bufio.Scanner, root, selected string, color bool, st
 		dashboard := tuipkg.Render(overview, config, color)
 		var action string
 		if isTerminalWriter(stdout) && isTerminalFile(os.Stdin) {
-			action, err = selectInteractiveAction(dashboard, stdout)
+			action, err = selectInteractiveAction(root, selected, overview.ID, dashboard, color, stdout)
 			if err != nil {
 				fmt.Fprintln(stderr, "select action:", err)
 				return 1
@@ -579,6 +580,20 @@ func runTUISession(scanner *bufio.Scanner, root, selected string, color bool, st
 				continue
 			}
 			fmt.Fprintf(stdout, "discovery complete: invocation %s\n", record.ID)
+			if action == "p" {
+				log, journalErr := journal.Open(filepath.Join(root, selected))
+				if journalErr != nil {
+					fmt.Fprintln(stderr, "open workbook journal:", journalErr)
+					continue
+				}
+				portsPath := filepath.Join(root, selected, "artifacts", "derived", record.ID, "ports.jsonl")
+				found, dropped, journalErr := playbookpkg.IngestNaabuJournal(portsPath, record.ID, config, log, time.Now)
+				if journalErr != nil {
+					fmt.Fprintln(stderr, "ingest Naabu journal:", journalErr)
+					continue
+				}
+				fmt.Fprintf(stdout, "journaled %d in-scope ports; dropped %d out-of-scope results\n", found, dropped)
+			}
 			continue
 		}
 		if action != "a" && action != "x" {
@@ -593,7 +608,13 @@ func runTUISession(scanner *bufio.Scanner, root, selected string, color bool, st
 		if !scanner.Scan() {
 			return 0
 		}
-		if err := scope.Add(filepath.Join(root, selected), strings.TrimSpace(scanner.Text()), action == "x"); err != nil {
+		workbookRoot := filepath.Join(root, selected)
+		log, err := journal.Open(workbookRoot)
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			continue
+		}
+		if _, err := scope.AddRecorded(workbookRoot, overview.ID, strings.TrimSpace(scanner.Text()), action == "x", log, time.Now().UTC()); err != nil {
 			fmt.Fprintln(stderr, err)
 			continue
 		}
@@ -618,9 +639,29 @@ func isTerminalFile(file *os.File) bool {
 	return err == nil && info.Mode()&os.ModeCharDevice != 0
 }
 
-func selectInteractiveAction(prefix string, stdout io.Writer) (string, error) {
+func selectInteractiveAction(root, workbookName, workbookID, prefix string, color bool, stdout io.Writer) (string, error) {
+	workbookRoot := filepath.Join(root, workbookName)
+	log, err := journal.Open(workbookRoot)
+	if err != nil {
+		return "", err
+	}
+	refresh := func() (string, error) {
+		overview, err := workbookview.Build(root, workbookName)
+		if err != nil {
+			return "", err
+		}
+		config, err := scope.Load(workbookRoot)
+		if err != nil {
+			return "", err
+		}
+		return tuipkg.Render(overview, config, color), nil
+	}
+	addScope := func(target string) error {
+		_, err := scope.AddRecorded(workbookRoot, workbookID, target, false, log, time.Now().UTC())
+		return err
+	}
 	program := tea.NewProgram(
-		tuipkg.NewActionsModel(prefix),
+		tuipkg.NewWorkbenchModel(prefix, workbookName, addScope, refresh, journal.NewTail(log.Path())),
 		tea.WithInput(os.Stdin),
 		tea.WithOutput(stdout),
 		tea.WithEnvironment(os.Environ()),
@@ -629,7 +670,7 @@ func selectInteractiveAction(prefix string, stdout io.Writer) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	model, ok := result.(*tuipkg.ActionsModel)
+	model, ok := result.(*tuipkg.WorkbenchModel)
 	if !ok || model.Selected() == 0 {
 		return "", fmt.Errorf("action selection ended without a choice")
 	}
@@ -1265,7 +1306,12 @@ func runScope(args []string, stdout, stderr io.Writer) int {
 			fmt.Fprintln(stderr, "target is required")
 			return 2
 		}
-		if err := scope.Add(workbookRoot, args[2], args[0] == "exclude"); err != nil {
+		log, err := journal.Open(workbookRoot)
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		if _, err := scope.AddRecorded(workbookRoot, m.ID, args[2], args[0] == "exclude", log, time.Now().UTC()); err != nil {
 			fmt.Fprintln(stderr, err)
 			return 1
 		}
@@ -1279,11 +1325,14 @@ func runScope(args []string, stdout, stderr io.Writer) int {
 			fmt.Fprintln(stderr, "target is required")
 			return 2
 		}
-		if err := scope.Remove(workbookRoot, args[2], false); err != nil {
-			if err = scope.Remove(workbookRoot, args[2], true); err != nil {
-				fmt.Fprintln(stderr, err)
-				return 1
-			}
+		log, err := journal.Open(workbookRoot)
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		if _, err := scope.RemoveRecorded(workbookRoot, m.ID, args[2], log, time.Now().UTC()); err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
 		}
 		return 0
 	case "list":

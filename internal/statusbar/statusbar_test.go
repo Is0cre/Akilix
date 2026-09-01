@@ -37,3 +37,11 @@ func TestTimeBlocksUseLocalCalendarAndZone(t *testing.T) {
 		t.Fatalf("unexpected time blocks: %+v", blocks)
 	}
 }
+
+func TestScopeRibbonDistinguishesUndeclaredAndActive(t *testing.T) {
+	undeclared := Blocks(Metrics{Workbook: "case", Scope: "UNDECLARED"})
+	active := Blocks(Metrics{Workbook: "case", Scope: "192.0.2.0/24"})
+	if undeclared[1].FullText != " 🚨 SCOPE UNDECLARED " || active[1].FullText != " 🎯 SCOPE ACTIVE · 192.0.2.0/24 " || active[1].Color != "#87ff00" {
+		t.Fatalf("undeclared=%+v active=%+v", undeclared[1], active[1])
+	}
+}

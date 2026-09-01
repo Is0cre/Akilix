@@ -111,9 +111,13 @@ func Blocks(m Metrics) []Block {
 	if m.Failed > 0 {
 		warn = "#e06c75"
 	}
+	scopeBlock := Block{FullText: " 🚨 SCOPE UNDECLARED ", Color: "#ff5f00", Separator: false}
+	if m.Scope != "UNDECLARED" {
+		scopeBlock = Block{FullText: " 🎯 SCOPE ACTIVE · " + m.Scope + " ", Color: "#87ff00", Separator: false}
+	}
 	return []Block{
 		{FullText: " 📂 " + m.Workbook + " ", Color: "#e8e6dd", Background: "#657a3e", Separator: false},
-		{FullText: " 🎯 SCOPE " + m.Scope + " ", Color: "#e8e6dd", Separator: false},
+		scopeBlock,
 		{FullText: fmt.Sprintf(" ⚠ FAILED %d ", m.Failed), Color: warn, Separator: false},
 		{FullText: fmt.Sprintf(" 📦 RUNNING %d ", m.Running), Color: "#c68a2b", Separator: false},
 	}

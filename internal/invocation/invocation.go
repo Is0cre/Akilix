@@ -16,6 +16,7 @@ import (
 	"time"
 
 	"github.com/Is0cre/Akilix/internal/activity"
+	"github.com/Is0cre/Akilix/internal/journal"
 )
 
 const Schema = "akilix.invocation.v1"
@@ -233,7 +234,26 @@ func activityPhase(status string) string {
 }
 
 func appendActivity(root, id, workbookID string, at time.Time, phase, executor, tool string, exitCode *int) error {
-	return activity.Append(root, activity.Event{Schema: activity.Schema, InvocationID: id, WorkbookID: workbookID, Timestamp: at, Phase: phase, Executor: executor, Tool: tool, ExitCode: exitCode})
+	if err := activity.Append(root, activity.Event{Schema: activity.Schema, InvocationID: id, WorkbookID: workbookID, Timestamp: at, Phase: phase, Executor: executor, Tool: tool, ExitCode: exitCode}); err != nil {
+		return err
+	}
+	log, err := journal.Open(root)
+	if err != nil {
+		return err
+	}
+	payload := map[string]any{"invocation_id": id, "workbook_id": workbookID, "executor": executor, "tool": tool}
+	if exitCode != nil {
+		payload["exit_code"] = *exitCode
+	}
+	module := "CORE"
+	if executor == "container" {
+		module = "OCI"
+	}
+	event, err := journal.NewEvent("INVOCATION_"+phase, module, payload, at)
+	if err != nil {
+		return err
+	}
+	return log.Append(event)
 }
 
 // appendRecord serializes updates to the canonical JSONL provenance stream.
