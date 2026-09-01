@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"github.com/Is0cre/Akilix/internal/activity"
+	"github.com/Is0cre/Akilix/internal/journal"
 	"github.com/Is0cre/Akilix/internal/scope"
 	"github.com/Is0cre/Akilix/internal/workbook"
 )
@@ -23,6 +24,9 @@ type Metrics struct {
 	Scope    string
 	Running  int
 	Failed   int
+	Hosts    int
+	Ports    int
+	Dropped  int
 }
 type Block struct {
 	FullText   string `json:"full_text"`
@@ -84,6 +88,10 @@ func Current(runtimeDir string) (Metrics, error) {
 	if err != nil {
 		return Metrics{}, err
 	}
+	discoveries, err := journal.Summarize(filepath.Join(state.Root, state.Workbook))
+	if err != nil {
+		return Metrics{}, err
+	}
 	running := map[string]bool{}
 	failed := 0
 	for _, event := range events {
@@ -103,7 +111,15 @@ func Current(runtimeDir string) (Metrics, error) {
 		sort.Strings(values)
 		scopeText = strings.Join(values, ",")
 	}
-	return Metrics{Workbook: state.Workbook, Scope: scopeText, Running: len(running), Failed: failed}, nil
+	return Metrics{
+		Workbook: state.Workbook,
+		Scope:    scopeText,
+		Running:  len(running),
+		Failed:   failed,
+		Hosts:    discoveries.DiscoveredHosts,
+		Ports:    discoveries.DiscoveredPorts,
+		Dropped:  discoveries.DroppedResults,
+	}, nil
 }
 
 func Blocks(m Metrics) []Block {
@@ -118,6 +134,7 @@ func Blocks(m Metrics) []Block {
 	return []Block{
 		{FullText: " 📂 " + m.Workbook + " ", Color: "#e8e6dd", Background: "#657a3e", Separator: false},
 		scopeBlock,
+		{FullText: fmt.Sprintf(" 📡 HOSTS %d · PORTS %d · DROPPED %d ", m.Hosts, m.Ports, m.Dropped), Color: "#72b7c9", Separator: false},
 		{FullText: fmt.Sprintf(" ⚠ FAILED %d ", m.Failed), Color: warn, Separator: false},
 		{FullText: fmt.Sprintf(" 📦 RUNNING %d ", m.Running), Color: "#c68a2b", Separator: false},
 	}

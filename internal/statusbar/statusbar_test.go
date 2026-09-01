@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/Is0cre/Akilix/internal/activity"
+	"github.com/Is0cre/Akilix/internal/journal"
 	"github.com/Is0cre/Akilix/internal/scope"
 	"github.com/Is0cre/Akilix/internal/workbook"
 )
@@ -24,9 +25,29 @@ func TestMetricsAreDerivedFromCanonicalLocalState(t *testing.T) {
 	if err := activity.Append(root+"/case", activity.Event{Schema: activity.Schema, InvocationID: "one", WorkbookID: m.ID, Timestamp: time.Now(), Phase: "STARTED", Executor: "container", Tool: "naabu"}); err != nil {
 		t.Fatal(err)
 	}
+	log, err := journal.Open(root + "/case")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, name := range []string{"HOST_DISCOVERED", "HOST_DISCOVERED", "PORT_FOUND", "PORT_DROPPED_OUT_OF_SCOPE"} {
+		event, eventErr := journal.NewEvent(name, "RECON", map[string]any{"value": "192.168.2.1"}, time.Now())
+		if eventErr != nil {
+			t.Fatal(eventErr)
+		}
+		if err := log.Append(event); err != nil {
+			t.Fatal(err)
+		}
+	}
 	got, err := Current(runtime)
-	if err != nil || got.Workbook != "case" || got.Scope != "192.168.2.0/24" || got.Running != 1 || got.Failed != 0 {
+	if err != nil || got.Workbook != "case" || got.Scope != "192.168.2.0/24" || got.Running != 1 || got.Failed != 0 || got.Hosts != 2 || got.Ports != 1 || got.Dropped != 1 {
 		t.Fatalf("metrics=%+v err=%v", got, err)
+	}
+}
+
+func TestBlocksRenderPassiveDiscoveryTelemetry(t *testing.T) {
+	blocks := Blocks(Metrics{Workbook: "case", Scope: "192.0.2.0/24", Hosts: 7, Ports: 19, Dropped: 2})
+	if len(blocks) != 5 || blocks[2].FullText != " 📡 HOSTS 7 · PORTS 19 · DROPPED 2 " || blocks[2].Color != "#72b7c9" {
+		t.Fatalf("unexpected discovery block: %+v", blocks)
 	}
 }
 
