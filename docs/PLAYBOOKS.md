@@ -8,9 +8,8 @@ activity. Execution requires a separate, explicit operator action.
 
 `local-network-discovery` accepts one canonical CIDR that must be explicitly
 allowed by the selected open workbook. It translates IP and CIDR exclusions
-contained by that network into scanner exclusions, uses a digest-pinned image,
-requests bridge networking, and writes XML to the invocation-specific
-`/workbook/output` mount. Original evidence is not mounted.
+contained by that network into scanner exclusions. Original evidence is not
+mounted.
 
 The initial command vector uses conservative host discovery (`nmap -sn -n`),
 not vulnerability scanning or exploitation. Opening a workbook or TUI never
@@ -23,17 +22,16 @@ meaning remains available through labels as well as color.
 
 From the workbook TUI, press `n`, supply an explicitly allowed CIDR or IP, and
 press Enter to start the labeled discovery action. Interactive discovery uses
-the fixed local image name `localhost/local-nmap`, resolves its immutable digest,
-and executes with Podman's `--pull=never` policy. Opening the workbook never
-starts discovery. If the image is absent, the asynchronous TUI worker presents
-an offline-availability warning and returns to the operations menu on the next
-key press; it never freezes or attempts an implicit pull. Building or importing
-the profile image is a separate explicit provisioning operation.
+the Nmap binary shipped in the base image. It writes XML to standard output so
+the managed native invocation engine captures it together with stderr, exact
+argv, timestamps, exit state, workbook identity, and scope decision. It does
+not invoke a shell or perform DNS resolution. Opening the workbook never starts
+discovery.
 
-On completion, stdout and stderr are stored under `tool-output/`, scanner XML
-is written beneath `artifacts/derived/<invocation-id>/`, and both the invocation
-record and container policy manifest identify the scope decision and image
-digest.
+On completion, stdout and stderr are stored under `tool-output/`; stdout is the
+scanner XML artifact. The invocation record identifies its scope decision.
+The digest-pinned OCI Nmap plan remains available as planning logic for a
+future profile-controlled execution option.
 
 ## Local port discovery
 

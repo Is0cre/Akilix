@@ -762,20 +762,27 @@ func selectInteractiveAction(root, workbookName, workbookID, prefix string, colo
 		if action == tuipkg.PortDiscovery {
 			image = "localhost/local-naabu"
 		}
-		identity, err := containerpkg.Resolve(context.Background(), containerpkg.PodmanRunner{}, image)
-		if err != nil {
-			return image, fmt.Errorf("resolve local OCI image %s: %w", image, err)
-		}
 		currentScope, err := scope.Load(workbookRoot)
 		if err != nil {
 			return image, err
 		}
-		var plan playbookpkg.Plan
 		if action == tuipkg.NetworkDiscovery {
-			plan, err = playbookpkg.PlanLocalNetworkDiscovery(currentScope, target, identity)
-		} else {
-			plan, err = playbookpkg.PlanLocalPortDiscovery(currentScope, target, identity)
+			plan, err := playbookpkg.PlanNativeLocalNetworkDiscovery(currentScope, target)
+			if err != nil {
+				return "nmap", err
+			}
+			record, err := invocation.RunWithOptions(context.Background(), workbookRoot, workbookID, plan.Arguments, time.Now, invocation.Options{ScopeResult: string(plan.Scope.Result), ScopeTarget: plan.Target, OnStarted: func(id string) { _ = launchInvocationWorkspace(workbookName, plan.Playbook, id) }})
+			if err != nil {
+				return "nmap", fmt.Errorf("invocation %s failed: %w", record.ID, err)
+			}
+			return "nmap", nil
 		}
+		identity, err := containerpkg.Resolve(context.Background(), containerpkg.PodmanRunner{}, image)
+		if err != nil {
+			return image, fmt.Errorf("resolve local OCI image %s: %w", image, err)
+		}
+		var plan playbookpkg.Plan
+		plan, err = playbookpkg.PlanLocalPortDiscovery(currentScope, target, identity)
 		if err != nil {
 			return image, err
 		}

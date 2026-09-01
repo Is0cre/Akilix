@@ -35,6 +35,24 @@ func TestPlanLocalDiscoveryBlocksUnknownAndNonCIDR(t *testing.T) {
 	}
 }
 
+func TestPlanNativeLocalNetworkDiscoveryUsesCapturedXML(t *testing.T) {
+	config := scope.Config{Includes: []string{"192.168.50.0/24"}, Excludes: []string{"192.168.50.1"}}
+	plan, err := PlanNativeLocalNetworkDiscovery(config, "192.168.50.13/24")
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []string{"nmap", "-sn", "-n", "--reason", "-oX", "-", "--exclude", "192.168.50.1", "192.168.50.0/24"}
+	if !reflect.DeepEqual(plan.Arguments, want) || plan.Scope.Result != scope.Allow {
+		t.Fatalf("plan=%+v", plan)
+	}
+}
+
+func TestPlanNativeLocalNetworkDiscoveryRejectsUndeclaredTarget(t *testing.T) {
+	if _, err := PlanNativeLocalNetworkDiscovery(scope.Config{}, "192.168.50.0/24"); err == nil {
+		t.Fatal("undeclared target accepted")
+	}
+}
+
 func TestPlanLocalPortDiscoveryUsesConservativeRootlessFlags(t *testing.T) {
 	identity := containerpkg.Identity{Image: "example/naabu:1", Digest: "sha256:" + strings.Repeat("b", 64)}
 	config := scope.Config{Includes: []string{"192.168.50.0/24"}, Excludes: []string{"192.168.50.9", "10.0.0.0/8"}}

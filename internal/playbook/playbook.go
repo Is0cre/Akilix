@@ -38,6 +38,38 @@ type Plan struct {
 	Exclusions     []string              `json:"exclusions,omitempty"`
 }
 
+type NativePlan struct {
+	Playbook   string         `json:"playbook"`
+	Target     string         `json:"target"`
+	Scope      scope.Decision `json:"scope"`
+	Attention  Attention      `json:"attention"`
+	Arguments  []string       `json:"arguments"`
+	Output     string         `json:"output"`
+	Exclusions []string       `json:"exclusions,omitempty"`
+}
+
+// PlanNativeLocalNetworkDiscovery produces an argv-only Nmap plan whose XML
+// is written to standard output and therefore captured by the invocation
+// engine. It performs no DNS lookup or network operation itself.
+func PlanNativeLocalNetworkDiscovery(config scope.Config, target string) (NativePlan, error) {
+	_, network, err := net.ParseCIDR(strings.TrimSpace(target))
+	if err != nil {
+		return NativePlan{}, fmt.Errorf("local discovery target must be a CIDR: %w", err)
+	}
+	target = network.String()
+	decision := scope.EvaluateDecision(config, target)
+	if decision.Result != scope.Allow {
+		return NativePlan{}, fmt.Errorf("local discovery requires explicitly allowed CIDR %s (scope: %s)", target, decision.Result)
+	}
+	exclusions := containedIPExclusions(config.Excludes, network)
+	args := []string{"nmap", "-sn", "-n", "--reason", "-oX", "-"}
+	if len(exclusions) > 0 {
+		args = append(args, "--exclude", strings.Join(exclusions, ","))
+	}
+	args = append(args, target)
+	return NativePlan{Playbook: LocalNetworkDiscovery, Target: target, Scope: decision, Attention: AttentionSafe, Arguments: args, Output: "invocation stdout (Nmap XML)", Exclusions: exclusions}, nil
+}
+
 // PlanLocalNetworkDiscovery is pure planning logic. It performs no DNS,
 // registry, container, or network operation.
 func PlanLocalNetworkDiscovery(config scope.Config, target string, image containerpkg.Identity) (Plan, error) {
