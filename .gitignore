@@ -1,5 +1,6 @@
 # Local build outputs
 /akilix
+/akilix-udev-handler
 /build/
 /akilix.zip
 # Pre-rename local build outputs may remain in developer worktrees.

@@ -15,9 +15,13 @@ The minimal Akilix command-line foundation for openSUSE Leap.
 
 %build
 go build -trimpath -buildvcs=false -o akilix ./cmd/akilix
+go build -trimpath -buildvcs=false -o akilix-udev-handler ./cmd/akilix-udev-handler
 
 %install
 install -Dpm0755 akilix %{buildroot}%{_bindir}/akilix
+install -Dpm0755 akilix-udev-handler %{buildroot}%{_bindir}/akilix-udev-handler
+install -Dpm0644 image/kiwi-iso/root/etc/udev/rules.d/99-akilix-forensic-block.rules %{buildroot}%{_udevrulesdir}/99-akilix-forensic-block.rules
+install -Dpm0644 image/kiwi-iso/root/usr/lib/tmpfiles.d/akilix-device-events.conf %{buildroot}%{_tmpfilesdir}/akilix-device-events.conf
 install -d %{buildroot}%{_datadir}/akilix/profiles
 install -m0644 profiles/*.yaml %{buildroot}%{_datadir}/akilix/profiles/
 install -Dpm0644 repositories/repositories.json %{buildroot}%{_datadir}/akilix/repositories.json
@@ -27,6 +31,9 @@ install -d %{buildroot}%{_datadir}/zsh/site-functions %{buildroot}%{_datadir}/ba
 
 %files
 %{_bindir}/akilix
+%{_bindir}/akilix-udev-handler
+%{_udevrulesdir}/99-akilix-forensic-block.rules
+%{_tmpfilesdir}/akilix-device-events.conf
 %{_datadir}/akilix/profiles/*.yaml
 %{_datadir}/akilix/repositories.json
 %{_datadir}/zsh/site-functions/_akilix

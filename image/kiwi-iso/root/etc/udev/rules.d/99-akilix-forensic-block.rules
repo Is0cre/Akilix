@@ -1,0 +1,11 @@
+# Akilix handles external whole-disk storage only. Non-block USB peripherals
+# (keyboards, mice, audio, Bluetooth) never match this policy.
+ACTION=="add|remove", SUBSYSTEM=="block", ENV{DEVTYPE}=="disk", ENV{ID_BUS}=="usb", GOTO="akilix_external_storage"
+ACTION=="add|remove", SUBSYSTEM=="block", ENV{DEVTYPE}=="disk", ATTR{removable}=="1", GOTO="akilix_external_storage"
+GOTO="akilix_external_storage_end"
+
+LABEL="akilix_external_storage"
+ACTION=="add", ATTR{ro}="1", ENV{UDISKS_IGNORE}="1", ENV{UDISKS_AUTO}="0", OPTIONS+="nowatch"
+ACTION=="add", RUN+="/usr/bin/akilix-udev-handler add $env{DEVNAME}"
+ACTION=="remove", RUN+="/usr/bin/akilix-udev-handler remove $env{DEVNAME}"
+LABEL="akilix_external_storage_end"

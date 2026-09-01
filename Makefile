@@ -1,10 +1,11 @@
 PREFIX ?= /usr
 VERSION ?= 0.0.1-m0
 
-.PHONY: build test check branding-check branding-stage boot-diagnostics-check network-image-check operator-freedom-check iso-payload-check weathr-stage ghidra-stage memtest-stage usb-ids-stage completion-check manifest-check install install-completion rpm rpm-check kiwi kiwi-iso kiwi-iso-prompt schema-check vm-check
+.PHONY: build test check branding-check branding-stage boot-diagnostics-check network-image-check operator-freedom-check device-policy-check iso-payload-check weathr-stage ghidra-stage memtest-stage usb-ids-stage completion-check manifest-check install install-completion rpm rpm-check kiwi kiwi-iso kiwi-iso-prompt schema-check vm-check
 
 build:
 	go build -trimpath -buildvcs=false -o akilix ./cmd/akilix
+	go build -trimpath -buildvcs=false -o akilix-udev-handler ./cmd/akilix-udev-handler
 
 test:
 	go test ./cmd/... ./internal/...
@@ -16,6 +17,7 @@ check: test
 	$(MAKE) boot-diagnostics-check
 	$(MAKE) network-image-check
 	$(MAKE) operator-freedom-check
+	$(MAKE) device-policy-check
 	$(MAKE) build
 	$(MAKE) completion-check
 	$(MAKE) manifest-check
@@ -41,6 +43,9 @@ network-image-check:
 
 operator-freedom-check:
 	sh scripts/check-operator-freedom.sh
+
+device-policy-check:
+	sh scripts/check-device-policy.sh
 
 iso-payload-check:
 	: "$${ISO_PATH:?Set ISO_PATH to the generated ISO}"
@@ -70,6 +75,7 @@ vm-check:
 
 install: build
 	install -Dm0755 akilix $(DESTDIR)$(PREFIX)/bin/akilix
+	install -Dm0755 akilix-udev-handler $(DESTDIR)$(PREFIX)/bin/akilix-udev-handler
 	install -d $(DESTDIR)$(PREFIX)/share/akilix/profiles
 	install -m0644 profiles/*.yaml $(DESTDIR)$(PREFIX)/share/akilix/profiles/
 	install -Dm0644 repositories/repositories.json $(DESTDIR)$(PREFIX)/share/akilix/repositories.json
@@ -98,6 +104,7 @@ kiwi-iso: build branding-stage weathr-stage ghidra-stage memtest-stage usb-ids-s
 		printf '%s\n' "preserved previous ISO build as $$archive"; \
 	fi
 	install -Dm0755 akilix image/kiwi-iso/root/usr/bin/akilix
+	install -Dm0755 akilix-udev-handler image/kiwi-iso/root/usr/bin/akilix-udev-handler
 	install -Dm0755 scripts/check-m0-platform.sh image/kiwi-iso/root/usr/bin/akilix-m0-check
 	mkdir -p image/kiwi-iso/root/usr/share/zsh/site-functions image/kiwi-iso/root/usr/share/bash-completion/completions
 	./akilix completion zsh > image/kiwi-iso/root/usr/share/zsh/site-functions/_akilix

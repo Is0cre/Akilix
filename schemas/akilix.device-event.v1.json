@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://akilix.dev/schemas/akilix.device-event.v1.json",
+  "title": "Akilix pending external storage event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "timestamp", "action", "device", "kernel_forced_ro", "operator_decision"],
+  "properties": {
+    "schema": {"const": "akilix.device-event.v1"},
+    "timestamp": {"type": "string", "format": "date-time"},
+    "action": {"enum": ["add", "remove"]},
+    "device": {"type": "string", "pattern": "^/dev/(sd[a-z]+|nvme[0-9]+n[0-9]+|mmcblk[0-9]+)$"},
+    "serial": {"type": "string"},
+    "vendor": {"type": "string"},
+    "model": {"type": "string"},
+    "bus": {"type": "string"},
+    "kernel_forced_ro": {"type": "boolean"},
+    "operator_decision": {"const": "PENDING"}
+  }
+}
