@@ -1,6 +1,7 @@
 package tui
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -156,7 +157,7 @@ func TestDiscoveriesFilterNarrowsAndClearsWithoutReloading(t *testing.T) {
 
 func TestOfflineMissingImageShowsWarningAndAnyKeyRecovers(t *testing.T) {
 	model := NewWorkbenchModel("DASHBOARD\n", "case", nil, nil, nil)
-	model.SetScanRunner(func(action Action, target string) (string, error) {
+	model.SetScanRunner(func(_ context.Context, action Action, target string) (string, error) {
 		if action != NetworkDiscovery || target != "192.168.2.0/24" {
 			t.Fatalf("action=%c target=%q", action, target)
 		}
@@ -199,12 +200,52 @@ func TestOfflineMissingImageShowsWarningAndAnyKeyRecovers(t *testing.T) {
 
 func TestScanInputEscapeClearsState(t *testing.T) {
 	model := NewWorkbenchModel("", "case", nil, nil, nil)
-	model.SetScanRunner(func(Action, string) (string, error) { t.Fatal("runner called"); return "", nil })
+	model.SetScanRunner(func(context.Context, Action, string) (string, error) { t.Fatal("runner called"); return "", nil })
 	model, _ = updateWorkbench(t, model, ActionMsg{Action: PortDiscovery})
 	model, _ = updateWorkbench(t, model, key("1", '1'))
 	model, _ = updateWorkbench(t, model, tea.KeyPressMsg(tea.Key{Code: tea.KeyEscape}))
 	if model.Mode() != "actions" || len(model.input) != 0 {
 		t.Fatalf("mode=%s input=%q", model.Mode(), string(model.input))
+	}
+}
+
+func TestRunningScanEscapeCancelsAndReturnsToActions(t *testing.T) {
+	model := NewWorkbenchModel("", "case", nil, nil, nil)
+	model.SetScanRunner(func(ctx context.Context, _ Action, _ string) (string, error) {
+		<-ctx.Done()
+		return "nmap", ctx.Err()
+	})
+	model, _ = updateWorkbench(t, model, ActionMsg{Action: NetworkDiscovery})
+	for _, r := range "192.0.2.0/24" {
+		model, _ = updateWorkbench(t, model, key(string(r), r))
+	}
+	model, command := updateWorkbench(t, model, tea.KeyPressMsg(tea.Key{Code: tea.KeyEnter}))
+	batch, ok := command().(tea.BatchMsg)
+	if !ok {
+		t.Fatalf("command type=%T", command())
+	}
+	finished := make(chan tea.Msg, 1)
+	for _, item := range batch {
+		go func(cmd tea.Cmd) {
+			if message := cmd(); message != nil {
+				if _, ok := message.(scanFinishedMsg); ok {
+					finished <- message
+				}
+			}
+		}(item)
+	}
+	model, _ = updateWorkbench(t, model, tea.KeyPressMsg(tea.Key{Code: tea.KeyEscape}))
+	if !model.scanCancelling || !strings.Contains(model.View().Content, "Cancelling") {
+		t.Fatalf("mode=%s view=%s", model.Mode(), model.View().Content)
+	}
+	select {
+	case message := <-finished:
+		model, _ = updateWorkbench(t, model, message)
+	case <-time.After(time.Second):
+		t.Fatal("cancelled runner did not finish")
+	}
+	if model.Mode() != "actions" {
+		t.Fatalf("mode=%s", model.Mode())
 	}
 }
 

@@ -1,7 +1,9 @@
 package tui
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"time"
@@ -48,7 +50,7 @@ type discoveriesLoadedMsg struct {
 	items []workbookview.Discovery
 	err   error
 }
-type ScanRunner func(action Action, target string) (string, error)
+type ScanRunner func(context.Context, Action, string) (string, error)
 type DiscoveryLoader func() ([]workbookview.Discovery, error)
 
 type WorkbenchModel struct {
@@ -74,6 +76,8 @@ type WorkbenchModel struct {
 	warningImage     string
 	warningText      string
 	scanFrame        int
+	scanCancel       context.CancelFunc
+	scanCancelling   bool
 }
 
 func NewWorkbenchModel(prefix, workbookName string, addScope func(string) error, refresh func() (string, error), tail *journal.Tail) *WorkbenchModel {
@@ -95,14 +99,34 @@ func (m *WorkbenchModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case modeScanInput:
 		return m.updateScanInput(msg)
 	case modeScanRunning:
+		if key, ok := msg.(tea.KeyPressMsg); ok && key.Key().Code == tea.KeyEscape {
+			if m.scanCancel != nil {
+				m.scanCancelling = true
+				m.scanCancel()
+			}
+			return m, nil
+		}
 		if _, ok := msg.(scanTickMsg); ok {
 			m.scanFrame = (m.scanFrame + 1) % 8
 			return m, scanTick()
 		}
 		if finished, ok := msg.(scanFinishedMsg); ok {
+			if m.scanCancel != nil {
+				m.scanCancel()
+			}
+			m.scanCancel = nil
 			m.input = m.input[:0]
+			if errors.Is(finished.err, context.Canceled) {
+				m.mode, m.scanCancelling = modeActions, false
+				if m.refresh != nil {
+					if prefix, err := m.refresh(); err == nil {
+						m.actions.SetPrefix(prefix)
+					}
+				}
+				return m, nil
+			}
 			if finished.err != nil {
-				m.mode, m.warningImage, m.warningText = modeWarning, finished.image, classifyScanError(finished.err)
+				m.mode, m.warningImage, m.warningText, m.scanCancelling = modeWarning, finished.image, classifyScanError(finished.err), false
 				return m, nil
 			}
 			m.mode = modeActions
@@ -257,8 +281,15 @@ func (m *WorkbenchModel) updateScanInput(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if action == PortDiscovery {
 			image = "localhost/local-naabu"
 		}
-		m.mode, m.inputError = modeScanRunning, ""
-		return m, tea.Batch(func() tea.Msg { _, err := runner(action, target); return scanFinishedMsg{image: image, err: err} }, scanTick())
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Minute)
+		m.mode, m.inputError, m.scanCancel, m.scanCancelling = modeScanRunning, "", cancel, false
+		return m, tea.Batch(func() tea.Msg {
+			_, err := runner(ctx, action, target)
+			if ctx.Err() != nil {
+				err = ctx.Err()
+			}
+			return scanFinishedMsg{image: image, err: err}
+		}, scanTick())
 	}
 	if key.Key().Text != "" && len(m.input)+utf8.RuneCountInString(key.Key().Text) <= 128 {
 		m.input = append(m.input, []rune(key.Key().Text)...)
@@ -365,7 +396,11 @@ func (m *WorkbenchModel) View() tea.View {
 		return tea.NewView(m.actions.prefix + renderScanInput(m.scanAction, string(m.input), m.inputError))
 	case modeScanRunning:
 		trail := []string{"1", "0", "1", "1", "0", "0", "1", "0"}
-		return tea.NewView(m.actions.prefix + lipgloss.NewStyle().Foreground(lipgloss.Color("#87ff00")).Render("Running scoped discovery  🦎 "+strings.Join(trail[:m.scanFrame+1], " ")))
+		state := "Running scoped discovery"
+		if m.scanCancelling {
+			state = "Cancelling scoped discovery"
+		}
+		return tea.NewView(m.actions.prefix + lipgloss.NewStyle().Foreground(lipgloss.Color("#87ff00")).Render(state+"  🦎 "+strings.Join(trail[:m.scanFrame+1], " ")) + "\n" + lipgloss.NewStyle().Foreground(lipgloss.Color("#7f8b8f")).Render("(ESC cancels and records the interrupted invocation)"))
 	case modeWarning:
 		return tea.NewView(m.actions.prefix + renderExecutionWarning(m.warningImage, m.warningText))
 	default:

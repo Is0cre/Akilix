@@ -757,7 +757,7 @@ func selectInteractiveAction(root, workbookName, workbookID, prefix string, colo
 		_, err := scope.AddRecorded(workbookRoot, workbookID, target, false, log, time.Now().UTC())
 		return err
 	}
-	runScan := func(action tuipkg.Action, target string) (string, error) {
+	runScan := func(ctx context.Context, action tuipkg.Action, target string) (string, error) {
 		image := "localhost/local-nmap"
 		if action == tuipkg.PortDiscovery {
 			image = "localhost/local-naabu"
@@ -776,8 +776,11 @@ func selectInteractiveAction(root, workbookName, workbookID, prefix string, colo
 			if err != nil {
 				return "nmap", err
 			}
-			record, err := invocation.RunWithOptions(context.Background(), workbookRoot, workbookID, plan.Arguments, time.Now, invocation.Options{ScopeResult: string(plan.Scope.Result), ScopeTarget: plan.Target, OnStarted: func(id string) { _ = launchInvocationWorkspace(workbookName, plan.Playbook, id) }})
+			record, err := invocation.RunWithOptions(ctx, workbookRoot, workbookID, plan.Arguments, time.Now, invocation.Options{ScopeResult: string(plan.Scope.Result), ScopeTarget: plan.Target, OnStarted: func(id string) { _ = launchInvocationWorkspace(workbookName, plan.Playbook, id) }})
 			if err != nil {
+				if ctx.Err() != nil {
+					return "nmap", ctx.Err()
+				}
 				return "nmap", fmt.Errorf("invocation %s failed: %w", record.ID, err)
 			}
 			stdoutPath := filepath.Join(workbookRoot, filepath.FromSlash(record.Stdout))
@@ -786,7 +789,7 @@ func selectInteractiveAction(root, workbookName, workbookID, prefix string, colo
 			}
 			return "nmap", nil
 		}
-		identity, err := containerpkg.Resolve(context.Background(), containerpkg.PodmanRunner{}, image)
+		identity, err := containerpkg.Resolve(ctx, containerpkg.PodmanRunner{}, image)
 		if err != nil {
 			return image, fmt.Errorf("resolve local OCI image %s: %w", image, err)
 		}
@@ -796,7 +799,7 @@ func selectInteractiveAction(root, workbookName, workbookID, prefix string, colo
 			return image, err
 		}
 		spec := containerpkg.Spec{Identity: plan.Image, Arguments: plan.Arguments, Network: plan.Network, InvocationOutput: true}
-		record, err := invocation.RunContainer(context.Background(), workbookRoot, workbookID, spec, time.Now, invocation.Options{ScopeResult: string(plan.Scope.Result), ScopeTarget: plan.Target, OnStarted: func(id string) { _ = launchInvocationWorkspace(workbookName, plan.Playbook, id) }})
+		record, err := invocation.RunContainer(ctx, workbookRoot, workbookID, spec, time.Now, invocation.Options{ScopeResult: string(plan.Scope.Result), ScopeTarget: plan.Target, OnStarted: func(id string) { _ = launchInvocationWorkspace(workbookName, plan.Playbook, id) }})
 		if err != nil {
 			return image, fmt.Errorf("invocation %s failed: %w", record.ID, err)
 		}

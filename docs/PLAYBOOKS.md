@@ -48,6 +48,10 @@ converted into discovery observations.
 managed argv selects unprivileged TCP CONNECT scanning, the top 100 ports, a
 maximum rate of 100 probes per second, one retry, a 30-second per-host timeout,
 no DNS resolution, and XML output captured as invocation stdout.
+The workbook TUI applies a 30-minute overall deadline to both native discovery
+actions. Pressing Escape while a scan is running cancels its context; the
+managed invocation remains recorded as failed/interrupted with captured output
+instead of becoming an invisible orphan process.
 
 The completed XML is parsed through the same bounded, symlink-safe ingester as
 host discovery. Only ports explicitly marked open become `PORT_FOUND` events;
