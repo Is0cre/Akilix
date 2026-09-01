@@ -67,6 +67,17 @@ identities are recorded in `repositories/security-tools-lock.json`. Kismet is
 not present for x86_64 at that revision and is intentionally omitted instead of
 leaving an unresolvable KIWI package request.
 
+The live image is useful before any OCI profile is imported: `iputils`
+provides `ping`, native Nmap provides operator-requested discovery and service
+inspection, and tcpdump/ethtool/iproute2 provide local diagnostics.
+NetworkManager is the selected desktop network stack, with built-in DHCP for
+automatic wired connectivity and `nmtui` for keyboard-first connection setup.
+Wicked is explicitly disabled to prevent two network managers competing for an
+interface. DHCP is ordinary link configuration; Akilix still performs no
+automatic scanning, listener creation, telemetry, or workbook network action.
+The Nmap RPM identity and the `network:utilities/16.0` signing-key identity are
+recorded in the repository manifests.
+
 Ghidra is the documented exception to RPM-only application delivery because no
 Leap 16 package repository currently publishes it. `scripts/stage-ghidra.sh`
 downloads the official 12.1 archive into the reusable build cache and verifies

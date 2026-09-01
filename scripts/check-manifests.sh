@@ -40,6 +40,21 @@ python3 - <<'PY'
 import json
 from pathlib import Path
 
+lock = json.loads(Path("repositories/network-baseline-lock.json").read_text())
+packages = lock.get("packages", [])
+if lock.get("schema") != "akilix.package-lock.v1" or lock.get("repository_id") != "network-utilities-leap-16":
+    raise SystemExit("network baseline lock has the wrong source identity")
+if {item.get("name") for item in packages} != {"nmap"}:
+    raise SystemExit("network baseline lock is incomplete")
+for item in packages:
+    if len(item.get("sha512", "")) != 128 or not item.get("location", "").startswith("x86_64/"):
+        raise SystemExit("network baseline lock contains invalid RPM identity")
+PY
+
+python3 - <<'PY'
+import json
+from pathlib import Path
+
 lock = json.loads(Path("repositories/filesystems-zfs-lock.json").read_text())
 expected = {"zfs", "zfs-kmp-default", "zfs-ueficert"}
 packages = lock.get("packages", [])
@@ -178,6 +193,8 @@ if repositories.get("Akilix-Security-Leap-16") != "https://download.opensuse.org
     raise SystemExit("KIWI image lacks the audited security tools source")
 if repositories.get("Akilix-Filesystems-Leap-16") != "https://download.opensuse.org/repositories/filesystems/16.0/":
     raise SystemExit("KIWI image lacks the audited filesystems source")
+if repositories.get("Akilix-Network-Utilities-Leap-16") != "https://download.opensuse.org/repositories/network:/utilities/16.0/":
+    raise SystemExit("KIWI image lacks the audited network utilities source")
 plymouth = {"plymouth", "plymouth-branding-upstream", "plymouth-plugin-script", "plymouth-dracut"}
 if not plymouth <= packages:
     raise SystemExit("KIWI image lacks the complete Plymouth/initrd package set")
@@ -201,10 +218,16 @@ cli_tools = {
     "zip", "unzip", "7zip", "less", "tree", "file", "jq", "ripgrep",
     "fzf", "zoxide", "dos2unix", "pv", "rsync", "tmux", "pciutils",
     "usbutils", "smartmontools", "nvme-cli", "procps", "psmisc", "lsof",
-    "strace", "bind-utils", "traceroute", "mtr", "whois",
+    "strace", "bind-utils", "iputils", "nmap", "traceroute", "mtr", "whois",
 }
 if not cli_tools <= packages:
     raise SystemExit("KIWI image lacks the curated command-line utility set")
+network = {"NetworkManager", "NetworkManager-tui", "iproute2", "iputils", "nmap", "tcpdump", "ethtool"}
+if not network <= packages:
+    raise SystemExit("KIWI image lacks the native network baseline")
+network_preset = (image / "root/etc/systemd/system-preset/50-akilix-network.preset").read_text()
+if "enable NetworkManager.service" not in network_preset or "disable wicked.service" not in network_preset:
+    raise SystemExit("Akilix network service selection is ambiguous")
 storage = {"ntfs-3g", "cifs-utils", "samba-client", "samba", "zfs", "zfs-kmp-default", "zfs-ueficert"}
 if not storage <= packages:
     raise SystemExit("KIWI image lacks the storage interoperability set")

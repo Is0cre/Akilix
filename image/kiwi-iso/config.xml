@@ -39,6 +39,9 @@
   <repository type="rpm-md" alias="Akilix-Filesystems-Leap-16">
     <source path="https://download.opensuse.org/repositories/filesystems/16.0/"/>
   </repository>
+  <repository type="rpm-md" alias="Akilix-Network-Utilities-Leap-16">
+    <source path="https://download.opensuse.org/repositories/network:/utilities/16.0/"/>
+  </repository>
   <packages type="image">
     <package name="systemd"/>
     <package name="btrfsprogs"/>
@@ -85,6 +88,8 @@
     <package name="lsof"/>
     <package name="strace"/>
     <package name="bind-utils"/>
+    <package name="iputils"/>
+    <package name="nmap"/>
     <package name="traceroute"/>
     <package name="mtr"/>
     <package name="whois"/>
@@ -124,7 +129,8 @@
     <package name="exiftool"/>
     <package name="git"/>
     <package name="iproute2"/>
-    <package name="wicked"/>
+    <package name="NetworkManager"/>
+    <package name="NetworkManager-tui"/>
     <package name="curl"/>
     <package name="tar"/>
     <package name="squashfs"/>

@@ -66,6 +66,17 @@
       "key_fingerprint": "B1FB53748720472205FA601998C97FE7324E6311",
       "image_enabled": true,
       "status": "approved"
+    },
+    {
+      "id": "network-utilities-leap-16",
+      "name": "openSUSE OBS Network Utilities for Leap 16.0",
+      "purpose": "security",
+      "tier": "obs",
+      "base_url": "https://download.opensuse.org/repositories/network:/utilities/16.0/",
+      "key_url": "https://download.opensuse.org/repositories/network:/utilities/16.0/repodata/repomd.xml.key",
+      "key_fingerprint": "22F7E5D75A99B2F03CF9CA6B382FB14C392FFA88",
+      "image_enabled": true,
+      "status": "approved"
     }
   ]
 }

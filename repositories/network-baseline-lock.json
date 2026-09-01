@@ -1,0 +1,16 @@
+{
+  "schema": "akilix.package-lock.v1",
+  "repository_id": "network-utilities-leap-16",
+  "architecture": "x86_64",
+  "resolved_at": "2026-09-01T00:00:00Z",
+  "repomd_revision": "1788180440",
+  "primary_sha512": "6a2c4e89effeaaf5758d0e98827c347d6ec00765ebc95200d8314314b4522abad4034031961c6244770954073e5aca99d13f714151e2697ea355c3bbb7177b76",
+  "packages": [
+    {
+      "name": "nmap",
+      "version": "7.97-lp160.150.1",
+      "sha512": "7ff497fb69ff2c86bae4b977a43d75164494ae20bc9334d3ffc71aaf7b382cb63b0b9609b491ca30d0e111ed4f0942e5e30cd90d9ee7f5e5ef394cc48ea77769",
+      "location": "x86_64/nmap-7.97-lp160.150.1.x86_64.rpm"
+    }
+  ]
+}

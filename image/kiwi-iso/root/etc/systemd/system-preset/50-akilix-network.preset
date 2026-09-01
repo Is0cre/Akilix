@@ -1,0 +1,3 @@
+# NetworkManager supplies wired DHCP and operator-controlled Wi-Fi configuration.
+enable NetworkManager.service
+disable wicked.service
