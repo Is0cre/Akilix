@@ -10,9 +10,11 @@ import (
 const PreflightSchema = "akilix.profile-preflight.v1"
 
 type PreflightCheck struct {
-	Name   string `json:"name"`
-	Ready  bool   `json:"ready"`
-	Detail string `json:"detail"`
+	Name    string   `json:"name"`
+	Ready   bool     `json:"ready"`
+	Detail  string   `json:"detail"`
+	Command []string `json:"command,omitempty"`
+	Error   string   `json:"error,omitempty"`
 }
 
 type Preflight struct {
@@ -50,24 +52,41 @@ func PreflightHost(ctx context.Context, manifest Manifest, host HostInspector) (
 		ApplySupported: false, RequiresPrivilege: host.EUID() != 0,
 		Checks: []PreflightCheck{},
 	}
-	for _, tool := range []string{"btrfs", "rpm", "snapper", "zypper"} {
+	for _, tool := range []string{"btrfs", "findmnt", "rpm", "snapper", "zypper"} {
 		path, err := host.LookPath(tool)
-		result.Checks = append(result.Checks, PreflightCheck{Name: "tool:" + tool, Ready: err == nil, Detail: path})
+		check := PreflightCheck{Name: "tool:" + tool, Ready: err == nil, Detail: path}
 		if err != nil {
+			check.Detail = "required host tool unavailable"
+			check.Error = boundedDetail(nil, err)
 			result.Ready = false
 		}
+		result.Checks = append(result.Checks, check)
 	}
 	out, err := host.Run(ctx, "findmnt", "-n", "-o", "FSTYPE", "/")
-	btrfsReady := err == nil && strings.TrimSpace(string(out)) == "btrfs"
-	result.Checks = append(result.Checks, PreflightCheck{Name: "root-filesystem", Ready: btrfsReady, Detail: strings.TrimSpace(string(out))})
+	filesystem := strings.TrimSpace(string(out))
+	btrfsReady := err == nil && filesystem == "btrfs"
+	filesystemCheck := PreflightCheck{Name: "root-filesystem", Ready: btrfsReady, Detail: filesystem, Command: []string{"findmnt", "-n", "-o", "FSTYPE", "/"}}
+	if err != nil {
+		filesystemCheck.Detail = "unable to inspect root filesystem"
+		filesystemCheck.Error = boundedDetail(out, err)
+	} else if filesystem == "" {
+		filesystemCheck.Detail = "filesystem type unavailable"
+	}
+	result.Checks = append(result.Checks, filesystemCheck)
 	if !btrfsReady {
 		result.Ready = false
 	}
 	out, err = host.Run(ctx, "snapper", "--no-dbus", "list-configs", "--columns", "config,subvolume")
 	snapperReady := err == nil && hasRootSnapperConfig(string(out))
-	result.Checks = append(result.Checks, PreflightCheck{Name: "snapper-root-config", Ready: snapperReady, Detail: "root subvolume configured"})
+	snapperCheck := PreflightCheck{Name: "snapper-root-config", Ready: snapperReady, Detail: "root subvolume configured", Command: []string{"snapper", "--no-dbus", "list-configs", "--columns", "config,subvolume"}}
+	if err != nil {
+		snapperCheck.Detail = "unable to inspect Snapper configurations"
+		snapperCheck.Error = boundedDetail(out, err)
+	} else if !snapperReady {
+		snapperCheck.Detail = "root subvolume not configured"
+	}
+	result.Checks = append(result.Checks, snapperCheck)
 	if !snapperReady {
-		result.Checks[len(result.Checks)-1].Detail = "root subvolume not configured"
 		result.Ready = false
 	}
 	statusReady := manifest.Status == "foundation"
