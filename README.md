@@ -70,6 +70,8 @@ The system is built around several principles:
 - no telemetry by default
 - no mandatory external service
 - offline-capable operation where practical
+- unrestricted general-purpose operator access alongside optional,
+  provenance-managed workbook workflows
 
 ---
 

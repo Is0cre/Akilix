@@ -543,3 +543,32 @@ Before introducing a major component, ask:
 10. Why does this belong on the host rather than in an isolated environment?
 
 If these questions cannot be answered, the component is not ready for integration.
+
+---
+
+# 21. Operator execution modes
+
+Akilix is a professional workstation, not a mandatory workflow shell.
+
+Two execution modes intentionally coexist:
+
+## Direct operator mode
+
+The operator uses the normal shell, desktop, package tools, native utilities,
+and locally installed applications without an active workbook. Akilix does not
+intercept these commands or imply that their output has workbook provenance.
+This mode is appropriate for system administration, experimentation, training,
+connectivity diagnostics, and work where structured case attribution is not
+required.
+
+## Workbook-managed mode
+
+The operator explicitly chooses a workbook and an Akilix-managed action. This
+adds scope assistance, immutable invocation identity, output capture, artifact
+relationships, and journal provenance. It is the recommended mode for
+authorized engagements and investigations, but it is not the only way to use
+the operating system.
+
+Privilege, SELinux, filesystem permissions, and ordinary Linux policy still
+apply in both modes. Workbook scope assistance must never be marketed as a
+system-wide network security boundary.

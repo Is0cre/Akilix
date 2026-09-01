@@ -1,7 +1,7 @@
 PREFIX ?= /usr
 VERSION ?= 0.0.1-m0
 
-.PHONY: build test check branding-check branding-stage boot-diagnostics-check network-image-check iso-payload-check weathr-stage ghidra-stage memtest-stage usb-ids-stage completion-check manifest-check install install-completion rpm rpm-check kiwi kiwi-iso kiwi-iso-prompt schema-check vm-check
+.PHONY: build test check branding-check branding-stage boot-diagnostics-check network-image-check operator-freedom-check iso-payload-check weathr-stage ghidra-stage memtest-stage usb-ids-stage completion-check manifest-check install install-completion rpm rpm-check kiwi kiwi-iso kiwi-iso-prompt schema-check vm-check
 
 build:
 	go build -trimpath -buildvcs=false -o akilix ./cmd/akilix
@@ -15,6 +15,7 @@ check: test
 	$(MAKE) branding-check
 	$(MAKE) boot-diagnostics-check
 	$(MAKE) network-image-check
+	$(MAKE) operator-freedom-check
 	$(MAKE) build
 	$(MAKE) completion-check
 	$(MAKE) manifest-check
@@ -37,6 +38,9 @@ boot-diagnostics-check:
 
 network-image-check:
 	sh scripts/check-network-image.sh
+
+operator-freedom-check:
+	sh scripts/check-operator-freedom.sh
 
 iso-payload-check:
 	: "$${ISO_PATH:?Set ISO_PATH to the generated ISO}"

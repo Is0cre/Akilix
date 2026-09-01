@@ -223,6 +223,20 @@ Core Akilix functionality MUST NOT require an external SaaS service, hosted cont
 
 ---
 
+## PS-INV-032 — General-purpose operator access
+
+Akilix MUST remain a usable openSUSE workstation outside a workbook. The
+operator MUST be able to open an ordinary shell and invoke installed native
+tools directly without creating or selecting a workbook.
+
+Akilix MUST NOT intercept, silently rewrite, scope-block, or automatically
+journal arbitrary shell commands. Direct execution is explicitly unmanaged:
+it does not receive workbook scope assistance, artifact attribution, or
+canonical invocation provenance unless the operator chooses an Akilix-managed
+execution path.
+
+---
+
 # Invariant changes
 
 Removing or weakening an invariant is an architectural change.

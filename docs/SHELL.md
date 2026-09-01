@@ -5,6 +5,14 @@ packaged `/etc/zshrc` and adds a small system-wide baseline through the native
 `/etc/zsh.zshrc.local` hook. It does not install a plugin framework or perform
 network access while starting a shell.
 
+The shell is deliberately unrestricted by the workbook engine. Operators may
+run installed tools such as Nmap, tcpdump, Podman, Git, Curl, editors, and
+ordinary administration commands directly. No `preexec` hook, command-not-found
+handler, forced alias, or mandatory workbook launcher captures or rewrites
+those commands. Direct commands are unmanaged and therefore do not acquire
+workbook scope checks, structured invocation provenance, or automatic artifact
+capture. Use `akilix` when those guarantees are wanted.
+
 New accounts receive `/etc/skel/.zshrc` with conservative interactive defaults
 and a clear place for personal aliases. System behavior is deliberately kept in
 `/etc/zsh.zshrc.local`, so completion and history also work when an existing
