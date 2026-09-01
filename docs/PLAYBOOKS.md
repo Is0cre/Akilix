@@ -21,10 +21,14 @@ Semantic attention values (`INFO`, `SAFE`, `WARN`, and `BLOCK`) are data, not
 hard-coded ANSI colors. The TUI maps them to the current accessible palette so
 meaning remains available through labels as well as color.
 
-From the workbook TUI, press `n` to preview discovery. The operator supplies a
-CIDR and an already-local image containing Nmap. Akilix resolves the immutable
-digest, displays the complete plan, and requires the exact confirmation `RUN`.
-It never pulls an image or starts discovery merely because the TUI was opened.
+From the workbook TUI, press `n`, supply an explicitly allowed CIDR or IP, and
+press Enter to start the labeled discovery action. Interactive discovery uses
+the fixed local image name `localhost/local-nmap`, resolves its immutable digest,
+and executes with Podman's `--pull=never` policy. Opening the workbook never
+starts discovery. If the image is absent, the asynchronous TUI worker presents
+an offline-availability warning and returns to the operations menu on the next
+key press; it never freezes or attempts an implicit pull. Building or importing
+the profile image is a separate explicit provisioning operation.
 
 On completion, stdout and stderr are stored under `tool-output/`, scanner XML
 is written beneath `artifacts/derived/<invocation-id>/`, and both the invocation
@@ -34,9 +38,9 @@ digest.
 ## Local port discovery
 
 `local-port-discovery` is a separate Naabu-backed playbook; it does not replace
-Nmap. Press `p` in the workbook TUI, provide an explicitly allowed CIDR and an
-already-local Naabu image, inspect the complete plan, and type the exact word
-`RUN` to begin.
+Nmap. Press `p` in the workbook TUI and explicitly submit an allowed CIDR or IP.
+The interactive path uses `localhost/local-naabu` with the same digest-pinned,
+`--pull=never` execution and recoverable missing-image warning.
 
 The Naabu plan supplies flags to the image's `naabu` entrypoint, matching the
 official ProjectDiscovery image contract. A generic image without that

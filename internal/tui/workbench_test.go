@@ -97,6 +97,71 @@ func TestJournalFormatterShowsSocketAndSemanticModule(t *testing.T) {
 	}
 }
 
+func TestOfflineMissingImageShowsWarningAndAnyKeyRecovers(t *testing.T) {
+	model := NewWorkbenchModel("DASHBOARD\n", "case", nil, nil, nil)
+	model.SetScanRunner(func(action Action, target string) (string, error) {
+		if action != NetworkDiscovery || target != "192.168.2.0/24" {
+			t.Fatalf("action=%c target=%q", action, target)
+		}
+		return "localhost/local-nmap", fmt.Errorf("podman: image not known")
+	})
+	model, _ = updateWorkbench(t, model, ActionMsg{Action: NetworkDiscovery})
+	for _, r := range "192.168.2.9/24" {
+		model, _ = updateWorkbench(t, model, key(string(r), r))
+	}
+	model, command := updateWorkbench(t, model, tea.KeyPressMsg(tea.Key{Code: tea.KeyEnter}))
+	if model.Mode() != "scan-running" || command == nil {
+		t.Fatalf("mode=%s command=%v", model.Mode(), command)
+	}
+	batch, ok := command().(tea.BatchMsg)
+	if !ok {
+		t.Fatalf("scan command type=%T", command())
+	}
+	var finished tea.Msg
+	for _, command := range batch {
+		if message := command(); message != nil {
+			if _, ok := message.(scanFinishedMsg); ok {
+				finished = message
+				break
+			}
+		}
+	}
+	if finished == nil {
+		t.Fatal("batch contained no scan completion")
+	}
+	model, _ = updateWorkbench(t, model, finished)
+	view := model.View().Content
+	if model.Mode() != "warning" || !strings.Contains(view, "localhost/local-nmap") || !strings.Contains(view, "Technological Sovereignty") {
+		t.Fatalf("mode=%s view=%s", model.Mode(), view)
+	}
+	model, _ = updateWorkbench(t, model, key("x", 'x'))
+	if model.Mode() != "actions" || strings.Contains(model.View().Content, "OCI Error") {
+		t.Fatalf("mode=%s view=%s", model.Mode(), model.View().Content)
+	}
+}
+
+func TestScanInputEscapeClearsState(t *testing.T) {
+	model := NewWorkbenchModel("", "case", nil, nil, nil)
+	model.SetScanRunner(func(Action, string) (string, error) { t.Fatal("runner called"); return "", nil })
+	model, _ = updateWorkbench(t, model, ActionMsg{Action: PortDiscovery})
+	model, _ = updateWorkbench(t, model, key("1", '1'))
+	model, _ = updateWorkbench(t, model, tea.KeyPressMsg(tea.Key{Code: tea.KeyEscape}))
+	if model.Mode() != "actions" || len(model.input) != 0 {
+		t.Fatalf("mode=%s input=%q", model.Mode(), string(model.input))
+	}
+}
+
+func TestScanErrorClassificationRecognizesPodmanOfflineFailures(t *testing.T) {
+	for _, message := range []string{"image not known", "Error pulling image", "no such image", "image not found"} {
+		if got := classifyScanError(fmt.Errorf("podman: %s", message)); got != "missing-image" {
+			t.Fatalf("message=%q got=%q", message, got)
+		}
+	}
+	if got := classifyScanError(fmt.Errorf("permission denied")); got != "permission denied" {
+		t.Fatalf("got=%q", got)
+	}
+}
+
 func jsonMarshal(value any) (string, error) {
 	data, err := json.Marshal(value)
 	return string(data), err

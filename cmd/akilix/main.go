@@ -727,8 +727,45 @@ func selectInteractiveAction(root, workbookName, workbookID, prefix string, colo
 		_, err := scope.AddRecorded(workbookRoot, workbookID, target, false, log, time.Now().UTC())
 		return err
 	}
+	runScan := func(action tuipkg.Action, target string) (string, error) {
+		image := "localhost/local-nmap"
+		if action == tuipkg.PortDiscovery {
+			image = "localhost/local-naabu"
+		}
+		identity, err := containerpkg.Resolve(context.Background(), containerpkg.PodmanRunner{}, image)
+		if err != nil {
+			return image, fmt.Errorf("resolve local OCI image %s: %w", image, err)
+		}
+		currentScope, err := scope.Load(workbookRoot)
+		if err != nil {
+			return image, err
+		}
+		var plan playbookpkg.Plan
+		if action == tuipkg.NetworkDiscovery {
+			plan, err = playbookpkg.PlanLocalNetworkDiscovery(currentScope, target, identity)
+		} else {
+			plan, err = playbookpkg.PlanLocalPortDiscovery(currentScope, target, identity)
+		}
+		if err != nil {
+			return image, err
+		}
+		spec := containerpkg.Spec{Identity: plan.Image, Arguments: plan.Arguments, Network: plan.Network, InvocationOutput: true}
+		record, err := invocation.RunContainer(context.Background(), workbookRoot, workbookID, spec, time.Now, invocation.Options{ScopeResult: string(plan.Scope.Result), ScopeTarget: plan.Target, OnStarted: func(id string) { _ = launchInvocationWorkspace(workbookName, plan.Playbook, id) }})
+		if err != nil {
+			return image, fmt.Errorf("invocation %s failed: %w", record.ID, err)
+		}
+		if action == tuipkg.PortDiscovery {
+			portsPath := filepath.Join(workbookRoot, "artifacts", "derived", record.ID, "ports.jsonl")
+			if _, _, err := playbookpkg.IngestNaabuJournal(portsPath, record.ID, currentScope, log, time.Now); err != nil {
+				return image, err
+			}
+		}
+		return image, nil
+	}
+	model := tuipkg.NewWorkbenchModel(prefix, workbookName, addScope, refresh, journal.NewTail(log.Path()))
+	model.SetScanRunner(runScan)
 	program := tea.NewProgram(
-		tuipkg.NewWorkbenchModel(prefix, workbookName, addScope, refresh, journal.NewTail(log.Path())),
+		model,
 		tea.WithInput(os.Stdin),
 		tea.WithOutput(stdout),
 		tea.WithEnvironment(os.Environ()),

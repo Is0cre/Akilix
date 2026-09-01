@@ -22,6 +22,9 @@ const (
 	modeActions workbenchMode = iota
 	modeScope
 	modeJournal
+	modeScanInput
+	modeScanRunning
+	modeWarning
 )
 
 type scopeAddedMsg struct {
@@ -33,6 +36,12 @@ type journalLinesMsg struct {
 	err   error
 }
 type journalTickMsg struct{}
+type scanFinishedMsg struct {
+	image string
+	err   error
+}
+type scanTickMsg struct{}
+type ScanRunner func(action Action, target string) (string, error)
 
 type WorkbenchModel struct {
 	actions      *ActionsModel
@@ -47,6 +56,11 @@ type WorkbenchModel struct {
 	journalError string
 	workbookName string
 	selected     Action
+	scanAction   Action
+	scanRunner   ScanRunner
+	warningImage string
+	warningText  string
+	scanFrame    int
 }
 
 func NewWorkbenchModel(prefix, workbookName string, addScope func(string) error, refresh func() (string, error), tail *journal.Tail) *WorkbenchModel {
@@ -63,6 +77,32 @@ func (m *WorkbenchModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.updateScope(msg)
 	case modeJournal:
 		return m.updateJournal(msg)
+	case modeScanInput:
+		return m.updateScanInput(msg)
+	case modeScanRunning:
+		if _, ok := msg.(scanTickMsg); ok {
+			m.scanFrame = (m.scanFrame + 1) % 8
+			return m, scanTick()
+		}
+		if finished, ok := msg.(scanFinishedMsg); ok {
+			m.input = m.input[:0]
+			if finished.err != nil {
+				m.mode, m.warningImage, m.warningText = modeWarning, finished.image, classifyScanError(finished.err)
+				return m, nil
+			}
+			m.mode = modeActions
+			if m.refresh != nil {
+				if prefix, err := m.refresh(); err == nil {
+					m.actions.SetPrefix(prefix)
+				}
+			}
+		}
+		return m, nil
+	case modeWarning:
+		if _, ok := msg.(tea.KeyPressMsg); ok {
+			m.mode, m.input, m.inputError, m.warningImage, m.warningText = modeActions, m.input[:0], "", "", ""
+		}
+		return m, nil
 	}
 	if selection, ok := msg.(ActionMsg); ok {
 		switch selection.Action {
@@ -72,6 +112,11 @@ func (m *WorkbenchModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case OpenLiveLog:
 			m.mode, m.journalError = modeJournal, ""
 			return m, tea.Batch(pollJournal(m.tail), journalTick())
+		case NetworkDiscovery, PortDiscovery:
+			if m.scanRunner != nil {
+				m.mode, m.scanAction, m.input, m.inputError = modeScanInput, selection.Action, m.input[:0], ""
+				return m, nil
+			}
 		default:
 			m.selected = selection.Action
 			return m, tea.Quit
@@ -79,6 +124,41 @@ func (m *WorkbenchModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 	_, cmd := m.actions.Update(msg)
 	return m, cmd
+}
+
+func (m *WorkbenchModel) updateScanInput(msg tea.Msg) (tea.Model, tea.Cmd) {
+	key, ok := msg.(tea.KeyPressMsg)
+	if !ok {
+		return m, nil
+	}
+	switch key.Key().Code {
+	case tea.KeyEscape:
+		m.mode, m.input, m.inputError = modeActions, m.input[:0], ""
+		return m, nil
+	case tea.KeyBackspace:
+		if len(m.input) > 0 {
+			m.input = m.input[:len(m.input)-1]
+		}
+		return m, nil
+	case tea.KeyEnter:
+		target, err := scope.NormalizeIPTarget(string(m.input))
+		if err != nil {
+			m.input, m.inputError = m.input[:0], "INVALID CIDR/IP FORMAT. Retrying..."
+			return m, nil
+		}
+		action, runner := m.scanAction, m.scanRunner
+		image := "localhost/local-nmap"
+		if action == PortDiscovery {
+			image = "localhost/local-naabu"
+		}
+		m.mode, m.inputError = modeScanRunning, ""
+		return m, tea.Batch(func() tea.Msg { _, err := runner(action, target); return scanFinishedMsg{image: image, err: err} }, scanTick())
+	}
+	if key.Key().Text != "" && len(m.input)+utf8.RuneCountInString(key.Key().Text) <= 128 {
+		m.input = append(m.input, []rune(key.Key().Text)...)
+		m.inputError = ""
+	}
+	return m, nil
 }
 
 func (m *WorkbenchModel) updateScope(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -173,9 +253,54 @@ func (m *WorkbenchModel) View() tea.View {
 		return tea.NewView(m.actions.prefix + renderScopeInput(string(m.input), m.inputError))
 	case modeJournal:
 		return tea.NewView(m.actions.prefix + renderJournal(m.workbookName, m.viewport.View(), m.journalError))
+	case modeScanInput:
+		return tea.NewView(m.actions.prefix + renderScanInput(m.scanAction, string(m.input), m.inputError))
+	case modeScanRunning:
+		trail := []string{"1", "0", "1", "1", "0", "0", "1", "0"}
+		return tea.NewView(m.actions.prefix + lipgloss.NewStyle().Foreground(lipgloss.Color("#87ff00")).Render("Running scoped discovery  🦎 "+strings.Join(trail[:m.scanFrame+1], " ")))
+	case modeWarning:
+		return tea.NewView(m.actions.prefix + renderExecutionWarning(m.warningImage, m.warningText))
 	default:
 		return m.actions.View()
 	}
+}
+
+func scanTick() tea.Cmd {
+	return tea.Tick(120*time.Millisecond, func(time.Time) tea.Msg { return scanTickMsg{} })
+}
+
+func renderScanInput(action Action, value, problem string) string {
+	name := "Network discovery"
+	if action == PortDiscovery {
+		name = "Port discovery"
+	}
+	accent := lipgloss.NewStyle().Foreground(lipgloss.Color("#87ff00"))
+	muted := lipgloss.NewStyle().Foreground(lipgloss.Color("#7f8b8f"))
+	amber := lipgloss.NewStyle().Foreground(lipgloss.Color("#ff5f00")).Bold(true)
+	view := accent.Render(" "+name+" "+strings.Repeat("─", max(1, 76-len(name)))) + "\n" + accent.Render("[ Enter scoped CIDR / IP Target ]: ") + value + muted.Render(strings.Repeat("_", max(1, 40-len([]rune(value)))))
+	if problem != "" {
+		view += "\n" + amber.Render("[!] "+problem)
+	}
+	return view + "\n" + muted.Render("(ESC aborts | Enter explicitly starts the offline-pinned OCI invocation)")
+}
+
+func classifyScanError(err error) string {
+	value := strings.ToLower(err.Error())
+	if strings.Contains(value, "image not known") || strings.Contains(value, "error pulling image") || strings.Contains(value, "no such image") || strings.Contains(value, "image not found") {
+		return "missing-image"
+	}
+	return err.Error()
+}
+
+func renderExecutionWarning(image, problem string) string {
+	amber := lipgloss.NewStyle().Foreground(lipgloss.Color("#ff5f00")).Bold(true)
+	text := lipgloss.NewStyle().Foreground(lipgloss.Color("#e8e6dd"))
+	muted := lipgloss.NewStyle().Foreground(lipgloss.Color("#7f8b8f"))
+	message := "[📦 OCI Error]: " + problem
+	if problem == "missing-image" {
+		message = "[📦 OCI Error]: Target tool image '" + image + "' is missing from local storage."
+	}
+	return amber.Render("⚠ SYSTEM EXECUTION ERROR "+strings.Repeat("─", 52)) + "\n" + text.Render(message) + "\n" + amber.Render("[💡 Invariant]: Technological Sovereignty requires offline image availability.") + "\n\n" + text.Render("Please explicitly build or import the profile image before retrying.") + "\n" + amber.Render(strings.Repeat("─", 78)) + "\n" + muted.Render("(Press any key to clear this warning and return to operations menu)")
 }
 
 func renderScopeInput(value, problem string) string {
@@ -254,8 +379,15 @@ func (m *WorkbenchModel) Mode() string {
 		return "scope"
 	case modeJournal:
 		return "journal"
+	case modeScanInput:
+		return "scan-input"
+	case modeScanRunning:
+		return "scan-running"
+	case modeWarning:
+		return "warning"
 	default:
 		return "actions"
 	}
 }
-func (m *WorkbenchModel) JournalLineCount() int { return len(m.journalLines) }
+func (m *WorkbenchModel) JournalLineCount() int           { return len(m.journalLines) }
+func (m *WorkbenchModel) SetScanRunner(runner ScanRunner) { m.scanRunner = runner }
