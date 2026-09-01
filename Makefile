@@ -1,7 +1,7 @@
 PREFIX ?= /usr
 VERSION ?= 0.0.1-m0
 
-.PHONY: build test check branding-check branding-stage boot-diagnostics-check network-image-check weathr-stage ghidra-stage memtest-stage usb-ids-stage completion-check manifest-check install install-completion rpm rpm-check kiwi kiwi-iso kiwi-iso-prompt schema-check vm-check
+.PHONY: build test check branding-check branding-stage boot-diagnostics-check network-image-check iso-payload-check weathr-stage ghidra-stage memtest-stage usb-ids-stage completion-check manifest-check install install-completion rpm rpm-check kiwi kiwi-iso kiwi-iso-prompt schema-check vm-check
 
 build:
 	go build -trimpath -buildvcs=false -o akilix ./cmd/akilix
@@ -37,6 +37,10 @@ boot-diagnostics-check:
 
 network-image-check:
 	sh scripts/check-network-image.sh
+
+iso-payload-check:
+	: "$${ISO_PATH:?Set ISO_PATH to the generated ISO}"
+	sh scripts/check-iso-boot-payload.sh "$$ISO_PATH"
 
 branding-stage: branding-check
 	install -Dm0644 branding/os/grub/background-1920x1080.png image/kiwi-iso/root/usr/share/grub2/themes/Akilix/background.png
@@ -98,6 +102,8 @@ kiwi-iso: build branding-stage weathr-stage ghidra-stage memtest-stage usb-ids-s
 	python3 scripts/render-live-config.py image/kiwi-iso/config.xml image/kiwi-iso/config.generated.xml "$$hash"; \
 	trap 'rm -f image/kiwi-iso/config.generated.xml' EXIT; \
 	kiwi-ng --kiwi-file=config.generated.xml system build --description image/kiwi-iso --target-dir build/kiwi-iso
+	sh scripts/check-iso-boot-payload.sh build/kiwi-iso/akilix-m0-iso.x86_64-0.0.1.iso
+	sha256sum build/kiwi-iso/akilix-m0-iso.x86_64-0.0.1.iso > build/kiwi-iso/akilix-m0-iso.x86_64-0.0.1.iso.sha256
 
 kiwi-iso-prompt:
 	sh scripts/build-live-iso.sh

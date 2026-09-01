@@ -23,6 +23,15 @@ root. Verify the generated checksum before copying the ISO to Ventoy media. A Ve
 must verify that the system reaches the expected target, does not start Akilix
 listeners, and preserves the documented passive-opening behavior.
 
+Every successful `make kiwi-iso` now runs
+`scripts/check-iso-boot-payload.sh` against the finished ISO and writes an
+adjacent `.iso.sha256` file. The check extracts the kernel and initrd, requires
+matching kernel/module releases, verifies `/init` resolves to systemd, and
+verifies systemd plus its dynamic loader are x86-64 ELF payloads. Before a USB
+test, run `sha256sum -c akilix-m0-iso.x86_64-0.0.1.iso.sha256` on the copied
+files. A kernel release shown on the target that differs from the verified ISO
+proves that a stale or different boot payload was selected.
+
 The image display name, console banner, GRUB menu, Plymouth screen, and Sway
 session are branded through tracked KIWI inputs. Artwork requirements are
 documented in `docs/BRANDING.md`.
