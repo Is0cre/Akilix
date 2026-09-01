@@ -51,7 +51,7 @@ func Render(overview workbookview.Overview, config scope.Config, color bool) str
 		stateColor = p.Amber
 	}
 	healthColor, health := p.Green, "healthy"
-	if overview.FailedInvocations > 0 {
+	if overview.FailedInvocations > 0 || overview.RecoveryRequired > 0 {
 		healthColor, health = p.Red, "attention"
 	}
 	cidrs := 0
@@ -70,6 +70,11 @@ func Render(overview workbookview.Overview, config scope.Config, color bool) str
 	fmt.Fprintf(&b, "├─ Scope ───────────────────┬─ Activity ──────────────────────┤\n")
 	b.WriteString(frameRow(fmt.Sprintf("Includes %-3d  CIDRs %-3d  │  Invocations %-4d  %s%s%s", overview.ScopeIncludes, cidrs, overview.Invocations, healthColor, health, p.Reset)))
 	b.WriteString(frameRow(fmt.Sprintf("Excludes %-3d             │  Evidence %-4d  failures %-3d", overview.ScopeExcludes, overview.Evidence, overview.FailedInvocations)))
+	recoveryColor, recovery := p.Green, "clear"
+	if overview.RecoveryRequired > 0 {
+		recoveryColor, recovery = p.Red, "RECOVERY REQUIRED"
+	}
+	b.WriteString(frameRow(fmt.Sprintf("Hardware acquisitions %-3d │  %s%s%s %-3d", overview.Acquisitions, recoveryColor, recovery, p.Reset, overview.RecoveryRequired)))
 	fmt.Fprintf(&b, "├─ Playbooks ─────────────────────────────────────────────────┤\n")
 	b.WriteString(frameRow(fmt.Sprintf("Local network discovery  %s%s%s", readyColor, ready, p.Reset)))
 	b.WriteString(frameRow(fmt.Sprintf("Local port discovery     %s%s%s", readyColor, ready, p.Reset)))

@@ -36,3 +36,11 @@ func TestActionsRenderAsAlignedListWithoutColor(t *testing.T) {
 		}
 	}
 }
+
+func TestDashboardHighlightsAcquisitionRecovery(t *testing.T) {
+	o := workbookview.Overview{Name: "lab", ID: "018f0000-0000-7000-8000-000000000000", Status: "open", Acquisitions: 2, RecoveryRequired: 1}
+	out := Render(o, scope.Config{Includes: []string{"192.168.1.0/24"}}, false)
+	if !strings.Contains(out, "RECOVERY REQUIRED") || !strings.Contains(out, "Hardware acquisitions 2") {
+		t.Fatalf("dashboard=%q", out)
+	}
+}

@@ -108,6 +108,11 @@ Explicit close, reopen, and rename operations likewise produce request/result
 pairs. Passive open, list, status, overview, and validation reads do not append
 events or otherwise mutate the workbook.
 
+The workbook overview reconstructs acquisition state from immutable hardware
+records. REQUESTED-only and FAILED imaging operations raise a visible
+`RECOVERY REQUIRED` count in the dashboard; this warning is passive and never
+causes automatic deletion, resumption, or evidence promotion.
+
 ## Live activity window
 
 Inside the interactive workbook, `[L]` opens a native Go viewport over the

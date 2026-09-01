@@ -7,6 +7,7 @@ import (
 	"sort"
 	"time"
 
+	"github.com/Is0cre/Akilix/internal/acquire"
 	"github.com/Is0cre/Akilix/internal/evidence"
 	"github.com/Is0cre/Akilix/internal/invocation"
 	"github.com/Is0cre/Akilix/internal/logpolicy"
@@ -25,6 +26,8 @@ type Overview struct {
 	Evidence          int              `json:"evidence"`
 	Invocations       int              `json:"invocations"`
 	FailedInvocations int              `json:"failed_invocations"`
+	Acquisitions      int              `json:"acquisitions"`
+	RecoveryRequired  int              `json:"recovery_required"`
 	Logging           logpolicy.Policy `json:"logging"`
 	Sections          []Section        `json:"sections"`
 }
@@ -75,6 +78,16 @@ func Build(root, name string) (Overview, error) {
 	if err != nil {
 		return Overview{}, err
 	}
+	acquisitions, err := acquire.ImageStatus(workbookRoot, "")
+	if err != nil {
+		return Overview{}, err
+	}
+	recoveryRequired := 0
+	for _, operation := range acquisitions {
+		if operation.RecoveryRequired {
+			recoveryRequired++
+		}
+	}
 	failed := 0
 	for _, record := range invocations {
 		if record.Status == "failed" {
@@ -96,6 +109,7 @@ func Build(root, name string) (Overview, error) {
 		Created: metadata.Created.Format(time.RFC3339Nano), Root: workbookRoot,
 		ScopeIncludes: len(scopeConfig.Includes), ScopeExcludes: len(scopeConfig.Excludes),
 		Evidence: len(evidenceRecords), Invocations: len(invocations), FailedInvocations: failed,
+		Acquisitions: len(acquisitions), RecoveryRequired: recoveryRequired,
 		Logging: policy, Sections: sections,
 	}, nil
 }
