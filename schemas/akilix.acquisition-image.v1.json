@@ -7,14 +7,16 @@
   "properties": {
     "schema": {"const": "akilix.acquisition-image.v1"},
     "operation_id": {"type": "string"},
+    "verification_id": {"type": "string"},
     "workbook_id": {"type": "string"},
-    "phase": {"enum": ["REQUESTED", "COMPLETED", "FAILED"]},
+    "phase": {"enum": ["REQUESTED", "COMPLETED", "FAILED", "VERIFIED"]},
     "recorded_at": {"type": "string", "format": "date-time"},
     "source": {"type": "string"},
     "destination": {"type": "string"},
     "size_bytes": {"type": "integer", "minimum": 0},
     "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
-    "error": {"type": "string"}
+    "error": {"type": "string"},
+    "verification": {"enum": ["match", "mismatch"]}
   },
   "additionalProperties": false
 }

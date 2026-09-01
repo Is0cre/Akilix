@@ -73,3 +73,33 @@ func TestImageFromReaderRefusesShortSource(t *testing.T) {
 		t.Fatalf("partial image published: %v", statErr)
 	}
 }
+
+func TestVerifyImageDetectsMatchAndMismatch(t *testing.T) {
+	root := t.TempDir()
+	_ = os.MkdirAll(filepath.Join(root, "evidence", "acquired"), 0700)
+	payload := []byte("forensic-image")
+	completed, path, err := imageFromReader(context.Background(), root, "wb", "/dev/test", "disk.raw", bytes.NewReader(payload), int64(len(payload)), time.Now())
+	if err != nil {
+		t.Fatal(err)
+	}
+	verified, match, err := VerifyImage(context.Background(), root, "wb", completed.OperationID, time.Now())
+	if err != nil || !match || verified.Verification != "match" {
+		t.Fatalf("verified=%+v match=%t err=%v", verified, match, err)
+	}
+	if err := os.WriteFile(path, []byte("tampered-image"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	verified, match, err = VerifyImage(context.Background(), root, "wb", completed.OperationID, time.Now().Add(time.Second))
+	if err != nil || match || verified.Verification != "mismatch" {
+		t.Fatalf("verified=%+v match=%t err=%v", verified, match, err)
+	}
+}
+
+func TestVerifyImageReportsIncomplete(t *testing.T) {
+	root := t.TempDir()
+	_ = os.MkdirAll(filepath.Join(root, "hardware", "acquisitions"), 0700)
+	_, _, err := VerifyImage(context.Background(), root, "wb", "018f1f1e-7b8a-7000-8000-000000000001", time.Now())
+	if err == nil {
+		t.Fatal("incomplete acquisition accepted")
+	}
+}

@@ -233,8 +233,8 @@ func runDevice(args []string, stdout, stderr io.Writer) int {
 }
 
 func runAcquire(args []string, stdout, stderr io.Writer) int {
-	if len(args) < 1 || args[0] != "inspect" && args[0] != "record" && args[0] != "protect" && args[0] != "identify" && args[0] != "image" {
-		fmt.Fprintln(stderr, "usage: akilix acquire inspect [--json] | acquire record WORKBOOK [--json] | acquire identify WORKBOOK DEVICE [--json] | acquire protect WORKBOOK DEVICE [--json] | acquire image WORKBOOK DEVICE OUTPUT [--json]")
+	if len(args) < 1 || args[0] != "inspect" && args[0] != "record" && args[0] != "protect" && args[0] != "identify" && args[0] != "image" && args[0] != "verify" {
+		fmt.Fprintln(stderr, "usage: akilix acquire inspect [--json] | acquire record WORKBOOK [--json] | acquire identify WORKBOOK DEVICE [--json] | acquire protect WORKBOOK DEVICE [--json] | acquire image WORKBOOK DEVICE OUTPUT [--json] | acquire verify WORKBOOK OPERATION_ID [--json]")
 		return 2
 	}
 	jsonOutput := false
@@ -265,7 +265,7 @@ func runAcquire(args []string, stdout, stderr io.Writer) int {
 	}
 	var metadata workbook.Metadata
 	var workbookRoot string
-	if args[0] == "record" || args[0] == "protect" || args[0] == "identify" || args[0] == "image" {
+	if args[0] == "record" || args[0] == "protect" || args[0] == "identify" || args[0] == "image" || args[0] == "verify" {
 		root := effectiveWorkbookRoot()
 		var err error
 		metadata, err = workbook.Open(root, args[1])
@@ -278,6 +278,29 @@ func runAcquire(args []string, stdout, stderr io.Writer) int {
 			return 1
 		}
 		workbookRoot = filepath.Join(root, args[1])
+	}
+	if args[0] == "verify" {
+		verifyCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+		defer stop()
+		record, match, err := acquire.VerifyImage(verifyCtx, workbookRoot, metadata.ID, args[2], time.Now().UTC())
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		if jsonOutput {
+			data, marshalErr := json.MarshalIndent(record, "", "  ")
+			if marshalErr != nil {
+				fmt.Fprintln(stderr, marshalErr)
+				return 1
+			}
+			fmt.Fprintln(stdout, string(data))
+		} else {
+			fmt.Fprintf(stdout, "acquisition %s verification: %s\nSHA-256 %s\n", record.OperationID, record.Verification, record.SHA256)
+		}
+		if !match {
+			return 1
+		}
+		return 0
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	now := time.Now().UTC()
