@@ -4,7 +4,9 @@ import (
 	"encoding/xml"
 	"fmt"
 	"io"
+	"net"
 	"os"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -25,6 +27,16 @@ type nmapHost struct {
 	Hostnames []struct {
 		Name string `xml:"name,attr"`
 	} `xml:"hostnames>hostname"`
+	Ports []struct {
+		Protocol string `xml:"protocol,attr"`
+		PortID   string `xml:"portid,attr"`
+		State    struct {
+			Value string `xml:"state,attr"`
+		} `xml:"state"`
+		Service struct {
+			Name string `xml:"name,attr"`
+		} `xml:"service"`
+	} `xml:"ports>port"`
 }
 
 // IngestNmapJournal reads a completed managed invocation's XML artifact. It
@@ -89,6 +101,33 @@ func IngestNmapJournal(path, invocationID string, config scope.Config, log *jour
 			}
 			if err := log.Append(event); err != nil {
 				return found, dropped, err
+			}
+			for _, port := range host.Ports {
+				if port.State.Value != "open" {
+					continue
+				}
+				portNumber, err := strconv.Atoi(port.PortID)
+				if err != nil || portNumber < 1 || portNumber > 65535 || port.Protocol == "" {
+					return found, dropped, fmt.Errorf("invalid Nmap port result")
+				}
+				portEventName := "PORT_FOUND"
+				if decision.Result != scope.Allow {
+					portEventName = "PORT_DROPPED_OUT_OF_SCOPE"
+				}
+				portPayload := map[string]any{"invocation_id": invocationID, "target": address.Address, "port": portNumber, "protocol": port.Protocol, "endpoint": net.JoinHostPort(address.Address, port.PortID), "scope_result": decision.Result}
+				if port.Service.Name != "" {
+					portPayload["service"] = port.Service.Name
+				}
+				if decision.Rule != "" {
+					portPayload["scope_rule"] = decision.Rule
+				}
+				portEvent, err := journal.NewEvent(portEventName, "RECON", portPayload, now())
+				if err != nil {
+					return found, dropped, err
+				}
+				if err := log.Append(portEvent); err != nil {
+					return found, dropped, err
+				}
 			}
 		}
 	}

@@ -766,8 +766,13 @@ func selectInteractiveAction(root, workbookName, workbookID, prefix string, colo
 		if err != nil {
 			return image, err
 		}
-		if action == tuipkg.NetworkDiscovery {
-			plan, err := playbookpkg.PlanNativeLocalNetworkDiscovery(currentScope, target)
+		if action == tuipkg.NetworkDiscovery || action == tuipkg.PortDiscovery {
+			var plan playbookpkg.NativePlan
+			if action == tuipkg.NetworkDiscovery {
+				plan, err = playbookpkg.PlanNativeLocalNetworkDiscovery(currentScope, target)
+			} else {
+				plan, err = playbookpkg.PlanNativeLocalPortDiscovery(currentScope, target)
+			}
 			if err != nil {
 				return "nmap", err
 			}

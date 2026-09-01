@@ -70,6 +70,41 @@ func PlanNativeLocalNetworkDiscovery(config scope.Config, target string) (Native
 	return NativePlan{Playbook: LocalNetworkDiscovery, Target: target, Scope: decision, Attention: AttentionSafe, Arguments: args, Output: "invocation stdout (Nmap XML)", Exclusions: exclusions}, nil
 }
 
+// PlanNativeLocalPortDiscovery produces a conservative unprivileged Nmap TCP
+// CONNECT plan. An individual IP or CIDR must already be explicitly allowed.
+func PlanNativeLocalPortDiscovery(config scope.Config, target string) (NativePlan, error) {
+	target, network, err := canonicalIPOrCIDR(target)
+	if err != nil {
+		return NativePlan{}, fmt.Errorf("local port discovery target must be an IP or CIDR: %w", err)
+	}
+	decision := scope.EvaluateDecision(config, target)
+	if decision.Result != scope.Allow {
+		return NativePlan{}, fmt.Errorf("local port discovery requires explicitly allowed target %s (scope: %s)", target, decision.Result)
+	}
+	var exclusions []string
+	if network != nil {
+		exclusions = containedIPExclusions(config.Excludes, network)
+	}
+	args := []string{"nmap", "-sT", "-n", "--reason", "--top-ports", "100", "--max-rate", "100", "--max-retries", "1", "--host-timeout", "30s", "-oX", "-"}
+	if len(exclusions) > 0 {
+		args = append(args, "--exclude", strings.Join(exclusions, ","))
+	}
+	args = append(args, target)
+	return NativePlan{Playbook: LocalPortDiscovery, Target: target, Scope: decision, Attention: AttentionSafe, Arguments: args, Output: "invocation stdout (Nmap XML)", Exclusions: exclusions}, nil
+}
+
+func canonicalIPOrCIDR(value string) (string, *net.IPNet, error) {
+	value = strings.TrimSpace(value)
+	if ip := net.ParseIP(value); ip != nil {
+		return ip.String(), nil, nil
+	}
+	_, network, err := net.ParseCIDR(value)
+	if err != nil {
+		return "", nil, err
+	}
+	return network.String(), network, nil
+}
+
 // PlanLocalNetworkDiscovery is pure planning logic. It performs no DNS,
 // registry, container, or network operation.
 func PlanLocalNetworkDiscovery(config scope.Config, target string, image containerpkg.Identity) (Plan, error) {

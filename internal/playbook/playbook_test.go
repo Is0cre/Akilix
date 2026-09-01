@@ -53,6 +53,31 @@ func TestPlanNativeLocalNetworkDiscoveryRejectsUndeclaredTarget(t *testing.T) {
 	}
 }
 
+func TestPlanNativeLocalPortDiscoveryIsBoundedAndUnprivileged(t *testing.T) {
+	config := scope.Config{Includes: []string{"192.168.50.0/24"}, Excludes: []string{"192.168.50.1"}}
+	plan, err := PlanNativeLocalPortDiscovery(config, "192.168.50.13/24")
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []string{"nmap", "-sT", "-n", "--reason", "--top-ports", "100", "--max-rate", "100", "--max-retries", "1", "--host-timeout", "30s", "-oX", "-", "--exclude", "192.168.50.1", "192.168.50.0/24"}
+	if !reflect.DeepEqual(plan.Arguments, want) || plan.Scope.Result != scope.Allow {
+		t.Fatalf("plan=%+v", plan)
+	}
+	for _, forbidden := range []string{"-sS", "sudo", "--privileged"} {
+		if strings.Contains(strings.Join(plan.Arguments, " "), forbidden) {
+			t.Fatalf("native plan contains forbidden privilege expansion: %v", plan.Arguments)
+		}
+	}
+}
+
+func TestPlanNativeLocalPortDiscoveryAcceptsAllowedSingleIP(t *testing.T) {
+	config := scope.Config{Includes: []string{"192.0.2.10"}}
+	plan, err := PlanNativeLocalPortDiscovery(config, "192.0.2.10")
+	if err != nil || plan.Target != "192.0.2.10" {
+		t.Fatalf("plan=%+v err=%v", plan, err)
+	}
+}
+
 func TestPlanLocalPortDiscoveryUsesConservativeRootlessFlags(t *testing.T) {
 	identity := containerpkg.Identity{Image: "example/naabu:1", Digest: "sha256:" + strings.Repeat("b", 64)}
 	config := scope.Config{Includes: []string{"192.168.50.0/24"}, Excludes: []string{"192.168.50.9", "10.0.0.0/8"}}

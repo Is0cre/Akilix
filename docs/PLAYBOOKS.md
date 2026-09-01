@@ -43,10 +43,21 @@ converted into discovery observations.
 
 ## Local port discovery
 
-`local-port-discovery` is a separate Naabu-backed playbook; it does not replace
-Nmap. Press `p` in the workbook TUI and explicitly submit an allowed CIDR or IP.
-The interactive path uses `localhost/local-naabu` with the same digest-pinned,
-`--pull=never` execution and recoverable missing-image warning.
+`local-port-discovery` uses the native Nmap included in the base image. Press
+`p` in the workbook TUI and explicitly submit an allowed CIDR or IP. The
+managed argv selects unprivileged TCP CONNECT scanning, the top 100 ports, a
+maximum rate of 100 probes per second, one retry, a 30-second per-host timeout,
+no DNS resolution, and XML output captured as invocation stdout.
+
+The completed XML is parsed through the same bounded, symlink-safe ingester as
+host discovery. Only ports explicitly marked open become `PORT_FOUND` events;
+each carries the address, endpoint, protocol, optional service label, scope
+decision, journal provenance, and originating invocation ID. Every result is
+rechecked against current workbook scope before presentation.
+
+The existing Naabu plan remains available for the optional digest-pinned
+`localhost/local-naabu` profile execution path; it is no longer required for
+the first-boot TUI workflow.
 
 The Naabu plan supplies flags to the image's `naabu` entrypoint, matching the
 official ProjectDiscovery image contract. A generic image without that

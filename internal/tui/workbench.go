@@ -390,9 +390,6 @@ func renderScanInput(action Action, value, problem string) string {
 		view += "\n" + amber.Render("[!] "+problem)
 	}
 	hint := "Enter explicitly starts managed native Nmap"
-	if action == PortDiscovery {
-		hint = "Enter explicitly starts the offline-pinned OCI invocation"
-	}
 	return view + "\n" + muted.Render("(ESC aborts | "+hint+")")
 }
 

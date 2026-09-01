@@ -31,7 +31,7 @@ var workbookChoices = [...]Choice{
 	{AddScope, "Add scope target", "authorize a target"},
 	{AddExclusion, "Add exclusion", "deny a target"},
 	{NetworkDiscovery, "Network discovery", "Nmap host discovery"},
-	{PortDiscovery, "Port discovery", "Naabu port discovery"},
+	{PortDiscovery, "Port discovery", "Nmap TCP connect discovery"},
 	{ViewDiscoveries, "View discoveries", "inspect observed hosts and ports"},
 	{OpenLiveLog, "Open live log", "follow workbook activity"},
 	{LeaveWorkbook, "Leave workbook", "return to shell"},

@@ -61,3 +61,30 @@ func TestIngestNmapJournalRejectsSymlinkArtifact(t *testing.T) {
 		t.Fatal("symlink artifact accepted")
 	}
 }
+
+func TestIngestNmapJournalEmitsOnlyOpenAttributedPorts(t *testing.T) {
+	root := t.TempDir()
+	path := filepath.Join(root, "ports.xml")
+	data := `<?xml version="1.0"?><nmaprun><host><status state="up"/><address addr="2001:db8::10" addrtype="ipv6"/><ports><port protocol="tcp" portid="22"><state state="open"/><service name="ssh"/></port><port protocol="tcp" portid="23"><state state="closed"/></port></ports></host></nmaprun>`
+	if err := os.WriteFile(path, []byte(data), 0600); err != nil {
+		t.Fatal(err)
+	}
+	log, _ := journal.Open(root)
+	if _, _, err := IngestNmapJournal(path, "inv-port", scope.Config{Includes: []string{"2001:db8::/64"}}, log, time.Now); err != nil {
+		t.Fatal(err)
+	}
+	file, _ := os.Open(log.Path())
+	defer file.Close()
+	scanner := bufio.NewScanner(file)
+	var events []journal.Event
+	for scanner.Scan() {
+		var event journal.Event
+		if err := json.Unmarshal(scanner.Bytes(), &event); err != nil {
+			t.Fatal(err)
+		}
+		events = append(events, event)
+	}
+	if len(events) != 2 || events[1].Event != "PORT_FOUND" || events[1].Payload["endpoint"] != "[2001:db8::10]:22" || events[1].Payload["service"] != "ssh" || events[1].Payload["invocation_id"] != "inv-port" {
+		t.Fatalf("events=%+v", events)
+	}
+}
