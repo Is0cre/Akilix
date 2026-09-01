@@ -38,6 +38,10 @@ firmware setup (UEFI), restart, and power-off entries through KIWI's supported
 `editbootconfig` hook. Memtest86+ is not Secure-Boot signed; its UEFI menu label
 states that Secure Boot must be disabled. Normal Akilix boot remains signed and
 does not disable or bypass firmware policy.
+`make boot-diagnostics-check` exercises the KIWI hook against separate BIOS and
+EFI GRUB configurations, validates copied payload identity and menu markers,
+uses GRUB's native syntax checker when available, and verifies that a missing
+GRUB configuration fails the build hook.
 
 The static Plymouth theme uses the approved `Base:System` OBS source because
 Leap 16 OSS does not currently carry the required package set. Its repository
