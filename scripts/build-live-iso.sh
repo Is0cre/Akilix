@@ -20,6 +20,9 @@ if [ -z "${AKILIX_LIVE_PASSWORD+x}" ]; then
 fi
 
 if [ "$need_sudo" -eq 1 ]; then
-    exec sudo --preserve-env=AKILIX_LIVE_PASSWORD make kiwi-iso
+    : "${AKILIX_BUILD_ID:=$(date -u +%Y%m%dT%H%M%SZ)}"
+    : "${AKILIX_GIT_COMMIT:=$(git rev-parse --short=12 HEAD)}"
+    export AKILIX_BUILD_ID AKILIX_GIT_COMMIT
+    exec sudo --preserve-env=AKILIX_LIVE_PASSWORD,AKILIX_BUILD_ID,AKILIX_GIT_COMMIT make kiwi-iso
 fi
 exec make kiwi-iso

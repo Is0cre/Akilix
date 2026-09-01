@@ -24,6 +24,12 @@ if [ "${AKILIX_MOTD_BLINK:-0}" = 1 ] && [ "${TERM:-dumb}" != dumb ]; then
 fi
 
 printf '%bAkilix%b  %s  %s\n' "$accent" "$reset" "$(uname -r)" "$(hostname)"
+if [ -r /etc/akilix-build ]; then
+    build_id=$(sed -n 's/^AKILIX_BUILD_ID=//p' /etc/akilix-build)
+    build_commit=$(sed -n 's/^AKILIX_GIT_COMMIT=//p' /etc/akilix-build)
+    printf 'Build %s  commit %s\n' "$build_id" "$build_commit"
+    unset build_id build_commit
+fi
 printf '%bACQUISITION%b  unknown storage is untrusted; writes require explicit action\n' "$amber" "$reset"
 printf 'Start workspace: akilix    Hardware: akilix acquire inspect\n\n'
 

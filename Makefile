@@ -98,12 +98,19 @@ kiwi-iso: build branding-stage weathr-stage ghidra-stage memtest-stage usb-ids-s
 	mkdir -p image/kiwi-iso/root/usr/share/zsh/site-functions image/kiwi-iso/root/usr/share/bash-completion/completions
 	./akilix completion zsh > image/kiwi-iso/root/usr/share/zsh/site-functions/_akilix
 	./akilix completion bash > image/kiwi-iso/root/usr/share/bash-completion/completions/akilix
+	build_id=$${AKILIX_BUILD_ID:-$$(date -u +%Y%m%dT%H%M%SZ)}; \
+	commit=$${AKILIX_GIT_COMMIT:-$$(git rev-parse --short=12 HEAD)}; \
+	sh scripts/stage-build-identity.sh "$$build_id" "$$commit" "$(VERSION)" image/kiwi-iso/root/etc/akilix-build; \
 	hash=$$(openssl passwd -6 "$$AKILIX_LIVE_PASSWORD"); \
 	python3 scripts/render-live-config.py image/kiwi-iso/config.xml image/kiwi-iso/config.generated.xml "$$hash"; \
-	trap 'rm -f image/kiwi-iso/config.generated.xml' EXIT; \
-	kiwi-ng --kiwi-file=config.generated.xml system build --description image/kiwi-iso --target-dir build/kiwi-iso
-	sh scripts/check-iso-boot-payload.sh build/kiwi-iso/akilix-m0-iso.x86_64-0.0.1.iso
-	sha256sum build/kiwi-iso/akilix-m0-iso.x86_64-0.0.1.iso > build/kiwi-iso/akilix-m0-iso.x86_64-0.0.1.iso.sha256
+	trap 'rm -f image/kiwi-iso/config.generated.xml image/kiwi-iso/root/etc/akilix-build' EXIT; \
+	kiwi-ng --kiwi-file=config.generated.xml system build --description image/kiwi-iso --target-dir build/kiwi-iso; \
+	iso=build/kiwi-iso/akilix-m0-iso.x86_64-0.0.1.iso; \
+	sh scripts/check-iso-boot-payload.sh "$$iso"; \
+	release=build/kiwi-iso/akilix-$(VERSION)-$$build_id-$$commit.x86_64.iso; \
+	ln "$$iso" "$$release"; \
+	(cd build/kiwi-iso && sha256sum "$$(basename "$$release")" > "$$(basename "$$release").sha256"); \
+	printf '%s\n' "$$release" > build/kiwi-iso/LATEST-ISO
 
 kiwi-iso-prompt:
 	sh scripts/build-live-iso.sh

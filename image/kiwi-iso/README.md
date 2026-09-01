@@ -32,6 +32,15 @@ test, run `sha256sum -c akilix-m0-iso.x86_64-0.0.1.iso.sha256` on the copied
 files. A kernel release shown on the target that differs from the verified ISO
 proves that a stale or different boot payload was selected.
 
+The build stages `/etc/akilix-build` with a UTC build ID, Git commit, and image
+version. GRUB shows the build ID, commit, and kernel release in both normal and
+failsafe labels, and the interactive MOTD repeats the identity after login.
+After verification, Make creates a storage-efficient hard link named like
+`akilix-0.0.1-m0-20260901T120000Z-abcdef012345.x86_64.iso`, writes its portable
+checksum sidecar, and records the path in `build/kiwi-iso/LATEST-ISO`. Copy the
+uniquely named ISO and its sidecar to Ventoy; do not rename it back to the
+ambiguous KIWI filename.
+
 The image display name, console banner, GRUB menu, Plymouth screen, and Sway
 session are branded through tracked KIWI inputs. Artwork requirements are
 documented in `docs/BRANDING.md`.
