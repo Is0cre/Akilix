@@ -124,6 +124,15 @@ Where technically practical:
 
 Read-only mount policy is a safety/security control but does not replace hashing.
 
+Native block-device acquisition writes operator-named images beneath
+`evidence/acquired/`. Akilix publishes an image only after the full expected
+device size has streamed successfully, the destination has been fsynced, and a
+SHA-256 digest has been calculated inline. REQUESTED, COMPLETED, and FAILED
+records under `hardware/acquisitions/` make interrupted operations visibly
+different from completed acquisitions. Kernel software read-only state is
+revalidated immediately before imaging but is not represented as equivalent to
+a hardware forensic write blocker.
+
 ---
 
 # Device acquisition

@@ -143,6 +143,7 @@ partitions without opening raw device nodes or changing device state:
 
     akilix acquire inspect
     akilix acquire inspect --json
+    akilix acquire image WORKBOOK /dev/sdX evidence.raw
     akilix acquire record client-2026
     sudo --preserve-env=AKILIX_WORKBOOK_ROOT akilix acquire identify client-2026 /dev/sdb
     sudo --preserve-env=AKILIX_WORKBOOK_ROOT akilix acquire protect client-2026 /dev/sdb

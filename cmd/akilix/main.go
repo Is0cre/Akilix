@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -232,8 +233,8 @@ func runDevice(args []string, stdout, stderr io.Writer) int {
 }
 
 func runAcquire(args []string, stdout, stderr io.Writer) int {
-	if len(args) < 1 || args[0] != "inspect" && args[0] != "record" && args[0] != "protect" && args[0] != "identify" {
-		fmt.Fprintln(stderr, "usage: akilix acquire inspect [--json] | acquire record WORKBOOK [--json] | acquire identify WORKBOOK DEVICE [--json] | acquire protect WORKBOOK DEVICE [--json]")
+	if len(args) < 1 || args[0] != "inspect" && args[0] != "record" && args[0] != "protect" && args[0] != "identify" && args[0] != "image" {
+		fmt.Fprintln(stderr, "usage: akilix acquire inspect [--json] | acquire record WORKBOOK [--json] | acquire identify WORKBOOK DEVICE [--json] | acquire protect WORKBOOK DEVICE [--json] | acquire image WORKBOOK DEVICE OUTPUT [--json]")
 		return 2
 	}
 	jsonOutput := false
@@ -249,6 +250,12 @@ func runAcquire(args []string, stdout, stderr io.Writer) int {
 			return 2
 		}
 		jsonOutput = len(args) == 3
+	} else if args[0] == "image" {
+		if len(args) != 4 && !(len(args) == 5 && args[4] == "--json") {
+			fmt.Fprintln(stderr, "usage: akilix acquire image WORKBOOK DEVICE OUTPUT [--json]")
+			return 2
+		}
+		jsonOutput = len(args) == 5
 	} else {
 		if len(args) != 3 && !(len(args) == 4 && args[3] == "--json") {
 			fmt.Fprintf(stderr, "usage: akilix acquire %s WORKBOOK DEVICE [--json]\n", args[0])
@@ -258,7 +265,7 @@ func runAcquire(args []string, stdout, stderr io.Writer) int {
 	}
 	var metadata workbook.Metadata
 	var workbookRoot string
-	if args[0] == "record" || args[0] == "protect" || args[0] == "identify" {
+	if args[0] == "record" || args[0] == "protect" || args[0] == "identify" || args[0] == "image" {
 		root := effectiveWorkbookRoot()
 		var err error
 		metadata, err = workbook.Open(root, args[1])
@@ -273,9 +280,9 @@ func runAcquire(args []string, stdout, stderr io.Writer) int {
 		workbookRoot = filepath.Join(root, args[1])
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	defer cancel()
 	now := time.Now().UTC()
 	report, err := acquire.Inspect(ctx, acquire.ExecRunner{}, now)
+	cancel()
 	if err != nil {
 		fmt.Fprintln(stderr, err)
 		return 1
@@ -286,6 +293,43 @@ func runAcquire(args []string, stdout, stderr io.Writer) int {
 		return 1
 	}
 	acquire.ApplyTrust(&report, registry)
+	if args[0] == "image" {
+		device, err := acquire.Candidate(report, args[2])
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		if !device.ReadOnly {
+			fmt.Fprintln(stderr, "refusing imaging until kernel read-only state is verified; run akilix acquire protect first")
+			return 1
+		}
+		verifyCtx, verifyCancel := context.WithTimeout(context.Background(), 10*time.Second)
+		verified, err := acquire.SetReadOnly(verifyCtx, acquire.ExecRunner{}, device)
+		verifyCancel()
+		if err != nil || !verified.KernelReadOnly {
+			fmt.Fprintln(stderr, "kernel read-only revalidation failed immediately before imaging:", err)
+			return 1
+		}
+		imageCtx, stop := signal.NotifyContext(context.Background(), os.Interrupt)
+		defer stop()
+		record, path, err := acquire.Image(imageCtx, workbookRoot, metadata.ID, device, args[3], now)
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		if jsonOutput {
+			data, marshalErr := json.MarshalIndent(record, "", "  ")
+			if marshalErr != nil {
+				fmt.Fprintln(stderr, marshalErr)
+				return 1
+			}
+			fmt.Fprintln(stdout, string(data))
+		} else {
+			fmt.Fprintf(stdout, "acquired %s to %s\nSHA-256 %s\n", device.Path, path, record.SHA256)
+			fmt.Fprintln(stdout, "Software read-only protection is not a hardware forensic write blocker.")
+		}
+		return 0
+	}
 	if args[0] == "record" {
 		record, path, err := acquire.RecordInspection(workbookRoot, metadata.ID, report, now)
 		if err != nil {

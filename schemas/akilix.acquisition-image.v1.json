@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://akilix.invalid/schemas/akilix.acquisition-image.v1.json",
+  "title": "Akilix streamed acquisition image record",
+  "type": "object",
+  "required": ["schema", "operation_id", "workbook_id", "phase", "recorded_at", "source", "destination"],
+  "properties": {
+    "schema": {"const": "akilix.acquisition-image.v1"},
+    "operation_id": {"type": "string"},
+    "workbook_id": {"type": "string"},
+    "phase": {"enum": ["REQUESTED", "COMPLETED", "FAILED"]},
+    "recorded_at": {"type": "string", "format": "date-time"},
+    "source": {"type": "string"},
+    "destination": {"type": "string"},
+    "size_bytes": {"type": "integer", "minimum": 0},
+    "sha256": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "error": {"type": "string"}
+  },
+  "additionalProperties": false
+}
