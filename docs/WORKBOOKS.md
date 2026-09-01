@@ -104,6 +104,9 @@ terminal recording. Evidence imports journal an explicit request followed by
 `EVIDENCE_IMPORTED` or `EVIDENCE_IMPORT_FAILED`, and each independent hash check
 adds an `EVIDENCE_VERIFIED` event carrying its match or mismatch result. The
 canonical evidence manifest and invocation manifest remain authoritative.
+Explicit close, reopen, and rename operations likewise produce request/result
+pairs. Passive open, list, status, overview, and validation reads do not append
+events or otherwise mutate the workbook.
 
 ## Live activity window
 

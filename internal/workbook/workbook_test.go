@@ -1,11 +1,15 @@
 package workbook
 
 import (
+	"bufio"
 	"bytes"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"testing"
 	"time"
+
+	"github.com/Is0cre/Akilix/internal/journal"
 )
 
 func TestCreateOpenList(t *testing.T) {
@@ -53,6 +57,29 @@ func TestCreateOpenList(t *testing.T) {
 	}
 	if _, err := filepath.Abs(root); err != nil {
 		t.Fatal(err)
+	}
+	f, err := os.Open(filepath.Join(root, "case-renamed", "journal.jsonl"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer f.Close()
+	var events []string
+	scanner := bufio.NewScanner(f)
+	for scanner.Scan() {
+		var event journal.Event
+		if err := json.Unmarshal(scanner.Bytes(), &event); err != nil {
+			t.Fatal(err)
+		}
+		events = append(events, event.Event)
+	}
+	want := []string{"WORKBOOK_INITIALIZED", "WORKBOOK_STATUS_CHANGE_REQUESTED", "WORKBOOK_CLOSED", "WORKBOOK_RENAME_REQUESTED", "WORKBOOK_RENAMED"}
+	if len(events) != len(want) {
+		t.Fatalf("events=%v", events)
+	}
+	for i := range want {
+		if events[i] != want[i] {
+			t.Fatalf("events=%v", events)
+		}
 	}
 }
 

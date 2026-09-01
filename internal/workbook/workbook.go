@@ -138,9 +138,35 @@ func SetStatus(root, name, status string) (Metadata, error) {
 	if err != nil {
 		return Metadata{}, err
 	}
-	m.Status = status
-	if err := atomicWrite(filepath.Join(root, name, "workbook.yaml"), render(m), 0600); err != nil {
+	workbookRoot := filepath.Join(root, name)
+	log, err := journal.Open(workbookRoot)
+	if err != nil {
 		return Metadata{}, err
+	}
+	now := time.Now().UTC()
+	requested, err := journal.NewEvent("WORKBOOK_STATUS_CHANGE_REQUESTED", "CORE", map[string]any{"workbook_id": m.ID, "name": name, "from": m.Status, "to": status, "operator_action": "EXPLICIT_CONFIRMED"}, now)
+	if err != nil {
+		return Metadata{}, err
+	}
+	if err := log.Append(requested); err != nil {
+		return Metadata{}, err
+	}
+	previous := m.Status
+	m.Status = status
+	if err := atomicWrite(filepath.Join(workbookRoot, "workbook.yaml"), render(m), 0600); err != nil {
+		_ = appendWorkbookEvent(log, "WORKBOOK_STATUS_CHANGE_FAILED", m.ID, map[string]any{"name": name, "from": previous, "to": status, "request_provenance_id": requested.ProvenanceID, "error": err.Error()})
+		return Metadata{}, err
+	}
+	eventName := "WORKBOOK_STATUS_UNCHANGED"
+	if previous != status {
+		if status == "closed" {
+			eventName = "WORKBOOK_CLOSED"
+		} else {
+			eventName = "WORKBOOK_REOPENED"
+		}
+	}
+	if err := appendWorkbookEvent(log, eventName, m.ID, map[string]any{"name": name, "from": previous, "to": status, "request_provenance_id": requested.ProvenanceID}); err != nil {
+		return m, fmt.Errorf("workbook status changed but journal completion failed: %w", err)
 	}
 	return m, nil
 }
@@ -162,15 +188,46 @@ func Rename(root, oldName, newName string) (Metadata, error) {
 		return Metadata{}, err
 	}
 	oldDir, newDir := filepath.Join(root, oldName), filepath.Join(root, newName)
+	log, err := journal.Open(oldDir)
+	if err != nil {
+		return Metadata{}, err
+	}
+	requested, err := journal.NewEvent("WORKBOOK_RENAME_REQUESTED", "CORE", map[string]any{"workbook_id": m.ID, "from": oldName, "to": newName, "operator_action": "EXPLICIT_CONFIRMED"}, time.Now().UTC())
+	if err != nil {
+		return Metadata{}, err
+	}
+	if err := log.Append(requested); err != nil {
+		return Metadata{}, err
+	}
 	if err := os.Rename(oldDir, newDir); err != nil {
+		_ = appendWorkbookEvent(log, "WORKBOOK_RENAME_FAILED", m.ID, map[string]any{"from": oldName, "to": newName, "request_provenance_id": requested.ProvenanceID, "error": err.Error()})
 		return Metadata{}, err
 	}
 	m.Name = newName
 	if err := atomicWrite(filepath.Join(newDir, "workbook.yaml"), render(m), 0600); err != nil {
 		_ = os.Rename(newDir, oldDir)
+		if rollbackLog, openErr := journal.Open(oldDir); openErr == nil {
+			_ = appendWorkbookEvent(rollbackLog, "WORKBOOK_RENAME_FAILED", m.ID, map[string]any{"from": oldName, "to": newName, "request_provenance_id": requested.ProvenanceID, "error": err.Error()})
+		}
 		return Metadata{}, err
 	}
+	log, err = journal.Open(newDir)
+	if err != nil {
+		return m, err
+	}
+	if err := appendWorkbookEvent(log, "WORKBOOK_RENAMED", m.ID, map[string]any{"from": oldName, "to": newName, "request_provenance_id": requested.ProvenanceID}); err != nil {
+		return m, fmt.Errorf("workbook renamed but journal completion failed: %w", err)
+	}
 	return m, nil
+}
+
+func appendWorkbookEvent(log *journal.Journal, name, workbookID string, payload map[string]any) error {
+	payload["workbook_id"] = workbookID
+	event, err := journal.NewEvent(name, "CORE", payload, time.Now().UTC())
+	if err != nil {
+		return err
+	}
+	return log.Append(event)
 }
 
 func List(root string) ([]Metadata, error) {
