@@ -292,6 +292,16 @@ for setting in ("version=12.1", "release_date=20260513", "aa5cbcbbf48f41ca185fce
         raise SystemExit(f"Ghidra staging policy lacks {setting}")
 if not Path("image/kiwi-iso/overlay/usr/bin/ghidra").is_file():
     raise SystemExit("image lacks the stable Ghidra launcher")
+memtest_stage = Path("scripts/stage-memtest86plus.sh").read_text()
+for setting in ("version=8.10", "7e6c5162cb84ab959aeb9d13c9cfd6976b0dec3b34936b73820b20c55eb26c29", "AKILIX_MEMTEST_MIRROR"):
+    if setting not in memtest_stage:
+        raise SystemExit(f"Memtest86+ staging policy lacks {setting}")
+boot_editor = Path("image/kiwi-iso/editbootconfig.sh").read_text()
+for setting in ("Secure Boot must be off", "fwsetup", "linux16", "chainloader", "Restart computer", "Power off computer"):
+    if setting not in boot_editor:
+        raise SystemExit(f"ISO boot diagnostics lack {setting}")
+if image_type.get("editbootconfig") != "editbootconfig.sh":
+    raise SystemExit("KIWI ISO does not enable the boot diagnostics hook")
 PY
 
 zsh -n image/kiwi-iso/root/etc/zsh.zshrc.local
