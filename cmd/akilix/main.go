@@ -846,6 +846,28 @@ func selectInteractiveAction(root, workbookName, workbookID, prefix string, colo
 	model := tuipkg.NewWorkbenchModel(prefix, workbookName, addScope, refresh, journal.NewTail(log.Path()))
 	model.SetScanRunner(runScan)
 	model.SetDiscoveryLoader(func() ([]workbookview.Discovery, error) { return workbookview.Discoveries(root, workbookName) })
+	model.SetHardwareLoader(func(ctx context.Context) ([]tuipkg.HardwareDevice, error) {
+		report, err := acquire.Inspect(ctx, acquire.ExecRunner{}, time.Now().UTC())
+		if err != nil {
+			return nil, err
+		}
+		registry, err := acquire.LoadTrust(filepath.Join(effectiveStateDir(), "devices", "trusted.json"))
+		if err != nil {
+			return nil, err
+		}
+		acquire.ApplyTrust(&report, registry)
+		devices := make([]tuipkg.HardwareDevice, 0, len(report.Devices))
+		for _, device := range report.Devices {
+			devices = append(devices, tuipkg.HardwareDevice{
+				Path: device.Path, Vendor: device.Vendor, Model: device.Model,
+				Transport: device.Transport, SizeBytes: device.SizeBytes,
+				ReadOnly: device.ReadOnly, Removable: device.Removable,
+				Mounted: device.Mounted, SystemDisk: device.SystemDisk,
+				Trusted: device.Trusted, Mountpoints: append([]string(nil), device.Mountpoints...),
+			})
+		}
+		return devices, nil
+	})
 	program := tea.NewProgram(
 		model,
 		tea.WithInput(os.Stdin),

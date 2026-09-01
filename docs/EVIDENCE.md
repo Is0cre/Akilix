@@ -141,6 +141,14 @@ Software read-only controls should be attempted and verified where technically p
 
 Akilix must clearly distinguish software protection from hardware forensic write blockers.
 
+The workbook TUI `[H] Hardware inventory` view performs the same passive,
+structured `lsblk` inspection as `akilix acquire inspect`. It labels the host
+system disk separately from acquisition candidates and shows kernel read-only,
+mount, removable-media, transport, and local trust state. Opening or refreshing
+this view does not open a block-device node, mount media, record provenance, or
+change device state. Identification, protection, and imaging remain explicit
+acquisition actions.
+
 ---
 
 # Recovery

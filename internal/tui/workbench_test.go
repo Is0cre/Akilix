@@ -155,6 +155,52 @@ func TestDiscoveriesFilterNarrowsAndClearsWithoutReloading(t *testing.T) {
 	}
 }
 
+func TestHardwareInventoryIsPassiveNavigableAndRefreshable(t *testing.T) {
+	loads := 0
+	model := NewWorkbenchModel("DASHBOARD\n", "case", nil, nil, nil)
+	model.SetHardwareLoader(func(context.Context) ([]HardwareDevice, error) {
+		loads++
+		return []HardwareDevice{
+			{Path: "/dev/nvme0n1", SizeBytes: 512 << 30, SystemDisk: true, Mounted: true, Mountpoints: []string{"/"}, Model: "Host Disk"},
+			{Path: "/dev/sdb", SizeBytes: 64 << 30, ReadOnly: true, Removable: true, Transport: "usb", Trusted: true, Model: "Evidence"},
+		}, nil
+	})
+	model, command := updateWorkbench(t, model, ActionMsg{Action: HardwareInventory})
+	if model.Mode() != "hardware" || command == nil {
+		t.Fatalf("mode=%s command=%v", model.Mode(), command)
+	}
+	model, _ = updateWorkbench(t, model, command())
+	view := model.View().Content
+	for _, marker := range []string{"Passive Hardware Inventory", "/dev/nvme0n1", "SYSTEM", "/dev/sdb", "CANDIDATE", "RO", "TRUSTED", "no device was opened"} {
+		if !strings.Contains(view, marker) {
+			t.Fatalf("view missing %q: %s", marker, view)
+		}
+	}
+	model, _ = updateWorkbench(t, model, tea.KeyPressMsg(tea.Key{Code: tea.KeyDown}))
+	if model.hardwareCursor != 1 {
+		t.Fatalf("cursor=%d", model.hardwareCursor)
+	}
+	model, command = updateWorkbench(t, model, key("r", 'r'))
+	model, _ = updateWorkbench(t, model, command())
+	if loads != 2 {
+		t.Fatalf("loads=%d", loads)
+	}
+	model, _ = updateWorkbench(t, model, tea.KeyPressMsg(tea.Key{Code: tea.KeyEscape}))
+	if model.Mode() != "actions" {
+		t.Fatalf("mode=%s", model.Mode())
+	}
+}
+
+func TestHardwareInventoryReportsLoaderFailureWithoutLeavingTUI(t *testing.T) {
+	model := NewWorkbenchModel("", "case", nil, nil, nil)
+	model.SetHardwareLoader(func(context.Context) ([]HardwareDevice, error) { return nil, fmt.Errorf("lsblk unavailable") })
+	model, command := updateWorkbench(t, model, ActionMsg{Action: HardwareInventory})
+	model, _ = updateWorkbench(t, model, command())
+	if model.Mode() != "hardware" || !strings.Contains(model.View().Content, "lsblk unavailable") {
+		t.Fatalf("mode=%s view=%s", model.Mode(), model.View().Content)
+	}
+}
+
 func TestOfflineMissingImageShowsWarningAndAnyKeyRecovers(t *testing.T) {
 	model := NewWorkbenchModel("DASHBOARD\n", "case", nil, nil, nil)
 	model.SetScanRunner(func(_ context.Context, action Action, target string) (string, error) {

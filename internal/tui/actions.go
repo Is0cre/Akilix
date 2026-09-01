@@ -12,13 +12,14 @@ import (
 type Action byte
 
 const (
-	AddScope         Action = 'A'
-	AddExclusion     Action = 'X'
-	NetworkDiscovery Action = 'N'
-	PortDiscovery    Action = 'P'
-	ViewDiscoveries  Action = 'D'
-	OpenLiveLog      Action = 'L'
-	LeaveWorkbook    Action = 'Q'
+	AddScope          Action = 'A'
+	AddExclusion      Action = 'X'
+	NetworkDiscovery  Action = 'N'
+	PortDiscovery     Action = 'P'
+	ViewDiscoveries   Action = 'D'
+	HardwareInventory Action = 'H'
+	OpenLiveLog       Action = 'L'
+	LeaveWorkbook     Action = 'Q'
 )
 
 type Choice struct {
@@ -33,6 +34,7 @@ var workbookChoices = [...]Choice{
 	{NetworkDiscovery, "Network discovery", "Nmap host discovery"},
 	{PortDiscovery, "Port discovery", "Nmap TCP connect discovery"},
 	{ViewDiscoveries, "View discoveries", "inspect observed hosts and ports"},
+	{HardwareInventory, "Hardware inventory", "passive block-device inspection"},
 	{OpenLiveLog, "Open live log", "follow workbook activity"},
 	{LeaveWorkbook, "Leave workbook", "return to shell"},
 }
@@ -80,6 +82,8 @@ func (m *ActionsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, onPortDiscovery()
 		case ViewDiscoveries:
 			return m, onViewDiscoveries()
+		case HardwareInventory:
+			return m, onHardwareInventory()
 		case OpenLiveLog:
 			return m, onOpenLiveLog()
 		case LeaveWorkbook:
@@ -129,10 +133,11 @@ func selectAction(action Action) tea.Cmd {
 	return func() tea.Msg { return ActionMsg{Action: action} }
 }
 
-func onAddScope() tea.Cmd         { return selectAction(AddScope) }
-func onAddExclusion() tea.Cmd     { return selectAction(AddExclusion) }
-func onNetworkDiscovery() tea.Cmd { return selectAction(NetworkDiscovery) }
-func onPortDiscovery() tea.Cmd    { return selectAction(PortDiscovery) }
-func onViewDiscoveries() tea.Cmd  { return selectAction(ViewDiscoveries) }
-func onOpenLiveLog() tea.Cmd      { return selectAction(OpenLiveLog) }
-func onLeaveWorkbook() tea.Cmd    { return selectAction(LeaveWorkbook) }
+func onAddScope() tea.Cmd          { return selectAction(AddScope) }
+func onAddExclusion() tea.Cmd      { return selectAction(AddExclusion) }
+func onNetworkDiscovery() tea.Cmd  { return selectAction(NetworkDiscovery) }
+func onPortDiscovery() tea.Cmd     { return selectAction(PortDiscovery) }
+func onViewDiscoveries() tea.Cmd   { return selectAction(ViewDiscoveries) }
+func onHardwareInventory() tea.Cmd { return selectAction(HardwareInventory) }
+func onOpenLiveLog() tea.Cmd       { return selectAction(OpenLiveLog) }
+func onLeaveWorkbook() tea.Cmd     { return selectAction(LeaveWorkbook) }

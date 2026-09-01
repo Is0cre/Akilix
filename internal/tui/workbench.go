@@ -27,6 +27,7 @@ const (
 	modeScope
 	modeJournal
 	modeDiscoveries
+	modeHardware
 	modeScanInput
 	modeScanRunning
 	modeWarning
@@ -50,8 +51,23 @@ type discoveriesLoadedMsg struct {
 	items []workbookview.Discovery
 	err   error
 }
+type hardwareLoadedMsg struct {
+	devices []HardwareDevice
+	err     error
+}
+
+// HardwareDevice is the read-only projection the operator UX needs. Device
+// mutation remains in the acquisition backend rather than the TUI package.
+type HardwareDevice struct {
+	Path, Vendor, Model, Transport string
+	SizeBytes                      uint64
+	ReadOnly, Removable, Mounted   bool
+	SystemDisk, Trusted            bool
+	Mountpoints                    []string
+}
 type ScanRunner func(context.Context, Action, string) (string, error)
 type DiscoveryLoader func() ([]workbookview.Discovery, error)
+type HardwareLoader func(context.Context) ([]HardwareDevice, error)
 
 type WorkbenchModel struct {
 	actions          *ActionsModel
@@ -69,10 +85,14 @@ type WorkbenchModel struct {
 	scanAction       Action
 	scanRunner       ScanRunner
 	discoveryLoader  DiscoveryLoader
+	hardwareLoader   HardwareLoader
 	discoveryCount   int
 	discoveryItems   []workbookview.Discovery
 	discoveryFilter  []rune
 	discoveryEditing bool
+	hardwareDevices  []HardwareDevice
+	hardwareCursor   int
+	hardwareError    string
 	warningImage     string
 	warningText      string
 	scanFrame        int
@@ -96,6 +116,8 @@ func (m *WorkbenchModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.updateJournal(msg)
 	case modeDiscoveries:
 		return m.updateDiscoveries(msg)
+	case modeHardware:
+		return m.updateHardware(msg)
 	case modeScanInput:
 		return m.updateScanInput(msg)
 	case modeScanRunning:
@@ -162,6 +184,9 @@ func (m *WorkbenchModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				items, err := loader()
 				return discoveriesLoadedMsg{items: items, err: err}
 			}
+		case HardwareInventory:
+			m.mode, m.hardwareError, m.hardwareCursor = modeHardware, "", 0
+			return m, loadHardware(m.hardwareLoader)
 		case NetworkDiscovery, PortDiscovery:
 			if m.scanRunner != nil {
 				m.mode, m.scanAction, m.input, m.inputError = modeScanInput, selection.Action, m.input[:0], ""
@@ -174,6 +199,57 @@ func (m *WorkbenchModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 	_, cmd := m.actions.Update(msg)
 	return m, cmd
+}
+
+func loadHardware(loader HardwareLoader) tea.Cmd {
+	return func() tea.Msg {
+		if loader == nil {
+			return hardwareLoadedMsg{err: fmt.Errorf("hardware inventory unavailable")}
+		}
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		devices, err := loader(ctx)
+		return hardwareLoadedMsg{devices: devices, err: err}
+	}
+}
+
+func (m *WorkbenchModel) updateHardware(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch message := msg.(type) {
+	case hardwareLoadedMsg:
+		if message.err != nil {
+			m.hardwareError = message.err.Error()
+			return m, nil
+		}
+		m.hardwareDevices = append(m.hardwareDevices[:0], message.devices...)
+		if m.hardwareCursor >= len(m.hardwareDevices) {
+			m.hardwareCursor = max(0, len(m.hardwareDevices)-1)
+		}
+		m.hardwareError = ""
+		return m, nil
+	case tea.KeyPressMsg:
+		switch message.Key().Code {
+		case tea.KeyEscape:
+			m.mode, m.hardwareError = modeActions, ""
+			return m, nil
+		case tea.KeyUp, 'k', 'K':
+			if len(m.hardwareDevices) > 0 {
+				m.hardwareCursor = (m.hardwareCursor - 1 + len(m.hardwareDevices)) % len(m.hardwareDevices)
+			}
+			return m, nil
+		case tea.KeyDown, 'j', 'J':
+			if len(m.hardwareDevices) > 0 {
+				m.hardwareCursor = (m.hardwareCursor + 1) % len(m.hardwareDevices)
+			}
+			return m, nil
+		case 'r', 'R':
+			m.hardwareError = ""
+			return m, loadHardware(m.hardwareLoader)
+		case 'q', 'Q':
+			m.mode, m.hardwareError = modeActions, ""
+			return m, nil
+		}
+	}
+	return m, nil
 }
 
 func (m *WorkbenchModel) updateDiscoveries(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -392,6 +468,8 @@ func (m *WorkbenchModel) View() tea.View {
 		return tea.NewView(m.actions.prefix + renderJournal(m.workbookName, m.viewport.View(), m.journalError))
 	case modeDiscoveries:
 		return tea.NewView(m.actions.prefix + renderDiscoveries(m.workbookName, m.discoveryCount, string(m.discoveryFilter), m.discoveryEditing, m.viewport.View(), m.journalError))
+	case modeHardware:
+		return tea.NewView(m.actions.prefix + renderHardware(m.hardwareDevices, m.hardwareCursor, m.hardwareError))
 	case modeScanInput:
 		return tea.NewView(m.actions.prefix + renderScanInput(m.scanAction, string(m.input), m.inputError))
 	case modeScanRunning:
@@ -406,6 +484,76 @@ func (m *WorkbenchModel) View() tea.View {
 	default:
 		return m.actions.View()
 	}
+}
+
+func renderHardware(devices []HardwareDevice, cursor int, problem string) string {
+	accent := lipgloss.NewStyle().Foreground(lipgloss.Color("#87ff00")).Bold(true)
+	text := lipgloss.NewStyle().Foreground(lipgloss.Color("#e8e6dd"))
+	muted := lipgloss.NewStyle().Foreground(lipgloss.Color("#7f8b8f"))
+	amber := lipgloss.NewStyle().Foreground(lipgloss.Color("#ff5f00")).Bold(true)
+	blue := lipgloss.NewStyle().Foreground(lipgloss.Color("#72b7c9"))
+	var b strings.Builder
+	b.WriteString(accent.Render(" Passive Hardware Inventory " + strings.Repeat("─", 50)))
+	b.WriteByte('\n')
+	if len(devices) == 0 && problem == "" {
+		b.WriteString(muted.Render("  No whole-disk block devices detected."))
+		b.WriteByte('\n')
+	}
+	for index, device := range devices {
+		marker := "  "
+		if index == cursor {
+			marker = accent.Render("➤ ")
+		}
+		role := accent.Render("CANDIDATE")
+		if device.SystemDisk {
+			role = amber.Render("SYSTEM   ")
+		}
+		ro := amber.Render("RW")
+		if device.ReadOnly {
+			ro = accent.Render("RO")
+		}
+		trust := "UNTRUSTED"
+		if device.Trusted {
+			trust = "TRUSTED"
+		}
+		fmt.Fprintf(&b, "%s%s  %-14s %9s  %s  %-9s %s\n", marker, role, device.Path, formatHardwareBytes(device.SizeBytes), ro, trust, text.Render(strings.TrimSpace(device.Vendor+" "+device.Model)))
+		metadata := fmt.Sprintf("    transport=%s removable=%t mounted=%t", emptyHardware(device.Transport), device.Removable, device.Mounted)
+		if len(device.Mountpoints) > 0 {
+			metadata += " at " + strings.Join(device.Mountpoints, ",")
+		}
+		b.WriteString(blue.Render(metadata))
+		b.WriteByte('\n')
+	}
+	if problem != "" {
+		b.WriteString(amber.Render("[!] " + problem))
+		b.WriteByte('\n')
+	}
+	b.WriteString(muted.Render("Passive view only — no device was opened, mounted, or modified."))
+	b.WriteByte('\n')
+	b.WriteString(muted.Render("(↑/↓ or j/k select | r refresh | ESC or q return)"))
+	return b.String()
+}
+
+func formatHardwareBytes(size uint64) string {
+	if size < 1024 {
+		return fmt.Sprintf("%d B", size)
+	}
+	value := float64(size)
+	units := []string{"KiB", "MiB", "GiB", "TiB", "PiB"}
+	for _, unit := range units {
+		value /= 1024
+		if value < 1024 || unit == units[len(units)-1] {
+			return fmt.Sprintf("%.1f %s", value, unit)
+		}
+	}
+	return fmt.Sprintf("%d B", size)
+}
+
+func emptyHardware(value string) string {
+	if strings.TrimSpace(value) == "" {
+		return "-"
+	}
+	return value
 }
 
 func scanTick() tea.Cmd {
@@ -558,6 +706,8 @@ func (m *WorkbenchModel) Mode() string {
 		return "journal"
 	case modeDiscoveries:
 		return "discoveries"
+	case modeHardware:
+		return "hardware"
 	case modeScanInput:
 		return "scan-input"
 	case modeScanRunning:
@@ -571,3 +721,4 @@ func (m *WorkbenchModel) Mode() string {
 func (m *WorkbenchModel) JournalLineCount() int                     { return len(m.journalLines) }
 func (m *WorkbenchModel) SetScanRunner(runner ScanRunner)           { m.scanRunner = runner }
 func (m *WorkbenchModel) SetDiscoveryLoader(loader DiscoveryLoader) { m.discoveryLoader = loader }
+func (m *WorkbenchModel) SetHardwareLoader(loader HardwareLoader)   { m.hardwareLoader = loader }
