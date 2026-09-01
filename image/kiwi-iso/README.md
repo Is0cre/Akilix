@@ -78,6 +78,12 @@ automatic scanning, listener creation, telemetry, or workbook network action.
 The Nmap RPM identity and the `network:utilities/16.0` signing-key identity are
 recorded in the repository manifests.
 
+`make network-image-check` statically verifies the KIWI package selection for
+NetworkManager, `nmtui`, iputils, and Nmap, and confirms that the effective
+systemd presets enable NetworkManager while disabling Wicked. The check reads
+only repository-owned image inputs; it does not inspect or change host network
+state.
+
 Ghidra is the documented exception to RPM-only application delivery because no
 Leap 16 package repository currently publishes it. `scripts/stage-ghidra.sh`
 downloads the official 12.1 archive into the reusable build cache and verifies

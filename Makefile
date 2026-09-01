@@ -1,7 +1,7 @@
 PREFIX ?= /usr
 VERSION ?= 0.0.1-m0
 
-.PHONY: build test check branding-check branding-stage boot-diagnostics-check weathr-stage ghidra-stage memtest-stage usb-ids-stage completion-check manifest-check install install-completion rpm rpm-check kiwi kiwi-iso kiwi-iso-prompt schema-check vm-check
+.PHONY: build test check branding-check branding-stage boot-diagnostics-check network-image-check weathr-stage ghidra-stage memtest-stage usb-ids-stage completion-check manifest-check install install-completion rpm rpm-check kiwi kiwi-iso kiwi-iso-prompt schema-check vm-check
 
 build:
 	go build -trimpath -buildvcs=false -o akilix ./cmd/akilix
@@ -14,6 +14,7 @@ check: test
 	$(MAKE) schema-check
 	$(MAKE) branding-check
 	$(MAKE) boot-diagnostics-check
+	$(MAKE) network-image-check
 	$(MAKE) build
 	$(MAKE) completion-check
 	$(MAKE) manifest-check
@@ -33,6 +34,9 @@ branding-check:
 
 boot-diagnostics-check:
 	sh scripts/check-boot-diagnostics.sh
+
+network-image-check:
+	sh scripts/check-network-image.sh
 
 branding-stage: branding-check
 	install -Dm0644 branding/os/grub/background-1920x1080.png image/kiwi-iso/root/usr/share/grub2/themes/Akilix/background.png
