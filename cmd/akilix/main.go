@@ -1037,8 +1037,8 @@ func runConfig(args []string, stdout, stderr io.Writer) int {
 }
 
 func runProfile(args []string, stdout, stderr io.Writer) int {
-	if len(args) < 1 || (args[0] != "list" && args[0] != "show" && args[0] != "plan" && args[0] != "verify" && args[0] != "history") {
-		fmt.Fprintln(stderr, "usage: akilix profile list [--json] | profile show ID [--json] | profile plan ID [--json] | profile verify ID [--json] | profile history [ID] [--json]")
+	if len(args) < 1 || (args[0] != "list" && args[0] != "show" && args[0] != "plan" && args[0] != "preflight" && args[0] != "verify" && args[0] != "history") {
+		fmt.Fprintln(stderr, "usage: akilix profile list [--json] | profile show ID [--json] | profile plan ID [--json] | profile preflight ID [--json] | profile verify ID [--json] | profile history [ID] [--json]")
 		return 2
 	}
 	if args[0] == "history" {
@@ -1140,6 +1140,36 @@ func runProfile(args []string, stdout, stderr io.Writer) int {
 		}
 		for _, step := range plan.Steps {
 			fmt.Fprintf(stdout, "%s\t%s\n", step.Phase, step.Action)
+		}
+		return 0
+	}
+	if args[0] == "preflight" {
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+		defer cancel()
+		result, err := profilepkg.PreflightHost(ctx, item, profilepkg.ExecInspector{})
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		if len(args) == 3 {
+			data, marshalErr := json.MarshalIndent(result, "", "  ")
+			if marshalErr != nil {
+				fmt.Fprintln(stderr, marshalErr)
+				return 1
+			}
+			fmt.Fprintln(stdout, string(data))
+		} else {
+			for _, check := range result.Checks {
+				state := "BLOCKED"
+				if check.Ready {
+					state = "READY"
+				}
+				fmt.Fprintf(stdout, "%-22s %-7s %s\n", check.Name, state, check.Detail)
+			}
+			fmt.Fprintf(stdout, "apply supported: %t\nprivilege required for future apply: %t\n", result.ApplySupported, result.RequiresPrivilege)
+		}
+		if !result.Ready {
+			return 1
 		}
 		return 0
 	}

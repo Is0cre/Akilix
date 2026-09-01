@@ -68,7 +68,7 @@ _akilix() {
 		device) _values 'device command' trust ;;
         run) _message 'use: akilix run WORKBOOK -- COMMAND [ARGS...]' ;;
         container) _values 'container command' doctor inspect run ;;
-        profile) _values 'profile command' list show plan verify history ;;
+        profile) _values 'profile command' list show plan preflight verify history ;;
         repository) _values 'repository command' list show ;;
         config) _values 'config command' show path ;;
 		bar) _values 'bar command' once stream ;;
@@ -97,7 +97,7 @@ const Bash = `_akilix_complete() {
   if [[ ${COMP_WORDS[1]} == acquire ]]; then COMPREPLY=($(compgen -W 'inspect record identify protect image verify status --json' -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == device ]]; then COMPREPLY=($(compgen -W 'trust add list remove --json' -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == container ]]; then COMPREPLY=($(compgen -W 'doctor inspect run' -- "$cur")); return; fi
-  if [[ ${COMP_WORDS[1]} == profile ]]; then COMPREPLY=($(compgen -W 'list show plan verify history' -- "$cur")); return; fi
+  if [[ ${COMP_WORDS[1]} == profile ]]; then COMPREPLY=($(compgen -W 'list show plan preflight verify history' -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == repository ]]; then COMPREPLY=($(compgen -W 'list show' -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == config ]]; then COMPREPLY=($(compgen -W 'show path' -- "$cur")); return; fi
   if [[ ${COMP_WORDS[1]} == bar ]]; then COMPREPLY=($(compgen -W 'once stream' -- "$cur")); return; fi
