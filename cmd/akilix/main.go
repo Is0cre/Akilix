@@ -560,8 +560,21 @@ func runTUIHome(stdin io.Reader, stdout, stderr io.Writer) int {
 		return 1
 	}
 	if len(items) == 0 {
-		fmt.Fprintln(stdout, "Akilix has no workbooks yet.\n\nCreate one with:\n  akilix workbook create NAME")
-		return 0
+		if !isTerminalWriter(stdout) || !isTerminalFile(os.Stdin) {
+			fmt.Fprintln(stdout, "Akilix has no workbooks yet.\n\nCreate one with:\n  akilix workbook create NAME")
+			return 0
+		}
+		name, ok := promptCreateFirstWorkbook(scanner, stdout)
+		if !ok {
+			return 0
+		}
+		created, err := workbook.Create(root, name, timeNow())
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		fmt.Fprintf(stdout, "created %s (%s)\n", created.Name, created.ID)
+		items = []workbook.Metadata{created}
 	}
 	selected := items[0].Name
 	if len(items) > 1 {
@@ -584,9 +597,28 @@ func runTUIHome(stdin io.Reader, stdout, stderr io.Writer) int {
 	return runTUISession(scanner, root, selected, os.Getenv("NO_COLOR") == "", stdout, stderr)
 }
 
+func promptCreateFirstWorkbook(scanner *bufio.Scanner, stdout io.Writer) (string, bool) {
+	fmt.Fprint(stdout, "Akilix has no workbooks yet. Create one now? [Y/n]: ")
+	if !scanner.Scan() {
+		return "", false
+	}
+	answer := strings.ToLower(strings.TrimSpace(scanner.Text()))
+	if answer != "" && answer != "y" && answer != "yes" {
+		return "", false
+	}
+	fmt.Fprint(stdout, "Workbook name: ")
+	if !scanner.Scan() {
+		return "", false
+	}
+	name := strings.TrimSpace(scanner.Text())
+	return name, name != ""
+}
+
 func runTUISession(scanner *bufio.Scanner, root, selected string, color bool, stdout, stderr io.Writer) int {
-	if err := statusbar.Activate(os.Getenv("XDG_RUNTIME_DIR"), root, selected); err != nil {
-		fmt.Fprintln(stderr, "activate workbook status:", err)
+	if runtimeDir := os.Getenv("XDG_RUNTIME_DIR"); runtimeDir != "" {
+		if err := statusbar.Activate(runtimeDir, root, selected); err != nil {
+			fmt.Fprintln(stderr, "activate workbook status:", err)
+		}
 	}
 	for {
 		clearTUIScreen(stdout)
@@ -1759,11 +1791,54 @@ func runEvidence(args []string, stdout, stderr io.Writer) int {
 
 func runWorkbook(args []string, stdout, stderr io.Writer) int {
 	if len(args) == 0 {
-		fmt.Fprintln(stderr, "usage: akilix workbook <create|list|open|overview|discoveries|follow|path|status|close|reopen|rename|validate>")
+		fmt.Fprintln(stderr, "usage: akilix workbook <create|list|open|activate|active|deactivate|overview|discoveries|follow|path|status|close|reopen|rename|validate>")
 		return 2
 	}
 	root := effectiveWorkbookRoot()
 	switch args[0] {
+	case "activate":
+		if len(args) != 2 {
+			fmt.Fprintln(stderr, "usage: akilix workbook activate NAME")
+			return 2
+		}
+		if err := statusbar.Activate(os.Getenv("XDG_RUNTIME_DIR"), root, args[1]); err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		fmt.Fprintf(stdout, "active workbook: %s\n", args[1])
+		return 0
+	case "active":
+		if len(args) != 1 && !(len(args) == 2 && args[1] == "--json") {
+			fmt.Fprintln(stderr, "usage: akilix workbook active [--json]")
+			return 2
+		}
+		state, err := statusbar.Active(os.Getenv("XDG_RUNTIME_DIR"))
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		if len(args) == 2 {
+			data, err := json.Marshal(state)
+			if err != nil {
+				fmt.Fprintln(stderr, err)
+				return 1
+			}
+			fmt.Fprintln(stdout, string(data))
+			return 0
+		}
+		fmt.Fprintf(stdout, "%s\t%s\n", state.Workbook, state.Root)
+		return 0
+	case "deactivate":
+		if len(args) != 1 {
+			fmt.Fprintln(stderr, "usage: akilix workbook deactivate")
+			return 2
+		}
+		if err := statusbar.Deactivate(os.Getenv("XDG_RUNTIME_DIR")); err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		fmt.Fprintln(stdout, "workbook context deactivated")
+		return 0
 	case "discoveries":
 		if len(args) != 2 && !(len(args) == 3 && args[2] == "--json") {
 			fmt.Fprintln(stderr, "usage: akilix workbook discoveries NAME [--json]")

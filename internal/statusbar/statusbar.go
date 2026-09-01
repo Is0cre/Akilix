@@ -37,7 +37,7 @@ type Block struct {
 
 func Activate(runtimeDir, root, name string) error {
 	if runtimeDir == "" {
-		return nil
+		return fmt.Errorf("XDG_RUNTIME_DIR is unavailable")
 	}
 	if _, err := workbook.Open(root, name); err != nil {
 		return err
@@ -65,19 +65,57 @@ func Activate(runtimeDir, root, name string) error {
 	return err
 }
 
-func Current(runtimeDir string) (Metrics, error) {
+// Active returns the explicitly selected, per-user workbook context. It does
+// not activate logging, scope enforcement, or any network operation.
+func Active(runtimeDir string) (State, error) {
 	if runtimeDir == "" {
-		return Metrics{}, fmt.Errorf("XDG_RUNTIME_DIR is unavailable")
+		return State{}, fmt.Errorf("XDG_RUNTIME_DIR is unavailable")
 	}
-	b, err := os.ReadFile(filepath.Join(runtimeDir, "akilix", "active-workbook.json"))
+	path := filepath.Join(runtimeDir, "akilix", "active-workbook.json")
+	info, err := os.Lstat(path)
 	if err != nil {
-		return Metrics{}, err
+		return State{}, err
+	}
+	if !info.Mode().IsRegular() {
+		return State{}, fmt.Errorf("invalid active workbook state %q", path)
+	}
+	b, err := os.ReadFile(path)
+	if err != nil {
+		return State{}, err
 	}
 	var state State
 	if err := json.Unmarshal(b, &state); err != nil {
-		return Metrics{}, err
+		return State{}, err
 	}
 	if _, err := workbook.Open(state.Root, state.Workbook); err != nil {
+		return State{}, err
+	}
+	return state, nil
+}
+
+// Deactivate removes only the ephemeral UI context. Workbook files and
+// managed records are never changed.
+func Deactivate(runtimeDir string) error {
+	if runtimeDir == "" {
+		return fmt.Errorf("XDG_RUNTIME_DIR is unavailable")
+	}
+	path := filepath.Join(runtimeDir, "akilix", "active-workbook.json")
+	info, err := os.Lstat(path)
+	if os.IsNotExist(err) {
+		return nil
+	}
+	if err != nil {
+		return err
+	}
+	if !info.Mode().IsRegular() {
+		return fmt.Errorf("invalid active workbook state %q", path)
+	}
+	return os.Remove(path)
+}
+
+func Current(runtimeDir string) (Metrics, error) {
+	state, err := Active(runtimeDir)
+	if err != nil {
 		return Metrics{}, err
 	}
 	config, err := scope.Load(filepath.Join(state.Root, state.Workbook))

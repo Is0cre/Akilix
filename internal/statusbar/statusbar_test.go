@@ -1,6 +1,8 @@
 package statusbar
 
 import (
+	"os"
+	"path/filepath"
 	"testing"
 	"time"
 
@@ -9,6 +11,43 @@ import (
 	"github.com/Is0cre/Akilix/internal/scope"
 	"github.com/Is0cre/Akilix/internal/workbook"
 )
+
+func TestExplicitActiveContextCanBeReadAndRemoved(t *testing.T) {
+	root, runtime := t.TempDir(), t.TempDir()
+	if _, err := workbook.Create(root, "case", time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+	if err := Activate(runtime, root, "case"); err != nil {
+		t.Fatal(err)
+	}
+	state, err := Active(runtime)
+	if err != nil || state.Workbook != "case" || state.Root != root {
+		t.Fatalf("state=%+v err=%v", state, err)
+	}
+	if err := Deactivate(runtime); err != nil {
+		t.Fatal(err)
+	}
+	if err := Deactivate(runtime); err != nil {
+		t.Fatalf("deactivation is not idempotent: %v", err)
+	}
+	if _, err := Active(runtime); !os.IsNotExist(err) {
+		t.Fatalf("active after deactivation: %v", err)
+	}
+}
+
+func TestActiveRejectsSymlinkState(t *testing.T) {
+	runtime := t.TempDir()
+	dir := filepath.Join(runtime, "akilix")
+	if err := os.Mkdir(dir, 0700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.Symlink("elsewhere", filepath.Join(dir, "active-workbook.json")); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := Active(runtime); err == nil {
+		t.Fatal("symlink state accepted")
+	}
+}
 
 func TestMetricsAreDerivedFromCanonicalLocalState(t *testing.T) {
 	root, runtime := t.TempDir(), t.TempDir()

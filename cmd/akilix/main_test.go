@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/json"
 	"os"
@@ -54,6 +55,35 @@ func TestTUIHomeSelectsWorkbookWithoutSideEffects(t *testing.T) {
 	}
 	if !strings.Contains(out.String(), "beta") || !strings.Contains(out.String(), "Select workbook") {
 		t.Fatalf("selector output: %q", out.String())
+	}
+}
+
+func TestFirstWorkbookPromptAcceptsDefaultYes(t *testing.T) {
+	var out bytes.Buffer
+	name, ok := promptCreateFirstWorkbook(bufio.NewScanner(strings.NewReader("\ncase-one\n")), &out)
+	if !ok || name != "case-one" {
+		t.Fatalf("name=%q ok=%t output=%q", name, ok, out.String())
+	}
+}
+
+func TestWorkbookContextCommandsAreExplicitAndReversible(t *testing.T) {
+	root, runtime := t.TempDir(), t.TempDir()
+	t.Setenv("AKILIX_WORKBOOK_ROOT", root)
+	t.Setenv("XDG_RUNTIME_DIR", runtime)
+	if _, err := workbook.Create(root, "lab", time.Now().UTC()); err != nil {
+		t.Fatal(err)
+	}
+	var out, errOut bytes.Buffer
+	if code := run([]string{"workbook", "activate", "lab"}, &out, &errOut); code != 0 {
+		t.Fatalf("activate code=%d stderr=%q", code, errOut.String())
+	}
+	out.Reset()
+	if code := run([]string{"workbook", "active", "--json"}, &out, &errOut); code != 0 || !strings.Contains(out.String(), `"workbook":"lab"`) {
+		t.Fatalf("active code=%d stdout=%q stderr=%q", code, out.String(), errOut.String())
+	}
+	out.Reset()
+	if code := run([]string{"workbook", "deactivate"}, &out, &errOut); code != 0 {
+		t.Fatalf("deactivate code=%d stderr=%q", code, errOut.String())
 	}
 }
 

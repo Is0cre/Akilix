@@ -13,6 +13,15 @@ Examples:
     akilix workbook overview client-2026
     akilix workbook discoveries client-2026
 
+Starting `akilix` interactively offers to create the first workbook when none
+exist. Redirected and scripted use never prompts; use `workbook create` there.
+
+`akilix workbook activate NAME` explicitly selects an ephemeral per-user UI
+context for the Akilix status bar. Inspect it with `workbook active [--json]`
+and remove it with `workbook deactivate`. Activation does not start tools,
+network activity, logging, shell interception, or system-wide scope
+enforcement. `workbook open` remains a passive view operation.
+
 ## Terminal navigation
 
 `akilix workbook open NAME` and `akilix workbook overview NAME` present a

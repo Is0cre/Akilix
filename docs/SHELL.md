@@ -13,6 +13,11 @@ those commands. Direct commands are unmanaged and therefore do not acquire
 workbook scope checks, structured invocation provenance, or automatic artifact
 capture. Use `akilix` when those guarantees are wanted.
 
+An operator may explicitly select the status-bar context with
+`akilix workbook activate NAME` and clear it with `akilix workbook deactivate`.
+This changes only a per-user runtime state file; it does not constrain ordinary
+shell commands or silently turn on capture.
+
 New accounts receive `/etc/skel/.zshrc` with conservative interactive defaults
 and a clear place for personal aliases. System behavior is deliberately kept in
 `/etc/zsh.zshrc.local`, so completion and history also work when an existing
