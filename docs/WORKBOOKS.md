@@ -29,7 +29,9 @@ first and last journal provenance IDs, last invocation ID, timestamps, and
 occurrence count. The command does not persist an asset database or alter the
 canonical journal; malformed journal records fail closed.
 The same projection is available inside the workbook TUI through
-`[D] View discoveries`, with arrow/j/k and page-key navigation.
+`[D] View discoveries`, with arrow/j/k and page-key navigation. Press `/` to
+filter locally by kind, address, hostname, invocation, or provenance ID; press
+`c` to clear the filter. Filtering never reloads or changes workbook data.
 
 `akilix workbook path NAME [SECTION]` prints exactly one absolute path for
 shell composition. Sections are allowlisted and resolved only after opening a

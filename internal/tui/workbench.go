@@ -52,25 +52,28 @@ type ScanRunner func(action Action, target string) (string, error)
 type DiscoveryLoader func() ([]workbookview.Discovery, error)
 
 type WorkbenchModel struct {
-	actions         *ActionsModel
-	mode            workbenchMode
-	input           []rune
-	inputError      string
-	addScope        func(string) error
-	refresh         func() (string, error)
-	tail            *journal.Tail
-	viewport        viewport.Model
-	journalLines    []string
-	journalError    string
-	workbookName    string
-	selected        Action
-	scanAction      Action
-	scanRunner      ScanRunner
-	discoveryLoader DiscoveryLoader
-	discoveryCount  int
-	warningImage    string
-	warningText     string
-	scanFrame       int
+	actions          *ActionsModel
+	mode             workbenchMode
+	input            []rune
+	inputError       string
+	addScope         func(string) error
+	refresh          func() (string, error)
+	tail             *journal.Tail
+	viewport         viewport.Model
+	journalLines     []string
+	journalError     string
+	workbookName     string
+	selected         Action
+	scanAction       Action
+	scanRunner       ScanRunner
+	discoveryLoader  DiscoveryLoader
+	discoveryCount   int
+	discoveryItems   []workbookview.Discovery
+	discoveryFilter  []rune
+	discoveryEditing bool
+	warningImage     string
+	warningText      string
+	scanFrame        int
 }
 
 func NewWorkbenchModel(prefix, workbookName string, addScope func(string) error, refresh func() (string, error), tail *journal.Tail) *WorkbenchModel {
@@ -156,25 +159,44 @@ func (m *WorkbenchModel) updateDiscoveries(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.journalError = message.err.Error()
 			return m, nil
 		}
-		m.discoveryCount = len(message.items)
-		items := message.items
-		if len(items) > maxDiscoveryLines {
-			items = items[:maxDiscoveryLines]
-			m.journalError = fmt.Sprintf("showing first %d of %d observations", len(items), len(message.items))
-		}
-		lines := make([]string, 0, len(items))
-		for _, item := range items {
-			lines = append(lines, formatDiscovery(item))
-		}
-		if len(lines) == 0 {
-			lines = append(lines, "No host or port observations recorded yet.")
-		}
-		m.viewport.SetContentLines(lines)
-		m.viewport.GotoTop()
+		m.discoveryItems = append(m.discoveryItems[:0], message.items...)
+		m.applyDiscoveryFilter()
 		return m, nil
 	case tea.KeyPressMsg:
+		if m.discoveryEditing {
+			switch message.Key().Code {
+			case tea.KeyEscape:
+				m.discoveryEditing = false
+				return m, nil
+			case tea.KeyEnter:
+				m.discoveryEditing = false
+				m.applyDiscoveryFilter()
+				return m, nil
+			case tea.KeyBackspace:
+				if len(m.discoveryFilter) > 0 {
+					m.discoveryFilter = m.discoveryFilter[:len(m.discoveryFilter)-1]
+				}
+				m.applyDiscoveryFilter()
+				return m, nil
+			}
+			if message.Key().Text != "" && len(m.discoveryFilter)+utf8.RuneCountInString(message.Key().Text) <= 128 {
+				m.discoveryFilter = append(m.discoveryFilter, []rune(message.Key().Text)...)
+				m.applyDiscoveryFilter()
+			}
+			return m, nil
+		}
+		if message.String() == "/" {
+			m.discoveryEditing = true
+			return m, nil
+		}
+		if message.String() == "c" {
+			m.discoveryFilter = m.discoveryFilter[:0]
+			m.applyDiscoveryFilter()
+			return m, nil
+		}
 		if message.Key().Code == tea.KeyEscape || message.String() == "q" {
 			m.mode, m.journalError, m.discoveryCount = modeActions, "", 0
+			m.discoveryItems, m.discoveryFilter, m.discoveryEditing = m.discoveryItems[:0], m.discoveryFilter[:0], false
 			return m, nil
 		}
 		updated, cmd := m.viewport.Update(message)
@@ -182,6 +204,32 @@ func (m *WorkbenchModel) updateDiscoveries(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, cmd
 	}
 	return m, nil
+}
+
+func (m *WorkbenchModel) applyDiscoveryFilter() {
+	query := strings.ToLower(strings.TrimSpace(string(m.discoveryFilter)))
+	items := make([]workbookview.Discovery, 0, len(m.discoveryItems))
+	for _, item := range m.discoveryItems {
+		searchable := strings.ToLower(item.Kind + " " + item.Value + " " + item.Hostname + " " + item.LastInvocationID + " " + item.LastProvenanceID)
+		if query == "" || strings.Contains(searchable, query) {
+			items = append(items, item)
+		}
+	}
+	m.discoveryCount = len(items)
+	m.journalError = ""
+	if len(items) > maxDiscoveryLines {
+		items = items[:maxDiscoveryLines]
+		m.journalError = fmt.Sprintf("showing first %d of %d matching observations", len(items), m.discoveryCount)
+	}
+	lines := make([]string, 0, len(items))
+	for _, item := range items {
+		lines = append(lines, formatDiscovery(item))
+	}
+	if len(lines) == 0 {
+		lines = append(lines, "No host or port observations recorded yet.")
+	}
+	m.viewport.SetContentLines(lines)
+	m.viewport.GotoTop()
 }
 
 func (m *WorkbenchModel) updateScanInput(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -312,7 +360,7 @@ func (m *WorkbenchModel) View() tea.View {
 	case modeJournal:
 		return tea.NewView(m.actions.prefix + renderJournal(m.workbookName, m.viewport.View(), m.journalError))
 	case modeDiscoveries:
-		return tea.NewView(m.actions.prefix + renderDiscoveries(m.workbookName, m.discoveryCount, m.viewport.View(), m.journalError))
+		return tea.NewView(m.actions.prefix + renderDiscoveries(m.workbookName, m.discoveryCount, string(m.discoveryFilter), m.discoveryEditing, m.viewport.View(), m.journalError))
 	case modeScanInput:
 		return tea.NewView(m.actions.prefix + renderScanInput(m.scanAction, string(m.input), m.inputError))
 	case modeScanRunning:
@@ -368,14 +416,21 @@ func renderExecutionWarning(image, problem string) string {
 	return amber.Render("⚠ SYSTEM EXECUTION ERROR "+strings.Repeat("─", 52)) + "\n" + text.Render(message) + "\n" + amber.Render(strings.Repeat("─", 78)) + "\n" + muted.Render("(Press any key to clear this warning and return to operations menu)")
 }
 
-func renderDiscoveries(name string, count int, content, problem string) string {
+func renderDiscoveries(name string, count int, filter string, editing bool, content, problem string) string {
 	accent := lipgloss.NewStyle().Foreground(lipgloss.Color("#87ff00"))
 	muted := lipgloss.NewStyle().Foreground(lipgloss.Color("#7f8b8f"))
 	view := accent.Render(fmt.Sprintf(" Workbook Discoveries: %s · %d records ", name, count)+strings.Repeat("─", max(1, 45-len([]rune(name))))) + "\n" + content
+	if filter != "" || editing {
+		cursor := ""
+		if editing {
+			cursor = "_"
+		}
+		view += "\n" + accent.Render("Filter: ") + filter + cursor
+	}
 	if problem != "" {
 		view += "\n" + lipgloss.NewStyle().Foreground(lipgloss.Color("#ff5f00")).Render("[!] "+problem)
 	}
-	return view + "\n" + muted.Render("(Navigate via j/k/PgUp/PgDn | ESC or q returns to Workbook Operations)")
+	return view + "\n" + muted.Render("(j/k/PgUp/PgDn navigate | / filter | c clear | ESC or q return)")
 }
 
 func formatDiscovery(item workbookview.Discovery) string {

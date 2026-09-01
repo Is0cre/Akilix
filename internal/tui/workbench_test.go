@@ -131,6 +131,29 @@ func TestDiscoveriesActionLoadsScrollablePassiveProjection(t *testing.T) {
 	}
 }
 
+func TestDiscoveriesFilterNarrowsAndClearsWithoutReloading(t *testing.T) {
+	loads := 0
+	model := NewWorkbenchModel("", "case", nil, nil, nil)
+	model.SetDiscoveryLoader(func() ([]workbookview.Discovery, error) {
+		loads++
+		return []workbookview.Discovery{{Kind: "host", Value: "192.0.2.10", Hostname: "router.test"}, {Kind: "port", Value: "192.0.2.10:443"}}, nil
+	})
+	model, command := updateWorkbench(t, model, ActionMsg{Action: ViewDiscoveries})
+	model, _ = updateWorkbench(t, model, command())
+	model, _ = updateWorkbench(t, model, key("/", '/'))
+	for _, r := range "router" {
+		model, _ = updateWorkbench(t, model, key(string(r), r))
+	}
+	model, _ = updateWorkbench(t, model, tea.KeyPressMsg(tea.Key{Code: tea.KeyEnter}))
+	if model.discoveryCount != 1 || strings.Contains(model.viewport.View(), ":443") || loads != 1 {
+		t.Fatalf("count=%d loads=%d view=%s", model.discoveryCount, loads, model.viewport.View())
+	}
+	model, _ = updateWorkbench(t, model, key("c", 'c'))
+	if model.discoveryCount != 2 || loads != 1 {
+		t.Fatalf("count=%d loads=%d", model.discoveryCount, loads)
+	}
+}
+
 func TestOfflineMissingImageShowsWarningAndAnyKeyRecovers(t *testing.T) {
 	model := NewWorkbenchModel("DASHBOARD\n", "case", nil, nil, nil)
 	model.SetScanRunner(func(action Action, target string) (string, error) {
