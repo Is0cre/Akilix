@@ -33,6 +33,14 @@ scanner XML artifact. The invocation record identifies its scope decision.
 The digest-pinned OCI Nmap plan remains available as planning logic for a
 future profile-controlled execution option.
 
+Akilix then streams the completed XML artifact through a bounded native parser
+without modifying it. Every reported IPv4 or IPv6 address is evaluated again
+through the canonical scope engine. Allowed addresses become
+`HOST_DISCOVERED` journal observations linked to the invocation; unexpected
+addresses become `HOST_DROPPED_OUT_OF_SCOPE` alerts and are never silently
+promoted as actionable targets. MAC addresses and hosts marked down are not
+converted into discovery observations.
+
 ## Local port discovery
 
 `local-port-discovery` is a separate Naabu-backed playbook; it does not replace

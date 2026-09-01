@@ -775,6 +775,10 @@ func selectInteractiveAction(root, workbookName, workbookID, prefix string, colo
 			if err != nil {
 				return "nmap", fmt.Errorf("invocation %s failed: %w", record.ID, err)
 			}
+			stdoutPath := filepath.Join(workbookRoot, filepath.FromSlash(record.Stdout))
+			if _, _, err := playbookpkg.IngestNmapJournal(stdoutPath, record.ID, currentScope, log, time.Now); err != nil {
+				return "nmap", fmt.Errorf("ingest invocation %s output: %w", record.ID, err)
+			}
 			return "nmap", nil
 		}
 		identity, err := containerpkg.Resolve(context.Background(), containerpkg.PodmanRunner{}, image)
