@@ -1007,8 +1007,8 @@ func runConfig(args []string, stdout, stderr io.Writer) int {
 }
 
 func runProfile(args []string, stdout, stderr io.Writer) int {
-	if len(args) < 1 || (args[0] != "list" && args[0] != "show" && args[0] != "plan") {
-		fmt.Fprintln(stderr, "usage: akilix profile list [--json] | profile show ID [--json] | profile plan ID [--json]")
+	if len(args) < 1 || (args[0] != "list" && args[0] != "show" && args[0] != "plan" && args[0] != "verify") {
+		fmt.Fprintln(stderr, "usage: akilix profile list [--json] | profile show ID [--json] | profile plan ID [--json] | profile verify ID [--json]")
 		return 2
 	}
 	dir := os.Getenv("AKILIX_PROFILE_DIR")
@@ -1070,6 +1070,41 @@ func runProfile(args []string, stdout, stderr io.Writer) int {
 		}
 		for _, step := range plan.Steps {
 			fmt.Fprintf(stdout, "%s\t%s\n", step.Phase, step.Action)
+		}
+		return 0
+	}
+	if args[0] == "verify" {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		verification, err := profilepkg.Verify(ctx, item, profilepkg.ExecRunner{}, time.Now().UTC())
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		path, err := profilepkg.RecordVerification(effectiveStateDir(), verification)
+		if err != nil {
+			fmt.Fprintln(stderr, err)
+			return 1
+		}
+		if len(args) == 3 {
+			data, marshalErr := json.MarshalIndent(verification, "", "  ")
+			if marshalErr != nil {
+				fmt.Fprintln(stderr, marshalErr)
+				return 1
+			}
+			fmt.Fprintln(stdout, string(data))
+		} else {
+			for _, component := range verification.Components {
+				state := "MISSING"
+				if component.Present {
+					state = "READY"
+				}
+				fmt.Fprintf(stdout, "%s\t%-7s\t%s\n", component.Kind, state, component.Name)
+			}
+			fmt.Fprintf(stdout, "record: %s\n", path)
+		}
+		if !verification.Ready {
+			return 1
 		}
 		return 0
 	}

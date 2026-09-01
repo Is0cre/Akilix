@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://akilix.invalid/schemas/akilix.profile-verification.v1.json",
+  "type": "object",
+  "required": ["schema", "verification_id", "profile_id", "verified_at", "ready", "components"],
+  "properties": {
+    "schema": {"const": "akilix.profile-verification.v1"},
+    "verification_id": {"type": "string"},
+    "profile_id": {"type": "string"},
+    "verified_at": {"type": "string", "format": "date-time"},
+    "ready": {"type": "boolean"},
+    "components": {"type": "array", "items": {"type": "object", "required": ["kind", "name", "present"], "properties": {"kind": {"enum": ["rpm", "oci"]}, "name": {"type": "string"}, "present": {"type": "boolean"}, "detail": {"type": "string"}}, "additionalProperties": false}}
+  },
+  "additionalProperties": false
+}
