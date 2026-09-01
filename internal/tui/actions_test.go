@@ -52,6 +52,7 @@ func TestActionsEnterAndCaseInsensitiveHotkeys(t *testing.T) {
 		{"exclusion uppercase", key("X", 'x'), AddExclusion},
 		{"network lowercase", key("n", 'n'), NetworkDiscovery},
 		{"port uppercase", key("P", 'p'), PortDiscovery},
+		{"discoveries lowercase", key("d", 'd'), ViewDiscoveries},
 		{"log lowercase", key("l", 'l'), OpenLiveLog},
 		{"leave uppercase", key("Q", 'q'), LeaveWorkbook},
 	} {
@@ -76,7 +77,7 @@ func TestActionsViewContainsAlignedSemanticRows(t *testing.T) {
 	view := NewActionsModel("WORKBOOK\n").View().Content
 	for _, want := range []string{
 		"Actions ", "[A]", "Add scope target", "authorize a target",
-		"[Q]", "Leave workbook", "Navigate with j/k",
+		"[D]", "View discoveries", "[Q]", "Leave workbook", "Navigate with j/k",
 	} {
 		if !strings.Contains(view, want) {
 			t.Fatalf("view missing %q: %q", want, view)

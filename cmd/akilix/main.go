@@ -805,6 +805,7 @@ func selectInteractiveAction(root, workbookName, workbookID, prefix string, colo
 	}
 	model := tuipkg.NewWorkbenchModel(prefix, workbookName, addScope, refresh, journal.NewTail(log.Path()))
 	model.SetScanRunner(runScan)
+	model.SetDiscoveryLoader(func() ([]workbookview.Discovery, error) { return workbookview.Discoveries(root, workbookName) })
 	program := tea.NewProgram(
 		model,
 		tea.WithInput(os.Stdin),

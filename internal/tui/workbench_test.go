@@ -9,6 +9,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/Is0cre/Akilix/internal/journal"
+	"github.com/Is0cre/Akilix/internal/workbookview"
 )
 
 func updateWorkbench(t *testing.T, model *WorkbenchModel, message tea.Msg) (*WorkbenchModel, tea.Cmd) {
@@ -107,6 +108,26 @@ func TestJournalFormatterLabelsEngineeringAndEvidenceSources(t *testing.T) {
 		if line := formatJournalLine(encoded); !strings.Contains(line, marker) {
 			t.Fatalf("module=%s line=%q", module, line)
 		}
+	}
+}
+
+func TestDiscoveriesActionLoadsScrollablePassiveProjection(t *testing.T) {
+	model := NewWorkbenchModel("DASHBOARD\n", "case", nil, nil, nil)
+	model.SetDiscoveryLoader(func() ([]workbookview.Discovery, error) {
+		return []workbookview.Discovery{{Kind: "host", Value: "192.0.2.10", Hostname: "router.test", LastSeen: "2026-09-01T01:00:00.000Z", Occurrences: 2, LastProvenanceID: "J-0123456789abcdef0123"}}, nil
+	})
+	model, command := updateWorkbench(t, model, ActionMsg{Action: ViewDiscoveries})
+	if model.Mode() != "discoveries" || command == nil {
+		t.Fatalf("mode=%s command=%v", model.Mode(), command)
+	}
+	model, _ = updateWorkbench(t, model, command())
+	view := model.View().Content
+	if !strings.Contains(view, "192.0.2.10") || !strings.Contains(view, "router.test") || !strings.Contains(view, "seen=2") {
+		t.Fatalf("view=%s", view)
+	}
+	model, _ = updateWorkbench(t, model, tea.KeyPressMsg(tea.Key{Code: tea.KeyEscape}))
+	if model.Mode() != "actions" {
+		t.Fatalf("mode=%s", model.Mode())
 	}
 }
 

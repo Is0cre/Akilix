@@ -16,6 +16,7 @@ const (
 	AddExclusion     Action = 'X'
 	NetworkDiscovery Action = 'N'
 	PortDiscovery    Action = 'P'
+	ViewDiscoveries  Action = 'D'
 	OpenLiveLog      Action = 'L'
 	LeaveWorkbook    Action = 'Q'
 )
@@ -31,6 +32,7 @@ var workbookChoices = [...]Choice{
 	{AddExclusion, "Add exclusion", "deny a target"},
 	{NetworkDiscovery, "Network discovery", "Nmap host discovery"},
 	{PortDiscovery, "Port discovery", "Naabu port discovery"},
+	{ViewDiscoveries, "View discoveries", "inspect observed hosts and ports"},
 	{OpenLiveLog, "Open live log", "follow workbook activity"},
 	{LeaveWorkbook, "Leave workbook", "return to shell"},
 }
@@ -76,6 +78,8 @@ func (m *ActionsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, onNetworkDiscovery()
 		case PortDiscovery:
 			return m, onPortDiscovery()
+		case ViewDiscoveries:
+			return m, onViewDiscoveries()
 		case OpenLiveLog:
 			return m, onOpenLiveLog()
 		case LeaveWorkbook:
@@ -129,5 +133,6 @@ func onAddScope() tea.Cmd         { return selectAction(AddScope) }
 func onAddExclusion() tea.Cmd     { return selectAction(AddExclusion) }
 func onNetworkDiscovery() tea.Cmd { return selectAction(NetworkDiscovery) }
 func onPortDiscovery() tea.Cmd    { return selectAction(PortDiscovery) }
+func onViewDiscoveries() tea.Cmd  { return selectAction(ViewDiscoveries) }
 func onOpenLiveLog() tea.Cmd      { return selectAction(OpenLiveLog) }
 func onLeaveWorkbook() tea.Cmd    { return selectAction(LeaveWorkbook) }

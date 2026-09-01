@@ -28,6 +28,7 @@ func RenderActions(color bool) string {
 		{"X", "Add exclusion", "deny a target", p.Red},
 		{"N", "Network discovery", "Nmap host discovery", p.Blue},
 		{"P", "Port discovery", "Naabu port discovery", p.Purple},
+		{"D", "View discoveries", "observed hosts and ports", p.Green},
 		{"L", "Open live log", "follow workbook activity", p.Amber},
 		{"Q", "Leave workbook", "return to shell", p.Muted},
 	}

@@ -12,9 +12,11 @@ import (
 	"charm.land/lipgloss/v2"
 	"github.com/Is0cre/Akilix/internal/journal"
 	"github.com/Is0cre/Akilix/internal/scope"
+	"github.com/Is0cre/Akilix/internal/workbookview"
 )
 
 const maxJournalLines = 500
+const maxDiscoveryLines = 5000
 
 type workbenchMode byte
 
@@ -22,6 +24,7 @@ const (
 	modeActions workbenchMode = iota
 	modeScope
 	modeJournal
+	modeDiscoveries
 	modeScanInput
 	modeScanRunning
 	modeWarning
@@ -41,26 +44,33 @@ type scanFinishedMsg struct {
 	err   error
 }
 type scanTickMsg struct{}
+type discoveriesLoadedMsg struct {
+	items []workbookview.Discovery
+	err   error
+}
 type ScanRunner func(action Action, target string) (string, error)
+type DiscoveryLoader func() ([]workbookview.Discovery, error)
 
 type WorkbenchModel struct {
-	actions      *ActionsModel
-	mode         workbenchMode
-	input        []rune
-	inputError   string
-	addScope     func(string) error
-	refresh      func() (string, error)
-	tail         *journal.Tail
-	viewport     viewport.Model
-	journalLines []string
-	journalError string
-	workbookName string
-	selected     Action
-	scanAction   Action
-	scanRunner   ScanRunner
-	warningImage string
-	warningText  string
-	scanFrame    int
+	actions         *ActionsModel
+	mode            workbenchMode
+	input           []rune
+	inputError      string
+	addScope        func(string) error
+	refresh         func() (string, error)
+	tail            *journal.Tail
+	viewport        viewport.Model
+	journalLines    []string
+	journalError    string
+	workbookName    string
+	selected        Action
+	scanAction      Action
+	scanRunner      ScanRunner
+	discoveryLoader DiscoveryLoader
+	discoveryCount  int
+	warningImage    string
+	warningText     string
+	scanFrame       int
 }
 
 func NewWorkbenchModel(prefix, workbookName string, addScope func(string) error, refresh func() (string, error), tail *journal.Tail) *WorkbenchModel {
@@ -77,6 +87,8 @@ func (m *WorkbenchModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m.updateScope(msg)
 	case modeJournal:
 		return m.updateJournal(msg)
+	case modeDiscoveries:
+		return m.updateDiscoveries(msg)
 	case modeScanInput:
 		return m.updateScanInput(msg)
 	case modeScanRunning:
@@ -112,6 +124,17 @@ func (m *WorkbenchModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case OpenLiveLog:
 			m.mode, m.journalError = modeJournal, ""
 			return m, tea.Batch(pollJournal(m.tail), journalTick())
+		case ViewDiscoveries:
+			m.mode, m.journalError = modeDiscoveries, ""
+			m.viewport.SetContent("")
+			loader := m.discoveryLoader
+			return m, func() tea.Msg {
+				if loader == nil {
+					return discoveriesLoadedMsg{err: fmt.Errorf("discovery inventory unavailable")}
+				}
+				items, err := loader()
+				return discoveriesLoadedMsg{items: items, err: err}
+			}
 		case NetworkDiscovery, PortDiscovery:
 			if m.scanRunner != nil {
 				m.mode, m.scanAction, m.input, m.inputError = modeScanInput, selection.Action, m.input[:0], ""
@@ -124,6 +147,41 @@ func (m *WorkbenchModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	}
 	_, cmd := m.actions.Update(msg)
 	return m, cmd
+}
+
+func (m *WorkbenchModel) updateDiscoveries(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch message := msg.(type) {
+	case discoveriesLoadedMsg:
+		if message.err != nil {
+			m.journalError = message.err.Error()
+			return m, nil
+		}
+		m.discoveryCount = len(message.items)
+		items := message.items
+		if len(items) > maxDiscoveryLines {
+			items = items[:maxDiscoveryLines]
+			m.journalError = fmt.Sprintf("showing first %d of %d observations", len(items), len(message.items))
+		}
+		lines := make([]string, 0, len(items))
+		for _, item := range items {
+			lines = append(lines, formatDiscovery(item))
+		}
+		if len(lines) == 0 {
+			lines = append(lines, "No host or port observations recorded yet.")
+		}
+		m.viewport.SetContentLines(lines)
+		m.viewport.GotoTop()
+		return m, nil
+	case tea.KeyPressMsg:
+		if message.Key().Code == tea.KeyEscape || message.String() == "q" {
+			m.mode, m.journalError, m.discoveryCount = modeActions, "", 0
+			return m, nil
+		}
+		updated, cmd := m.viewport.Update(message)
+		m.viewport = updated
+		return m, cmd
+	}
+	return m, nil
 }
 
 func (m *WorkbenchModel) updateScanInput(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -253,6 +311,8 @@ func (m *WorkbenchModel) View() tea.View {
 		return tea.NewView(m.actions.prefix + renderScopeInput(string(m.input), m.inputError))
 	case modeJournal:
 		return tea.NewView(m.actions.prefix + renderJournal(m.workbookName, m.viewport.View(), m.journalError))
+	case modeDiscoveries:
+		return tea.NewView(m.actions.prefix + renderDiscoveries(m.workbookName, m.discoveryCount, m.viewport.View(), m.journalError))
 	case modeScanInput:
 		return tea.NewView(m.actions.prefix + renderScanInput(m.scanAction, string(m.input), m.inputError))
 	case modeScanRunning:
@@ -281,7 +341,11 @@ func renderScanInput(action Action, value, problem string) string {
 	if problem != "" {
 		view += "\n" + amber.Render("[!] "+problem)
 	}
-	return view + "\n" + muted.Render("(ESC aborts | Enter explicitly starts the offline-pinned OCI invocation)")
+	hint := "Enter explicitly starts managed native Nmap"
+	if action == PortDiscovery {
+		hint = "Enter explicitly starts the offline-pinned OCI invocation"
+	}
+	return view + "\n" + muted.Render("(ESC aborts | "+hint+")")
 }
 
 func classifyScanError(err error) string {
@@ -296,11 +360,33 @@ func renderExecutionWarning(image, problem string) string {
 	amber := lipgloss.NewStyle().Foreground(lipgloss.Color("#ff5f00")).Bold(true)
 	text := lipgloss.NewStyle().Foreground(lipgloss.Color("#e8e6dd"))
 	muted := lipgloss.NewStyle().Foreground(lipgloss.Color("#7f8b8f"))
-	message := "[📦 OCI Error]: " + problem
+	message := "[Execution Error]: " + problem
 	if problem == "missing-image" {
 		message = "[📦 OCI Error]: Target tool image '" + image + "' is missing from local storage."
+		return amber.Render("⚠ SYSTEM EXECUTION ERROR "+strings.Repeat("─", 52)) + "\n" + text.Render(message) + "\n" + amber.Render("[💡 Invariant]: Technological Sovereignty requires offline image availability.") + "\n\n" + text.Render("Please explicitly build or import the profile image before retrying.") + "\n" + amber.Render(strings.Repeat("─", 78)) + "\n" + muted.Render("(Press any key to clear this warning and return to operations menu)")
 	}
-	return amber.Render("⚠ SYSTEM EXECUTION ERROR "+strings.Repeat("─", 52)) + "\n" + text.Render(message) + "\n" + amber.Render("[💡 Invariant]: Technological Sovereignty requires offline image availability.") + "\n\n" + text.Render("Please explicitly build or import the profile image before retrying.") + "\n" + amber.Render(strings.Repeat("─", 78)) + "\n" + muted.Render("(Press any key to clear this warning and return to operations menu)")
+	return amber.Render("⚠ SYSTEM EXECUTION ERROR "+strings.Repeat("─", 52)) + "\n" + text.Render(message) + "\n" + amber.Render(strings.Repeat("─", 78)) + "\n" + muted.Render("(Press any key to clear this warning and return to operations menu)")
+}
+
+func renderDiscoveries(name string, count int, content, problem string) string {
+	accent := lipgloss.NewStyle().Foreground(lipgloss.Color("#87ff00"))
+	muted := lipgloss.NewStyle().Foreground(lipgloss.Color("#7f8b8f"))
+	view := accent.Render(fmt.Sprintf(" Workbook Discoveries: %s · %d records ", name, count)+strings.Repeat("─", max(1, 45-len([]rune(name))))) + "\n" + content
+	if problem != "" {
+		view += "\n" + lipgloss.NewStyle().Foreground(lipgloss.Color("#ff5f00")).Render("[!] "+problem)
+	}
+	return view + "\n" + muted.Render("(Navigate via j/k/PgUp/PgDn | ESC or q returns to Workbook Operations)")
+}
+
+func formatDiscovery(item workbookview.Discovery) string {
+	accent := lipgloss.NewStyle().Foreground(lipgloss.Color("#87ff00")).Bold(true)
+	muted := lipgloss.NewStyle().Foreground(lipgloss.Color("#585858"))
+	kind := strings.ToUpper(item.Kind)
+	value := item.Value
+	if item.Hostname != "" {
+		value += "  " + muted.Render(item.Hostname)
+	}
+	return accent.Render(fmt.Sprintf("[%-4s]", kind)) + " " + value + muted.Render(fmt.Sprintf("  seen=%d  last=%s  %s", item.Occurrences, item.LastSeen, item.LastProvenanceID))
 }
 
 func renderScopeInput(value, problem string) string {
@@ -383,6 +469,8 @@ func (m *WorkbenchModel) Mode() string {
 		return "scope"
 	case modeJournal:
 		return "journal"
+	case modeDiscoveries:
+		return "discoveries"
 	case modeScanInput:
 		return "scan-input"
 	case modeScanRunning:
@@ -393,5 +481,6 @@ func (m *WorkbenchModel) Mode() string {
 		return "actions"
 	}
 }
-func (m *WorkbenchModel) JournalLineCount() int           { return len(m.journalLines) }
-func (m *WorkbenchModel) SetScanRunner(runner ScanRunner) { m.scanRunner = runner }
+func (m *WorkbenchModel) JournalLineCount() int                     { return len(m.journalLines) }
+func (m *WorkbenchModel) SetScanRunner(runner ScanRunner)           { m.scanRunner = runner }
+func (m *WorkbenchModel) SetDiscoveryLoader(loader DiscoveryLoader) { m.discoveryLoader = loader }

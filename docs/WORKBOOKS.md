@@ -28,6 +28,8 @@ projection of `HOST_DISCOVERED` and `PORT_FOUND` events. Each row retains its
 first and last journal provenance IDs, last invocation ID, timestamps, and
 occurrence count. The command does not persist an asset database or alter the
 canonical journal; malformed journal records fail closed.
+The same projection is available inside the workbook TUI through
+`[D] View discoveries`, with arrow/j/k and page-key navigation.
 
 `akilix workbook path NAME [SECTION]` prints exactly one absolute path for
 shell composition. Sections are allowlisted and resolved only after opening a
